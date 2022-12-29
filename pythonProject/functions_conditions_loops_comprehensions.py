@@ -126,6 +126,7 @@ for index, student in enumerate(students):
 
 students = ["Johns", "Mark", "Vanessa", "Mariam"]
 
+
 def divide_students(students):
     groups = [[], []]
     for index, student in enumerate(students):
@@ -136,4 +137,21 @@ def divide_students(students):
     print(groups)
     return groups
 
+
 divide_students(students)
+
+
+# alternating fonksiyonunun enumerate ile yazılması
+
+
+def alter_enum(text):
+    new_text = ""
+    for i, letter in enumerate(text):
+        if i % 2 == 0:
+            new_text += letter.upper()
+        else:
+            new_text += letter.lower()
+    print(new_text)
+
+
+alter_enum("hi my name is john and i am learning python")
