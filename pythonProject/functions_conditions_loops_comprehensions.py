@@ -93,6 +93,47 @@ def alternating(string):
             new_string += string[string_index].lower()
     print(new_string)
 
+
 alternating("hi my name is john and i am learning python")
 
+# enumerate
+students = ["John", "Mark", "Vanessa", "Mariam"]
 
+for student in students:
+    print(student)
+
+for index, student in enumerate(students):
+    print(index, student)
+
+# Öğrenci indexlerine göre tek-çift sıralama
+A = []
+B = []
+
+for index, student in enumerate(students):
+    if index % 2 == 0:
+        A.append(student)
+    else:
+        B.append(student)
+
+    print(index, student)
+
+# Uygulama
+
+# divide_students fonksiyonu yaz
+# çift indexte yer alan öğrencileri bir listeye alınız.
+# tek indexte yer alan öğrenciler başka bir listeye alınacak.
+# fakat bu iki liste tek bir liste olarak return olsun
+
+students = ["Johns", "Mark", "Vanessa", "Mariam"]
+
+def divide_students(students):
+    groups = [[], []]
+    for index, student in enumerate(students):
+        if index % 2 == 0:
+            groups[0].append(student)
+        else:
+            groups[1].append(student)
+    print(groups)
+    return groups
+
+divide_students(students)
