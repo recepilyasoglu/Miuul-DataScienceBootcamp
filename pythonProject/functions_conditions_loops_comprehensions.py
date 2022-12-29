@@ -155,3 +155,40 @@ def alter_enum(text):
 
 
 alter_enum("hi my name is john and i am learning python")
+
+# lambda, map, filter, reduce
+new_sum = lambda a, b: a + b
+
+new_sum(4, 5)
+
+salaries = [1000, 2000, 3000, 4000, 5000]
+
+
+# map
+def new_salary(x):
+    return x * 20
+
+
+new_salary(5000)
+
+for salary in salaries:
+    print(new_salary(salary))
+
+# use map
+list(map(new_salary, salaries))
+
+list(map(lambda x: x * 20 / 100 + x, salaries))
+
+list(map(lambda x: x ** 2, salaries))
+
+# Filter
+
+list_store = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+list(filter(lambda x: x % 2 == 0, list_store))
+
+# Reduce
+from functools import reduce
+
+list_store = [1, 2, 3, 4]
+reduce(lambda a, b: a + b, list_store)
+
