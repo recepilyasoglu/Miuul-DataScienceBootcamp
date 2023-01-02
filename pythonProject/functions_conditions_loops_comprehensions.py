@@ -198,8 +198,10 @@ reduce(lambda a, b: a + b, list_store)
 
 salaries = [1000, 2000, 3000, 4000, 5000]
 
+
 def new_salary(x):
     return x * 20 / 100 + x
+
 
 for salary in salaries:
     print(new_salary(salary))
@@ -208,7 +210,6 @@ null_list = []
 
 for salary in salaries:
     null_list.append(new_salary(salary))
-
 
 null_list = []
 
@@ -220,7 +221,6 @@ for salary in salaries:
 
 [new_salary(salary * 2) if salary > 3000 else new_salary(salary) for salary in salaries]
 
-
 [salary * 2 for salary in salaries]
 
 [salary * 2 for salary in salaries if salary < 3000]
@@ -228,7 +228,6 @@ for salary in salaries:
 [salary * 2 if salary < 3000 else salary * 0 for salary in salaries]
 
 [new_salary(salary * 2) if salary < 3000 else new_salary(salary * 0.2) for salary in salaries]
-
 
 students = ["John", "Mark", "Vanessa", "Mariam"]
 
@@ -238,24 +237,22 @@ students_no = ["John", "Vanessa"]
 
 [student.upper() if student not in students_no else student.lower() for student in students]
 
-
 # Dict Comprehensions
-dictionary = {"a" : 1,
-              "b" : 2,
-              "c" : 3,
-              "d" : 4
+dictionary = {"a": 1,
+              "b": 2,
+              "c": 3,
+              "d": 4
               }
 
 dictionary.keys()
 dictionary.values()
 dictionary.items()
-#square of values
+# square of values
 {k: v ** 2 for (k, v) in dictionary.items()}
 
 {k.upper(): v for (k, v) in dictionary.items()}
 
-{k.upper(): v*2 for (k, v) in dictionary.items()}
-
+{k.upper(): v * 2 for (k, v) in dictionary.items()}
 
 # Uygulama: Çift sayıalrın karesi alınarak bir sözlüğe eklenmek istenmektedir
 # Key'ler orjinal değerler value'lar ise değiştirilmiş değerler olacak
@@ -269,14 +266,14 @@ for i in numbers:
 
 {i: i ** 1 for i in numbers if i % 2 == 0}
 
-
 # Applications of List & Dict Comprehensions
 ## Uygulama: Bir veri setindeki değişken isimlerini değiştirmek
 
-#before : ["total","speeding","alcohol","not_distracted","no_previous","ins_premium","in_losses","abbrev"]
-#after : ["TOTAL","SPEEDİNG","ALCOHOL","NOT_DİSTRACTED","NO_PREVİOUS","İNS_PREMİUM","İNS_LOSSES","ABBREV"]
+# before : ["total","speeding","alcohol","not_distracted","no_previous","ins_premium","in_losses","abbrev"]
+# after : ["TOTAL","SPEEDİNG","ALCOHOL","NOT_DİSTRACTED","NO_PREVİOUS","İNS_PREMİUM","İNS_LOSSES","ABBREV"]
 
 import seaborn as sns
+
 df = sns.load_dataset("car_crashes")
 df.columns
 
@@ -295,4 +292,43 @@ df = sns.load_dataset("car_crashes")
 df.columns
 A = []
 df.columns = [col.upper() for col in df.columns]
+
+# Uygulama2: İsminde "INS" olan değikenlerin başına FLAG diğerlerine NO_FLAG eklemek
+
+# step by step
+[col for col in df.columns if "INS" in col]
+
+["FLAG_" + col for col in df.columns if "INS" in col]
+
+["FLAG_" + col if "INS" in col else "NO_FLAG_" + col for col in df.columns]
+
+# Uygulama3: Key'i string, value'su aşağıdaki gibi bir liste olan sözlük oluşturmak
+# Sadece sayısal değikenler için yapmak istiyoruz
+
+# {"total" : ["mean", "min", "max", "var"],
+# "speeding" : ["mean", "min", "max", "var"],
+# "alcohol" : ["mean", "min", "max", "var"],
+# "not_distracted" : ["mean", "min", "max", "var"],
+# "no_previous" : ["mean", "min", "max", "var"],
+# "ins_premium" : ["mean", "min", "max", "var"],
+# "ins_losses" : ["mean", "min", "max", "var"],
+# }
+
+import seaborn as sns
+
+df = sns.load_dataset("car_crashes")
+df.columns
+
+# veri seti içerisindeki object olmayan değerleri al(sayısal değerleri al)
+num_cols = [col for col in df.columns if df[col].dtype != "O"]
+soz = {}
+agg_list = ["mean", "min", "max", "sum"]
+
+for col in num_cols:
+    soz[col] = agg_list
+
+#with Comprehensions
+new_dict = {col: agg_list for col in num_cols}
+
+df[num_cols].agg(new_dict)
 
