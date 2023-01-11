@@ -13,3 +13,4 @@ for i in range(0, len(a)):
 a = np.array([1,2,3,4])
 b = np.array([2,3,4,5])
 a * b
+
