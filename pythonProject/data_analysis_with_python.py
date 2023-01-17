@@ -119,3 +119,36 @@ a = np.array([[5, 1], [1, 3]])
 b = np.array([12, 10])
 
 np.linalg.solve(a, b)
+
+# Pandas
+import pandas as pd
+
+s = pd.Series([18, 77, 12, 4, 5])
+type(s)
+s.index
+s.dtype
+s.size
+s.ndim
+s.values
+type(s.values)
+s.head(3)
+s.tail(3)
+
+#Reading Data
+import pandas as pd
+import seaborn as sns
+df = pd.read_csv("Advertising.csv")
+df.head()
+
+df = sns.load_dataset("titanic")
+df.head()
+df.tail()
+df.shape
+df.info()
+df.columns
+df.index
+df.describe().T
+df.isnull().values.any() #is there any miss value? (even if there is one)
+df.isnull().sum()
+df["sex"].head()
+df["sex"].value_counts()
