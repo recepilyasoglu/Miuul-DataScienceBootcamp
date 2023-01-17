@@ -218,3 +218,23 @@ df.drop(col_names, axis=1).head()
 
 df.loc[:, df.columns.str.contains("age")].head() #selected values that contain age
 df.loc[:, ~df.columns.str.contains("age")].head() #not included
+
+# iloc & loc
+import pandas as pd
+import numpy as np
+pd.set_option("display.max_columns", None)
+df = sns.load_dataset("titanic")
+df.head()
+
+#iloc: integer based selection
+df.iloc[0:3]
+df.iloc[0,0]
+
+#loc: label based selection
+df.loc[0:3]
+
+df.iloc[0:3, 0:3]
+df.loc[0:3, "age"]
+
+col_names = ["age", "embarked", "alive"]
+df.loc[0:3, col_names]
