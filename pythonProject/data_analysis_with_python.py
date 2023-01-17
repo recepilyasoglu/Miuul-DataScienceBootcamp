@@ -152,3 +152,35 @@ df.isnull().values.any() #is there any miss value? (even if there is one)
 df.isnull().sum()
 df["sex"].head()
 df["sex"].value_counts()
+
+#Selection in Pandas
+df.index
+df[0:13]
+df.drop(0, axis=0).head()
+
+delete_index = [1, 3, 5, 7]
+df.drop(delete_index, axis=0).head(10)
+
+#Converting Value to Index
+df["age"].head()
+df.age.head()
+
+df.index = df["age"]
+
+df.drop("age", axis=1).head()
+
+df.drop("age", axis=1, inplace=True) #with inplace
+df.index
+
+#Converting Index to Value
+
+df["age"] = df.index
+
+df.head()
+df.drop("age", axis=1, inplace=True)
+
+#second way
+df.reset_index().head()
+df = df.reset_index().head()
+df.head()
+
