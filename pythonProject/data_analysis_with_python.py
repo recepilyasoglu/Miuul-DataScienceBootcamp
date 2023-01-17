@@ -293,3 +293,4 @@ df.groupby(["sex", "embark_town", "class"]).agg({
     "age": ["mean", "sum"],
     "survived": "mean",
     "sex": "count"})
+
