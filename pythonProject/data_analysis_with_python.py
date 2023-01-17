@@ -77,6 +77,7 @@ v[catch]
 
 # Conditions on Numpy
 import numpy as np
+
 v = np.array([1, 2, 3, 4, 5])
 
 # with classic loop
@@ -85,7 +86,7 @@ for i in v:
     if i < 3:
         ab.append(i)
 
-#with Numpy
+# with Numpy
 v < 3
 
 v[v < 3]
@@ -96,6 +97,7 @@ v[v >= 3]
 
 # Mathematical Operations
 import numpy as np
+
 v = np.array([1, 2, 3, 4, 5])
 
 v / 5
@@ -111,7 +113,7 @@ np.min(v)
 np.sum(v)
 np.var(v)
 
-#İki bilinmeyenli denklem çözümü
+# İki bilinmeyenli denklem çözümü
 # 5+x0 + x1 = 12
 # x0 + 3*x1 = 10
 
@@ -134,9 +136,10 @@ type(s.values)
 s.head(3)
 s.tail(3)
 
-#Reading Data
+# Reading Data
 import pandas as pd
 import seaborn as sns
+
 df = pd.read_csv("Advertising.csv")
 df.head()
 
@@ -148,12 +151,12 @@ df.info()
 df.columns
 df.index
 df.describe().T
-df.isnull().values.any() #is there any miss value? (even if there is one)
+df.isnull().values.any()  # is there any miss value? (even if there is one)
 df.isnull().sum()
 df["sex"].head()
 df["sex"].value_counts()
 
-#Selection in Pandas
+# Selection in Pandas
 df.index
 df[0:13]
 df.drop(0, axis=0).head()
@@ -161,7 +164,7 @@ df.drop(0, axis=0).head()
 delete_index = [1, 3, 5, 7]
 df.drop(delete_index, axis=0).head(10)
 
-#Converting Value to Index
+# Converting Value to Index
 df["age"].head()
 df.age.head()
 
@@ -169,29 +172,30 @@ df.index = df["age"]
 
 df.drop("age", axis=1).head()
 
-df.drop("age", axis=1, inplace=True) #with inplace
+df.drop("age", axis=1, inplace=True)  # with inplace
 df.index
 
-#Converting Index to Value
+# Converting Index to Value
 
 df["age"] = df.index
 
 df.head()
 df.drop("age", axis=1, inplace=True)
 
-#second way
+# second way
 df.reset_index().head()
 df = df.reset_index().head()
 df.head()
 
-#Operations on Variables
+# Operations on Variables
 import pandas as pd
 import seaborn as sns
+
 pd.set_option("display.max.columns", None)
 df = sns.load_dataset("titanic")
 df.head()
 
-"age" in df #does this column is exist in dataframe?
+"age" in df  # does this column is exist in dataframe?
 
 df["age"].head()
 df.age.head()
@@ -199,8 +203,8 @@ df.age.head()
 df["age"].head()
 type(df["age"].head())
 
-#it comes as a dataframe when square brackets are used twice.
-#and comes as pandasseries once square brackets are used
+# it comes as a dataframe when square brackets are used twice.
+# and comes as pandasseries once square brackets are used
 type(df[["age"]].head())
 
 df[["age", "alive"]]
@@ -208,7 +212,7 @@ df[["age", "alive"]]
 col_names = ["age", "adult_male", "alive"]
 df[col_names]
 
-df["age2"] = df["age"]**2
+df["age2"] = df["age"] ** 2
 df["age3"] = df["age"] / df["age2"]
 df
 
@@ -216,21 +220,22 @@ df.drop("age3", axis=1).head()
 
 df.drop(col_names, axis=1).head()
 
-df.loc[:, df.columns.str.contains("age")].head() #selected values that contain age
-df.loc[:, ~df.columns.str.contains("age")].head() #not included
+df.loc[:, df.columns.str.contains("age")].head()  # selected values that contain age
+df.loc[:, ~df.columns.str.contains("age")].head()  # not included
 
 # iloc & loc
 import pandas as pd
 import numpy as np
+
 pd.set_option("display.max_columns", None)
 df = sns.load_dataset("titanic")
 df.head()
 
-#iloc: integer based selection
+# iloc: integer based selection
 df.iloc[0:3]
-df.iloc[0,0]
+df.iloc[0, 0]
 
-#loc: label based selection
+# loc: label based selection
 df.loc[0:3]
 
 df.iloc[0:3, 0:3]
@@ -239,9 +244,10 @@ df.loc[0:3, "age"]
 col_names = ["age", "embarked", "alive"]
 df.loc[0:3, col_names]
 
-#Condition Selection
+# Condition Selection
 import pandas as pd
 import seaborn as sns
+
 pd.set_option("display.max.columns", None)
 df = sns.load_dataset("titanic")
 df.head()
@@ -251,14 +257,39 @@ df[df["age"] > 50]["age"].count()
 
 df.loc[df["age"] > 50, ["age", "class"]].head()
 
-#parentheses are used for more than one condition
+# parentheses are used for more than one condition
 df.loc[(df["age"] > 50) & (df["sex"] == "male"), ["age", "class"]].head()
 
 df["embark_town"].value_counts()
 
-df_new  = df.loc[(df["age"] > 50) & (df["sex"] == "male")
-       & ((df["embark_town"] == "Cherbourg") | (df["embark_town"] == "Southampton")),
-       ["age", "class", "embark_town"]]
+df_new = df.loc[(df["age"] > 50) & (df["sex"] == "male")
+                & ((df["embark_town"] == "Cherbourg") | (df["embark_town"] == "Southampton")),
+["age", "class", "embark_town"]]
 
 df_new["embark_town"].value_counts()
 
+# Aggregation & Grouping
+import pandas as pd
+import seaborn as sns
+
+pd.set_option("display.max.columns", None)
+df = sns.load_dataset("titanic")
+df.head()
+
+df["age"].mean()
+
+df.groupby("sex")["age"].mean()
+
+df.groupby("sex").agg({"age": "mean"})
+df.groupby("sex").agg({"age": ["mean", "sum"]})
+
+df.groupby("sex").agg({"age": ["mean", "sum"],
+                       "survived": "mean"})
+
+df.groupby(["sex", "embark_town"]).agg({"age": ["mean", "sum"],
+                                        "survived": "mean"})
+
+df.groupby(["sex", "embark_town", "class"]).agg({
+    "age": ["mean", "sum"],
+    "survived": "mean",
+    "sex": "count"})
