@@ -184,3 +184,37 @@ df.reset_index().head()
 df = df.reset_index().head()
 df.head()
 
+#Operations on Variables
+import pandas as pd
+import seaborn as sns
+pd.set_option("display.max.columns", None)
+df = sns.load_dataset("titanic")
+df.head()
+
+"age" in df #does this column is exist in dataframe?
+
+df["age"].head()
+df.age.head()
+
+df["age"].head()
+type(df["age"].head())
+
+#it comes as a dataframe when square brackets are used twice.
+#and comes as pandasseries once square brackets are used
+type(df[["age"]].head())
+
+df[["age", "alive"]]
+
+col_names = ["age", "adult_male", "alive"]
+df[col_names]
+
+df["age2"] = df["age"]**2
+df["age3"] = df["age"] / df["age2"]
+df
+
+df.drop("age3", axis=1).head()
+
+df.drop(col_names, axis=1).head()
+
+df.loc[:, df.columns.str.contains("age")].head() #selected values that contain age
+df.loc[:, ~df.columns.str.contains("age")].head() #not included
