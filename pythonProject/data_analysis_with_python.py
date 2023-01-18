@@ -294,3 +294,24 @@ df.groupby(["sex", "embark_town", "class"]).agg({
     "survived": "mean",
     "sex": "count"})
 
+# Pivot Table
+import pandas as pd
+import seaborn as sns
+pd.set_option("display.max.columns", None)
+df = sns.load_dataset("titanic")
+df.head()
+
+# gender survival rates by age distribution
+
+df.pivot_table("survived", "sex", ["embarked", "class"])
+
+df.head()
+
+#converting categorical to integer or or vice versa
+df["new_age"] = pd.cut(df["age"], [0, 10, 18, 25, 40, 90])
+
+# parameter: intersection, row index, column index
+df.pivot_table("survived", "sex", "new_age")
+
+df.pivot_table("survived", "sex", ["new_age", "class"]) #plus class
+
