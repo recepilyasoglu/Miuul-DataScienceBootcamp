@@ -352,4 +352,30 @@ df.head()
 df[["age", "age2", "age3"]].apply(lambda x: x / 10).head()
 
 
+# Join Operations
+import numpy as np
+import pandas as pd
 
+m = np.random.randint(1, 30, size=(5, 3))
+df1 = pd.DataFrame(m, columns=["var1", "var2", "var3"])
+df2 = df1 + 99
+
+pd.concat([df1, df2], ignore_index=True)
+
+#join operatons with Merge
+df1 = pd.DataFrame({"employees": ["john", "dennis", "mark", "maria"],
+                    "group": ["accounting", "engineering", "engineering", "hr"]})
+
+df2 = pd.DataFrame({"employees": ["john", "dennis", "mark", "maria"],
+                    "start_date": [2010, 2009, 2014, 2019]})
+
+pd.merge(df1, df2) #already default merge by employees
+pd.merge(df1, df2, on="employees") #merge by employees
+
+# Purpose: we want to reach the information of each employee's manager.
+df3 = pd.merge(df1, df2)
+
+df4 = pd.DataFrame({"group": ["accounting", "engineering", "hr"],
+                    "manager": ["Caner", "Mustafa", "Berkcan"]})
+
+df5 = pd.merge(df3, df4, on="group")
