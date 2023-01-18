@@ -352,3 +352,4 @@ df.head()
 df[["age", "age2", "age3"]].apply(lambda x: x / 10).head()
 
 
+
