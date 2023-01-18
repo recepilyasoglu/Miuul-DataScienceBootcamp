@@ -297,6 +297,7 @@ df.groupby(["sex", "embark_town", "class"]).agg({
 # Pivot Table
 import pandas as pd
 import seaborn as sns
+
 pd.set_option("display.max.columns", None)
 df = sns.load_dataset("titanic")
 df.head()
@@ -307,11 +308,47 @@ df.pivot_table("survived", "sex", ["embarked", "class"])
 
 df.head()
 
-#converting categorical to integer or or vice versa
+# converting categorical to integer or or vice versa
 df["new_age"] = pd.cut(df["age"], [0, 10, 18, 25, 40, 90])
 
 # parameter: intersection, row index, column index
 df.pivot_table("survived", "sex", "new_age")
 
-df.pivot_table("survived", "sex", ["new_age", "class"]) #plus class
+df.pivot_table("survived", "sex", ["new_age", "class"])  # plus class
+
+# Apply & Lambda
+import pandas as pd
+import seaborn as sns
+
+pd.set_option("display.max.columns", None)
+df = sns.load_dataset("titanic")
+df.head()
+
+# age variables divided by 10
+df["age2"] = df["age"] * 2
+df["age3"] = df["age"] * 5
+
+# normally
+(df["age"] / 10).head()
+(df["age2"] / 10).head()
+(df["age3"] / 10).head()
+
+# with function
+for col in df.columns:
+    if "age" in col:
+        print(col)
+
+for col in df.columns:
+    if "age" in col:
+        print((df[col]/10).head())
+
+for col in df.columns:
+    if "age" in col:
+        df[col] = df[col]/10
+
+df.head()
+
+#with apply & lambda
+df[["age", "age2", "age3"]].apply(lambda x: x / 10).head()
+
 
