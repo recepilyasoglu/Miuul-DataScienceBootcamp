@@ -472,3 +472,24 @@ plt.subplot(1, 2, 2)
 plt.title("2")
 plt.plot(x, y)
 plt.show()
+
+
+# Seaborn
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+df = sns.load_dataset("tips")
+df.head()
+
+# Visualization of Categorical Variables
+df["sex"].value_counts()
+sns.countplot(x=df["sex"], data=df)
+plt.show()
+
+# Visualization of Numerical Variables
+sns.boxplot(x=df["total_bill"])
+plt.show()
+
+#pandas
+df["total_bill"].hist()
+plt.show()
