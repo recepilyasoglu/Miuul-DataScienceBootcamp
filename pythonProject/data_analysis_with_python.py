@@ -401,3 +401,74 @@ plt.show()
 
 plt.boxplot(df["fare"])
 plt.show()
+
+# plot
+import numpy as np
+
+x = np.array([1, 8])
+y = np.array([0, 150])
+
+plt.plot(x, y)
+plt.show()
+
+plt.plot(x, y, "o")
+plt.show()
+
+x = np.array([2, 4, 6, 8, 10])
+y = np.array([1, 3, 5, 7, 9])
+
+plt.plot(x, y)
+plt.show()
+
+plt.plot(x, y, "o")
+plt.show()
+
+# marker
+y = np.array([13, 28, 11, 100])
+
+plt.plot(y, marker="o")
+plt.show()
+
+plt.plot(y, marker="*")
+plt.show()
+
+# Line
+y = np.array([13, 28, 11, 100])
+plt.plot(y, linestyle="dashdot", color="r")
+plt.show()
+
+# Multiple Lines
+x = np.array([23, 18, 31, 10])
+y = np.array([13, 28, 11, 100])
+plt.plot(x)
+plt.plot(y)
+plt.show()
+
+# Labels
+x = np.array([80, 85, 90, 95, 100])
+y = np.array([240, 250, 260, 270, 280])
+plt.plot(x, y)
+plt.title("Main Title")
+
+#name of x axis
+plt.xlabel("Name of X axis")
+#name of y axis
+plt.ylabel("Name of Y axis")
+
+plt.grid()
+plt.show()
+
+#Subplots
+#plot1
+x = np.array([80, 85, 90, 95, 100])
+y = np.array([240, 250, 260, 270, 280])
+plt.subplot(1, 2, 1) #meaning: i'm creating a one row two column chart and now i'm creating the first graph
+plt.title("1")
+plt.plot(x, y)
+
+x = np.array([8, 8, 9, 9, 10])
+y = np.array([24, 20, 26, 27, 28])
+plt.subplot(1, 2, 2)
+plt.title("2")
+plt.plot(x, y)
+plt.show()
