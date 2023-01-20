@@ -284,3 +284,4 @@ for col in cat_cols:
 
 for col in num_cols:
     num_summary(df, col, plot=True)
+
