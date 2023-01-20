@@ -331,4 +331,3 @@ for col in num_cols:
 new_dict = {col: agg_list for col in num_cols}
 
 df[num_cols].agg(new_dict)
-
