@@ -493,3 +493,4 @@ plt.show()
 #pandas
 df["total_bill"].hist()
 plt.show()
+
