@@ -34,6 +34,101 @@ def check_df(dataframe, head=5):
 
 check_df(df)
 
+#checking anoter data set
 df = sns.load_dataset("flights")
-
 check_df(df)
+
+# Analysis of Categorical Variables
+import numpy as np
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+pd.set_option("display.max_columns", None)
+df = sns.load_dataset("titanic")
+
+df["embarked"].value_counts()
+df["sex"].unique()
+df["class"].nunique()
+
+# is the type information of the related variable included in the list we have created after converting it to string?
+cat_cols = [col for col in df.columns if str(df[col].dtypes) in ["category", "object", "bool"]]
+
+# find numeric looking but with categorical values in it
+num_but_cat = [col for col in df.columns if df[col].nunique() < 10 and df[col].dtypes in ["int64", "float64"]]
+
+# categorical but immeasurable variables with multiple classes
+# if the type of the variable is categorical and object and the number of unique classes is more than 20 it's not a measurable variable catch them
+cat_but_car = [col for col in df.columns if df[col].nunique() > 20 and str(df[col].dtypes) in ["category", "object"]]
+
+cat_cols = cat_cols + num_but_cat
+
+cat_cols = [col for col in cat_cols if col not in cat_but_car ]
+
+df[cat_cols].nunique()
+
+# what about numerical variables ?
+[col for col in df.columns if col not in cat_cols]
+
+
+df["survived"].value_counts()
+100 * df["survived"].value_counts() / len(df) # percent equivalents
+
+def cat_summary(dataframe, col_name):
+    print(pd.DataFrame({col_name: df[col_name].value_counts(),
+                        "Ratio": 100 * df[col_name].value_counts() / len(dataframe)}))
+    print("###################################")
+
+cat_summary(df, "sex")  # Summary of the variable given
+
+for col in cat_cols:
+    cat_summary(df, col)
+
+def cat_summary(dataframe, col_name, plot=False):
+    print(pd.DataFrame({col_name: df[col_name].value_counts(),
+                        "Ratio": 100 * df[col_name].value_counts() / len(dataframe)}))
+    print("###################################")
+
+    if plot:
+        sns.countplot(x=dataframe[col_name], data=dataframe)
+        plt.show(block=True)
+
+cat_summary(df, "sex", plot=True)
+
+for col in cat_cols:
+    if df[col].dtypes == "bool":  # because we got an error of type bool
+        print("sdsfsfsfsdfsfsdfsfss")  # print and continue
+    else:
+        cat_summary(df, col, plot=True)
+
+df["adult_male"].astype(int)
+
+
+for col in cat_cols:
+    if df[col].dtypes == "bool":
+        df[col] = df[col].astype(int)
+        cat_summary(df, col, plot=True)
+    else:
+        cat_summary(df, col, plot=True)
+
+
+def cat_summary(dataframe, col_name, plot=False):
+    if dataframe[col_name].dtypes == "bool":
+        dataframe[col_name] = dataframe[col_name].astype(int)
+        print(pd.DataFrame({col_name: df[col_name].value_counts(),
+                            "Ratio": 100 * df[col_name].value_counts() / len(dataframe)}))
+        print("###################################")
+
+        if plot:
+            sns.countplot(x=dataframe[col_name], data=dataframe)
+            plt.show(block=True)
+
+    else:
+        print(pd.DataFrame({col_name: df[col_name].value_counts(),
+                            "Ratio": 100 * df[col_name].value_counts() / len(dataframe)}))
+        print("###################################")
+
+        if plot:
+            sns.countplot(x=dataframe[col_name], data=dataframe)
+            plt.show(block=True)
+
+cat_summary(df, "adult_male", plot=True)
