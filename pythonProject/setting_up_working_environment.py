@@ -15,7 +15,5 @@ print("Hello AI Era")
 # sanal ortamı aktive etmek
 # conda activate myenv
 
-
 # Paket Yükseltme
 # conda upgrade conda
-
