@@ -285,3 +285,109 @@ for col in cat_cols:
 for col in num_cols:
     num_summary(df, col, plot=True)
 
+
+# Analysis of Target Variables
+import numpy as np
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+pd.set_option("display.max_columns", None)
+df = sns.load_dataset("titanic")
+
+for col in df.columns:
+    if df[col].dtypes == "bool":
+        df[col] = df[col].astype(int)
+
+def graph_col_names(dataframe, cat_th=10, car_th=20):
+    """
+    Returns the names of categorical, numeric and categorical but cardinal variables in the data set
+
+    Args: dataframe: dataframe variable names are the dataframe to be retrieved
+    cat_th: int, float
+        class threshold for values that are numeric but categorical, examp: if bigger than 10 it's categorical variable car_th: (cardinal threshold) = if bigger than 20 it's cardinal variable
+    car_th: int, float
+        class threshold for values that are categorical but cardinal values
+
+    Returns:
+        cat_cols: list
+            Categorical variable list
+        cat_but_car: list
+            Categorical view cardinal variable list
+
+    Notes
+    ------
+    cat_cols + num_cols + cat_but_car = total number of variables
+    num_but_cat in cat_cols
+
+    """
+    #cat_cols, cat_but_car
+    cat_cols = [col for col in df.columns if str(df[col].dtypes) in ["category", "object", "bool"]]
+
+    # find numeric looking but with categorical values in it
+    num_but_cat = [col for col in df.columns if df[col].nunique() < 10 and df[col].dtypes in ["int64", "float64"]]
+
+    cat_but_car = [col for col in df.columns if
+                   df[col].nunique() > 20 and str(df[col].dtypes) in ["category", "object"]]
+
+    cat_cols = cat_cols + num_but_cat
+    cat_cols = [col for col in cat_cols if col not in cat_but_car]
+
+    # for numerical variables
+    num_cols = [col for col in df.columns if df[col].dtypes in ["int64", "float64"]]
+    num_cols = [col for col in num_cols if col not in cat_cols]
+
+    print(f"Observation: {dataframe.shape[0]}")
+    print(f"Variables: {dataframe.shape[1]}")
+    print(f"cat_cols: {len(cat_cols)}")
+    print(f"num_cols: {len(num_cols)}")
+    print(f"cat_but_car: {len(cat_but_car)}")
+    print(f"num_but_car: {len(num_but_cat)}")
+
+    return cat_cols, num_cols, cat_but_car
+
+def cat_summary(dataframe, col_name, plot=False):
+    print(pd.DataFrame({col_name: df[col_name].value_counts(),
+                            "Ratio": 100 * df[col_name].value_counts() / len(dataframe)}))
+    print("###################################")
+
+    if plot:
+        sns.countplot(x=dataframe[col_name], data=dataframe)
+        plt.show(block=True)
+
+cat_cols, num_cols, cat_but_car = graph_col_names(df)
+
+df.head()
+# Target Variables in df = Survived
+df["survived"].value_counts()
+cat_summary(df, "survived")
+
+# Analysis of Target Variable with Categorical Variables
+# understanding how the "survived" variable came about
+
+# survival rates by "sex"
+df.groupby("sex")["survived"].mean()
+
+def target_summary_with_cat(dataframe, target, categorical_col):
+    print(pd.DataFrame({"TARGET_MEAN": dataframe.groupby(categorical_col)[target].mean()}))
+
+target_summary_with_cat(df, "survived", "sex")
+target_summary_with_cat(df, "survived", "pclass")
+
+for col in cat_cols:
+    target_summary_with_cat(df, "survived", col)
+
+# Analysis of Target Variable with Integer Variables
+
+# mean age of survivors and non-survivors
+df.groupby("survived")["age"].mean()
+# or
+df.groupby("survived").agg({"age": "mean"})
+
+def target_summary_with_num(dataframe, target, numerical_col):
+    print(dataframe.groupby(target).agg({numerical_col: "mean"}), end="\n\n\n")
+
+target_summary_with_num(df, "survived", "age")
+
+for col in num_cols:
+    target_summary_with_num(df, "survived", col)
+    
