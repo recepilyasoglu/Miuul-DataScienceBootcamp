@@ -5,6 +5,7 @@ import pandas as pd
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
+
 pd.set_option("display.max_columns", None)
 pd.set_option("display.width", 500)
 df = sns.load_dataset("titanic")
@@ -17,6 +18,7 @@ df.index
 df.describe().T
 df.isnull().values.any()  # is there any miss value? (even if there is one)
 df.isnull().sum()
+
 
 def check_df(dataframe, head=5):
     print("############# Shape #############")
@@ -32,17 +34,19 @@ def check_df(dataframe, head=5):
     print("############# Quantiles #############")
     print(dataframe.describe([0, 0.05, 0.50, 0.95, 0.99, 1]).T)
 
+
 check_df(df)
 
-#checking anoter data set
+# checking anoter data set
 df = sns.load_dataset("flights")
 check_df(df)
 
-# Analysis of Categorical Variables
+### Analysis of Categorical Variables
 import numpy as np
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
+
 pd.set_option("display.max_columns", None)
 df = sns.load_dataset("titanic")
 
@@ -69,19 +73,21 @@ df[cat_cols].nunique()
 # what about numerical variables ?
 [col for col in df.columns if col not in cat_cols]
 
-
 df["survived"].value_counts()
-100 * df["survived"].value_counts() / len(df) # percent equivalents
+100 * df["survived"].value_counts() / len(df)  # percent equivalents
+
 
 def cat_summary(dataframe, col_name):
     print(pd.DataFrame({col_name: df[col_name].value_counts(),
                         "Ratio": 100 * df[col_name].value_counts() / len(dataframe)}))
     print("###################################")
 
+
 cat_summary(df, "sex")  # Summary of the variable given
 
 for col in cat_cols:
     cat_summary(df, col)
+
 
 def cat_summary(dataframe, col_name, plot=False):
     print(pd.DataFrame({col_name: df[col_name].value_counts(),
@@ -92,6 +98,7 @@ def cat_summary(dataframe, col_name, plot=False):
         sns.countplot(x=dataframe[col_name], data=dataframe)
         plt.show(block=True)
 
+
 cat_summary(df, "sex", plot=True)
 
 for col in cat_cols:
@@ -101,7 +108,6 @@ for col in cat_cols:
         cat_summary(df, col, plot=True)
 
 df["adult_male"].astype(int)
-
 
 for col in cat_cols:
     if df[col].dtypes == "bool":
@@ -131,15 +137,15 @@ def cat_summary(dataframe, col_name, plot=False):
             sns.countplot(x=dataframe[col_name], data=dataframe)
             plt.show(block=True)
 
+
 cat_summary(df, "adult_male", plot=True)
 
-
-
-# Analysis of Numerical Variables
+### Analysis of Numerical Variables
 import numpy as np
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
+
 pd.set_option("display.max_columns", None)
 df = sns.load_dataset("titanic")
 df.head()
@@ -151,14 +157,17 @@ num_cols = [col for col in df.columns if df[col].dtypes in ["int64", "float64"]]
 # if not in cat_cols, select them
 num_cols = [col for col in num_cols if col not in cat_cols]
 
+
 def num_summary(dataframe, numerical_col):
     quantiles = [0.05, 0.10, 0.20, 0.30, 0.40, 0.50, 0.60, 0.70, 0.80, 0.90, 0.95]
     print(dataframe[numerical_col].describe(quantiles).T)
+
 
 num_summary(df, "age")
 
 for col in num_cols:
     num_summary(df, col)
+
 
 def num_summary(dataframe, numerical_col, plot=False):
     quantiles = [0.05, 0.10, 0.20, 0.30, 0.40, 0.50, 0.60, 0.70, 0.80, 0.90, 0.95]
@@ -170,17 +179,18 @@ def num_summary(dataframe, numerical_col, plot=False):
         plt.title(numerical_col)
         plt.show(block=True)
 
+
 num_summary(df, "age", plot=True)
 
 for col in num_cols:
     num_summary(df, col, plot=True)
 
-
-# Capturing Variables and Generalizing Operations
+### Capturing Variables and Generalizing Operations
 import numpy as np
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
+
 pd.set_option("display.max_columns", None)
 df = sns.load_dataset("titanic")
 df.head()
@@ -209,7 +219,7 @@ def graph_col_names(dataframe, cat_th=10, car_th=20):
     num_but_cat in cat_cols
 
     """
-    #cat_cols, cat_but_car
+    # cat_cols, cat_but_car
     cat_cols = [col for col in df.columns if str(df[col].dtypes) in ["category", "object", "bool"]]
 
     # find numeric looking but with categorical values in it
@@ -237,15 +247,18 @@ def graph_col_names(dataframe, cat_th=10, car_th=20):
 
 cat_cols, num_cols, cat_but_car = graph_col_names(df)
 
+
 def cat_summary(dataframe, col_name):
     print(pd.DataFrame({col_name: df[col_name].value_counts(),
                         "Ratio": 100 * df[col_name].value_counts() / len(dataframe)}))
     print("###################################")
 
+
 cat_summary(df, "sex")
 
 for col in cat_cols:
     cat_summary(df, col)
+
 
 def num_summary(dataframe, numerical_col, plot=False):
     quantiles = [0.05, 0.10, 0.20, 0.30, 0.40, 0.50, 0.60, 0.70, 0.80, 0.90, 0.95]
@@ -256,6 +269,7 @@ def num_summary(dataframe, numerical_col, plot=False):
         plt.xlabel(numerical_col)
         plt.title(numerical_col)
         plt.show(block=True)
+
 
 for col in num_cols:
     num_summary(df, col, plot=True)
@@ -270,14 +284,16 @@ for col in df.columns:
 
 cat_cols, num_cols, cat_but_car = graph_col_names(df)
 
+
 def cat_summary(dataframe, col_name, plot=False):
     print(pd.DataFrame({col_name: df[col_name].value_counts(),
-                            "Ratio": 100 * df[col_name].value_counts() / len(dataframe)}))
+                        "Ratio": 100 * df[col_name].value_counts() / len(dataframe)}))
     print("###################################")
 
     if plot:
         sns.countplot(x=dataframe[col_name], data=dataframe)
         plt.show(block=True)
+
 
 for col in cat_cols:
     cat_summary(df, col, plot=True)
@@ -285,18 +301,19 @@ for col in cat_cols:
 for col in num_cols:
     num_summary(df, col, plot=True)
 
-
-# Analysis of Target Variables
+### Analysis of Target Variables
 import numpy as np
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
+
 pd.set_option("display.max_columns", None)
 df = sns.load_dataset("titanic")
 
 for col in df.columns:
     if df[col].dtypes == "bool":
         df[col] = df[col].astype(int)
+
 
 def graph_col_names(dataframe, cat_th=10, car_th=20):
     """
@@ -320,7 +337,7 @@ def graph_col_names(dataframe, cat_th=10, car_th=20):
     num_but_cat in cat_cols
 
     """
-    #cat_cols, cat_but_car
+    # cat_cols, cat_but_car
     cat_cols = [col for col in df.columns if str(df[col].dtypes) in ["category", "object", "bool"]]
 
     # find numeric looking but with categorical values in it
@@ -345,14 +362,16 @@ def graph_col_names(dataframe, cat_th=10, car_th=20):
 
     return cat_cols, num_cols, cat_but_car
 
+
 def cat_summary(dataframe, col_name, plot=False):
     print(pd.DataFrame({col_name: df[col_name].value_counts(),
-                            "Ratio": 100 * df[col_name].value_counts() / len(dataframe)}))
+                        "Ratio": 100 * df[col_name].value_counts() / len(dataframe)}))
     print("###################################")
 
     if plot:
         sns.countplot(x=dataframe[col_name], data=dataframe)
         plt.show(block=True)
+
 
 cat_cols, num_cols, cat_but_car = graph_col_names(df)
 
@@ -361,14 +380,16 @@ df.head()
 df["survived"].value_counts()
 cat_summary(df, "survived")
 
-# Analysis of Target Variable with Categorical Variables
+### Analysis of Target Variable with Categorical Variables
 # understanding how the "survived" variable came about
 
 # survival rates by "sex"
 df.groupby("sex")["survived"].mean()
 
+
 def target_summary_with_cat(dataframe, target, categorical_col):
     print(pd.DataFrame({"TARGET_MEAN": dataframe.groupby(categorical_col)[target].mean()}))
+
 
 target_summary_with_cat(df, "survived", "sex")
 target_summary_with_cat(df, "survived", "pclass")
@@ -383,11 +404,69 @@ df.groupby("survived")["age"].mean()
 # or
 df.groupby("survived").agg({"age": "mean"})
 
+
 def target_summary_with_num(dataframe, target, numerical_col):
     print(dataframe.groupby(target).agg({numerical_col: "mean"}), end="\n\n\n")
+
 
 target_summary_with_num(df, "survived", "age")
 
 for col in num_cols:
     target_summary_with_num(df, "survived", col)
-    
+
+
+### Analysis of Correlation
+#corelation: statistical measurement that expresses the expression of variables with each other
+#it takes values between -1 and +1
+#-1 negative directional, +1 positive directional
+#closer it is to 1, the stronger the relationship.
+
+import numpy as np
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+pd.set_option("display.max_columns", None)
+df = pd.read_csv("breast_cancer.csv")
+df = df.iloc[:, 1:-1]
+df.head()
+
+# for numerical variables
+num_cols = [col for col in df.columns if df[col].dtype in [int, float]]
+
+corr = df[num_cols].corr()
+
+sns.set(rc={"figure.figsize": (12, 12)})
+sns.heatmap(corr, cmap="RdBu")
+plt.show()
+
+#Deletion of highly correlated variables
+cor_matrix = df.corr().abs()
+
+#we got rid of repeating each other
+upper_triangle_matrix = cor_matrix.where(np.triu(np.ones(cor_matrix.shape), k=1).astype(np.bool_))
+
+#if any of them is greater than 0.90
+#that means give correlation column(variables) greater than 90 percent
+drop_list = [col for col in upper_triangle_matrix.columns if any(upper_triangle_matrix[col] > 0.90)]
+cor_matrix[drop_list]  #those with high correlation
+df.drop(drop_list, axis=1)
+
+def high_correlated_cols(dataframe, plot=False, corr_th=0.90):
+    corr = dataframe.corr()
+    corr_matrix = corr.abs()
+    upper_triangle_matrix = cor_matrix.where(np.triu(np.ones(cor_matrix.shape), k=1).astype(np.bool_))
+    drop_list = [col for col in upper_triangle_matrix.columns if any(upper_triangle_matrix[col] > corr_th)]
+    if plot:
+        import seaborn as sns
+        import matplotlib.pyplot as p
+        sns.set(rc={"figure.figsize": (12, 12)})
+        sns.heatmap(corr, cmap="RdBu")
+        plt.show()
+    return drop_list
+
+#Gives the names of the relevant variables that I need to drop
+high_correlated_cols(df)
+drop_list = high_correlated_cols(df,  plot=True)
+df.drop(drop_list, axis=1)
+high_correlated_cols(df.drop(drop_list, axis=1), plot=True)
+
