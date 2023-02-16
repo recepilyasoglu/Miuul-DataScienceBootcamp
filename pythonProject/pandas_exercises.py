@@ -49,14 +49,26 @@ df["deck"] = df["deck"].fillna(df["deck"].mode())
 df["age"] = df["age"].fillna(df["age"].median())
 
 # Task 15: Find the sum, count, mean values of the pclass and gender variables of the survived variable.
+df3 = pd.DataFrame({
+    "survived": df["survived"],
+    "pclass": df["pclass"],
+    "sex": df["sex"]
+})
+df3.describe()
 
 # Task 16: Write a function that returns 1 for those under 30 and 0 for those above or equal to 30. titanic data using the function you wrote
 #create a variable named age_flag in the set. (use apply and lambda constructs)
+
 
 # Task 17: Define the Tips dataset from the Seaborn library.
 df2 = sns.load_dataset("Tips")
 df2.head()
 
 # Task 18: Find the sum, min, max and average of the total_bill values according to the categories (Dinner, Lunch) of the Time variable.
+df2.groupby('time')["total_bill"].agg(['sum', 'min', 'max', 'mean'])
+
 
 # Task 19: Find the sum, min, max and average of total_bill values by days and time.
+df2.groupby('time')["total_bill"].agg(['sum', 'min', 'max', 'mean'])
+df2.groupby('day')["total_bill"].agg(['sum', 'min', 'max', 'mean'])
+
