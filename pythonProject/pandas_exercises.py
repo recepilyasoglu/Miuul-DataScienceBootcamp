@@ -72,3 +72,10 @@ df2.groupby('time')["total_bill"].agg(['sum', 'min', 'max', 'mean'])
 df2.groupby('time')["total_bill"].agg(['sum', 'min', 'max', 'mean'])
 df2.groupby('day')["total_bill"].agg(['sum', 'min', 'max', 'mean'])
 
+# Task 20: Find the sum, min, max and average of the total_bill and type values ​​of the lunch time and female customers according to the day.
+
+# Task 21: What is the average of orders with size less than 3 and total_bill greater than 10? (use loc)
+
+# Task 22: Create a new variable called total_bill_tip_sum. Let him give the sum of the total bill and tip paid by each customer.
+
+# Task 23: Sort the total_bill_tip_sum variable from largest to smallest and assign the first 30 people to a new dataframe.
