@@ -43,8 +43,10 @@ df.drop(columns="who", inplace=True)
 df.columns
 
 # Task 13: Fill the empty values in the deck variable with the most repeated value (mode) of the deck variable.
+df["deck"] = df["deck"].fillna(df["deck"].mode())
 
 # Task 14: Fill in the blank values in the age variable with the median of the age variable.
+df["age"] = df["age"].fillna(df["age"].median())
 
 # Task 15: Find the sum, count, mean values of the pclass and gender variables of the survived variable.
 
@@ -52,6 +54,8 @@ df.columns
 #create a variable named age_flag in the set. (use apply and lambda constructs)
 
 # Task 17: Define the Tips dataset from the Seaborn library.
+df2 = sns.load_dataset("Tips")
+df2.head()
 
 # Task 18: Find the sum, min, max and average of the total_bill values according to the categories (Dinner, Lunch) of the Time variable.
 
