@@ -49,16 +49,16 @@ df["deck"] = df["deck"].fillna(df["deck"].mode())
 df["age"] = df["age"].fillna(df["age"].median())
 
 # Task 15: Find the sum, count, mean values of the pclass and gender variables of the survived variable.
-df3 = pd.DataFrame({
-    "survived": df["survived"],
-    "pclass": df["pclass"],
-    "sex": df["sex"]
-})
-df3.describe()
 
 # Task 16: Write a function that returns 1 for those under 30 and 0 for those above or equal to 30. titanic data using the function you wrote
 #create a variable named age_flag in the set. (use apply and lambda constructs)
+def flag_age(age):
+    if age < 30:
+        return 1
+    else:
+        return 0
 
+df["age_flag"] = df["age"].apply(lambda x: flag_age(x))
 
 # Task 17: Define the Tips dataset from the Seaborn library.
 df2 = sns.load_dataset("Tips")
@@ -67,14 +67,18 @@ df2.head()
 # Task 18: Find the sum, min, max and average of the total_bill values according to the categories (Dinner, Lunch) of the Time variable.
 df2.groupby('time')["total_bill"].agg(['sum', 'min', 'max', 'mean'])
 
-
 # Task 19: Find the sum, min, max and average of total_bill values by days and time.
 df2.groupby('time')["total_bill"].agg(['sum', 'min', 'max', 'mean'])
 df2.groupby('day')["total_bill"].agg(['sum', 'min', 'max', 'mean'])
 
-# Task 20: Find the sum, min, max and average of the total_bill and type values ​​of the lunch time and female customers according to the day.
+# Task 20: Find the sum, min, max and average of the total_bill and type values of the lunch time and female customers according to the day.
+filter = df2[(df2["time"] == "Lunch") & (df2["sex"] == "Female")]
+filter = filter.drop(columns=["smoker", "size", "day"])
+filter2 = filter.groupby(df2["day"]).agg(["sum", "min", "max", "mean"])
+filter2
 
 # Task 21: What is the average of orders with size less than 3 and total_bill greater than 10? (use loc)
+
 
 # Task 22: Create a new variable called total_bill_tip_sum. Let him give the sum of the total bill and tip paid by each customer.
 
