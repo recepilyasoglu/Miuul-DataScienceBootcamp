@@ -43,7 +43,7 @@ df.drop(columns="who", inplace=True)
 df.columns
 
 # Task 13: Fill the empty values in the deck variable with the most repeated value (mode) of the deck variable.
-df["deck"] = df["deck"].fillna(df["deck"].mode())
+df["deck"] = df["deck"].fillna(df["deck"].mode()[0])
 
 # Task 14: Fill in the blank values in the age variable with the median of the age variable.
 df["age"] = df["age"].fillna(df["age"].median())
@@ -75,8 +75,7 @@ df2.groupby('day')["total_bill"].agg(['sum', 'min', 'max', 'mean'])
 
 # Task 20: Find the sum, min, max and average of the total_bill and type values of the lunch time and female customers according to the day.
 filter = df2[(df2["time"] == "Lunch") & (df2["sex"] == "Female")]
-filter = filter.drop(columns=["smoker", "size", "day"])
-filter2 = filter.groupby(df2["day"]).agg(["sum", "min", "max", "mean"])
+filter2 = filter.groupby("day")["total_bill", "tip"].agg(["sum", "min", "max", "mean"])
 filter2
 
 # Task 21: What is the average of orders with size less than 3 and total_bill greater than 10? (use loc)
@@ -84,6 +83,7 @@ order = df2[(df2["size"] < 3) & (df2["total_bill"] > 10)].mean()
 order
 
 # Task 22: Create a new variable called total_bill_tip_sum. Let him give the sum of the total bill and tip paid by each customer.
-
+df2["total_bill_tip_sum"] = df2["total_bill"] + df2["tip"]
 
 # Task 23: Sort the total_bill_tip_sum variable from largest to smallest and assign the first 30 people to a new dataframe.
+df4 = df2.sort_values(by=["total_bill_tip_sum"], ascending=False).head(30)
