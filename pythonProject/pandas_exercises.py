@@ -49,6 +49,8 @@ df["deck"] = df["deck"].fillna(df["deck"].mode())
 df["age"] = df["age"].fillna(df["age"].median())
 
 # Task 15: Find the sum, count, mean values of the pclass and gender variables of the survived variable.
+survived = df[df["survived"] == 1]
+survived.groupby(["pclass", "sex"])["survived"].agg(["sum", "min", "max", "mean"])
 
 # Task 16: Write a function that returns 1 for those under 30 and 0 for those above or equal to 30. titanic data using the function you wrote
 #create a variable named age_flag in the set. (use apply and lambda constructs)
@@ -78,8 +80,10 @@ filter2 = filter.groupby(df2["day"]).agg(["sum", "min", "max", "mean"])
 filter2
 
 # Task 21: What is the average of orders with size less than 3 and total_bill greater than 10? (use loc)
-
+order = df2[(df2["size"] < 3) & (df2["total_bill"] > 10)].mean()
+order
 
 # Task 22: Create a new variable called total_bill_tip_sum. Let him give the sum of the total bill and tip paid by each customer.
+
 
 # Task 23: Sort the total_bill_tip_sum variable from largest to smallest and assign the first 30 people to a new dataframe.
