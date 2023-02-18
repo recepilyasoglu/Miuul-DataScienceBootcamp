@@ -53,3 +53,10 @@ agg_df = agg_df.sort_values("PRICE", ascending=False)
 
 ## Task 4: Convert the names in the index to variable names
 agg_df.reset_index(inplace=True)
+
+## Task 5: Convert age variable to categorical variable and add it to agg_df.
+agg_df["AGE_CAT"] = pd.cut(agg_df["AGE"], bins=[0, 18, 23, 30, 40, 70],
+                           labels=["0_18", "19_23", "24_30", "31_40", "41_70"])
+agg_df
+
+
