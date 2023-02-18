@@ -71,3 +71,12 @@ agg_df.loc[:, ["customer_level_based", "PRICE"]].sort_values("PRICE", ascending=
 
 agg_df.groupby("customer_level_based").agg({"PRICE": "mean"})
 
+## Task 7: Segment new customers (personas).
+# Divide new customers (Example: USA_ANDROID_MALE_0_18) into 4 segments according to PRICE.
+# Add the segments to agg_df as a variable with the SEGMENT naming.
+# Describe segments (group by segments and get price mean, max, sum)
+
+agg_df["SEGMENT"] = pd.cut(agg_df["PRICE"].rank(method="first"), 4, labels=["D", "C", "B", "A"])
+
+agg_df.groupby("SEGMENT").agg({"PRICE": ["mean", "max", "sum"]})
+
