@@ -1,5 +1,5 @@
 ####### RECEP İLYASOĞLU #######
-###### Kural Tabanlı Sınıflandırma ######
+###### Rule Based Classification ######
 
 import pandas as pd
 import numpy as np
