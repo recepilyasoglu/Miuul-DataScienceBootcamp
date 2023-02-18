@@ -1,3 +1,6 @@
+####### RECEP İLYASOĞLU #######
+###### List Comprehension Exercises ######
+
 #Q1: Capitalize the names of the numeric variables in the car_crashes data using the List Comprehension structure.
 #Convert it to letter and add NUM at the beginning.
 
