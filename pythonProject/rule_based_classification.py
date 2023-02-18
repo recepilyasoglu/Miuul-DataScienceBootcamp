@@ -64,8 +64,8 @@ agg_df
 # Name of the new variable to be added: customers_level_based
 # You need to create the customers_level_based variable by combining the observations from the output from the previous question.
 
-agg_df["customer_level_based"] = [(agg_df.COUNTRY[col] + "_" + agg_df.SOURCE[col] + "_" + agg_df.SEX[col] +
-  "_" + agg_df.AGE_CAT[col]).upper() for col in agg_df.index]
+agg_df["customer_level_based"] = [(agg_df.COUNTRY[col] + "_" + agg_df.SOURCE[col] + "_" +
+                                   agg_df.SEX[col] + "_" + agg_df.AGE_CAT[col]).upper() for col in agg_df.index]
 
 agg_df.loc[:, ["customer_level_based", "PRICE"]].sort_values("PRICE", ascending=False)
 
@@ -80,3 +80,16 @@ agg_df["SEGMENT"] = pd.cut(agg_df["PRICE"].rank(method="first"), 4, labels=["D",
 
 agg_df.groupby("SEGMENT").agg({"PRICE": ["mean", "max", "sum"]})
 
+## Task 8: Categorize new customers and estimate how much revenue they can generate.
+# What segment does a 33-year-old Turkish woman using ANDROID belong to and how much income is expected to earn on average?
+# What segment does a 35-year-old French woman using IOS belong to and how much income is expected to earn on average?
+
+new_user = "TUR_ANDROID_FEMALE_31_40"
+agg_df[agg_df["customer_level_based"] == new_user]
+
+agg_df.loc[agg_df["customer_level_based"] == new_user, ["PRICE", "SEGMENT"]].agg({"PRICE": "mean"})
+
+new_user2 = "FRA_IOS_FEMALE_31_40"
+agg_df[agg_df["customer_level_based"] == new_user2]
+
+agg_df.loc[agg_df["customer_level_based"] == new_user2, ["PRICE", "SEGMENT"]].agg({"PRICE": "mean"})
