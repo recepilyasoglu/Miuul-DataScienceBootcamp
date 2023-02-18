@@ -42,7 +42,6 @@ df.groupby("SOURCE").agg({"PRICE": "mean"})
 # Question 10: What are the PRICE averages in the COUNTRY-SOURCE breakdown?
 df.groupby(["COUNTRY", "SOURCE"]).agg({"PRICE": "mean"})
 
-
 ## Task 2: What are the average earnings in breakdown of COUNTRY, SOURCE, SEX, AGE?
 agg_df = df.groupby(["COUNTRY", "SOURCE", "SEX", "AGE"]).agg({"PRICE": "mean"})
 
