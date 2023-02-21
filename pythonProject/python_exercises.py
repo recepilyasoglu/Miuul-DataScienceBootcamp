@@ -9,27 +9,27 @@ import seaborn as sns
 #Q1: Examine the data structures of the given values.
 
 x = 8
+type(x)
 y = 3.2
+type(x+y)
+type(y)
 z = 8j+18
+type(z)
 a = "Hello World"
+type(a)
 b = True
+type(b)
 c = 23 < 22
+type(c)
 l = [1, 2, 3, 4]
+type(l)
 d = {"Name": "Jake",
      "Age": 27,
      "Adress": "Downtown"}
-t = {"Machine Learning", "Data Science"}
-s = {"Python", "Machine Learning", "Data Science"}
-
-type(x)
-type(y)
-type(z)
-type(a)
-type(b)
-type(c)
-type(l)
 type(d)
+t = {"Machine Learning", "Data Science"}
 type(t)
+s = {"Python", "Machine Learning", "Data Science"}
 type(s)
 
 
@@ -37,7 +37,9 @@ type(s)
 # Put space instead of comma, separate word by word.
 
 text = "The goal is to turn data into information, and information into insight"
+(text.upper()).split(" ")
 text = text.upper()
+text = text.replace(",", " ")
 text = text.split(" ")
 
 
@@ -54,9 +56,9 @@ len(lst)
 print(lst[0], lst[10])
 print(lst[0:4])
 lst[8]
-lst.remove("N")
+lst.pop(8)
 lst.append("!")
-lst[8].append("N")
+lst.insert(8, "N")
 
 
 # Q4: Apply the following steps to the given dictionary structure.
