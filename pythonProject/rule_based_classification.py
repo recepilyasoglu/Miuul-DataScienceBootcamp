@@ -96,3 +96,4 @@ new_user2 = "FRA_IOS_FEMALE_31_40"
 agg_df[agg_df["customer_level_based"] == new_user2]
 
 agg_df.loc[agg_df["customer_level_based"] == new_user2, ["PRICE", "SEGMENT"]].agg({"PRICE": "mean"})
+
