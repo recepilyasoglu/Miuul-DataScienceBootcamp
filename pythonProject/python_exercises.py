@@ -129,8 +129,8 @@ ders_kodu = ["CMP1005", "PSY1001", "HUK1005", "SEN2204"]
 kredi = [3, 4, 2, 4]
 kontenjan = [30, 75, 150, 25]
 
-zip_ders = zip(ders_kodu, kredi, kontenjan)
-ders = set(zip_ders)
+for ders_kodu, kredi, kontenjan in zip(ders_kodu, kredi, kontenjan):
+    print(f"Kredisi {kredi} notu olan {ders_kodu} kodlu dersin kontenjanı {kontenjan} kişidir")
 
 
 # Q8 = Below are 2 sets. If the 1st cluster includes the 2nd cluster, you are asked to specify their common elements.
