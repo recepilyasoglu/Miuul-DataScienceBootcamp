@@ -1,3 +1,3 @@
-## Python Programming for Data Science
-### The works I did in the Python Programming for Data Science course I took
+## Miuul Data Science Bootcamp
+### I included the work I did during the Data Science Bootcamp process that I participated in.
 
