@@ -65,3 +65,4 @@ def check_online(online):
             return "Interneti_yok"
 
 df.filter(like="Online").apply(lambda x: check_online(x), axis=1)
+
