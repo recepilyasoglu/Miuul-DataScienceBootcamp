@@ -54,15 +54,24 @@ df["NEW_PaperlessBilling"] = df["PaperlessBilling"].apply(lambda x: "Evt" if x =
 # Repeat classes as "Yes" for "yes", "No" for "No", otherwise "No_Internet".
 # You can create the function to format it outside and apply this function inside the lambda.
 
-
-def check_online(online):
-    for i in online:
-        if online[i] == "Yes":
-            return "Evet"
-        elif online[i] == "No":
-            return "Hayır"
+def check_online(col):
+        if col == "Yes":
+           return "Evet"
+        elif col == "No":
+           return "Hayır"
         else:
-            return "Interneti_yok"
+           return "Interneti_yok"
 
-df.filter(like="Online").apply(lambda x: check_online(x), axis=1)
+online = df.filter(like="Online")
+#online.head(25)
+for col in online:
+    df[col] = df[col].apply(lambda x: check_online(x))
+
+df.filter(like="Online").head(25)
+
+
+# 6- Find the values of "TotalCharges" variable less than 30. If
+# If you get an error, examine the type of observations of this variable and
+# to the query by converting it to the appropriate type for the specified query to arrive.
+# continue
 
