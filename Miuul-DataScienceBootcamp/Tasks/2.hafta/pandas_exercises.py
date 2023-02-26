@@ -33,6 +33,7 @@ df[(df["embarked"] == "C")]
 df[(df["embarked"] != "S")]
 
 # Task 9: Show all information for female passengers younger than 30 years old.
+
 df[(df["age"] < 30) & (df['sex'] == "female")]
 
 # Task 10: Show the information of passengers whose Fare is over 500 or 70 years old
