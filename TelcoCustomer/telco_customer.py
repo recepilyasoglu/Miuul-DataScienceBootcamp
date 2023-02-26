@@ -76,3 +76,39 @@ df.filter(like="Online").head(25)
 # continue
 
 df["TotalCharges"].dtypes
+
+df["TotalCharges"] = pd.to_numeric(df["TotalCharges"], errors="coerce")
+
+df[(df["TotalCharges"] < 30)]
+
+
+# 7- Average of customers with "Electronic check" payment method
+# How much are Monthly Charges worth?
+
+df.columns
+
+el_check = df[(df["PaymentMethod"] == "Electronic check")]
+el_check
+el_check["MonthlyCharges"].mean()
+
+
+# 8- Gender female and internet service fiber optic or DSL
+# What are the customers' total MonthlyCharges?
+
+df["InternetService"].value_counts()
+
+fml = df[(df["gender"] == "Female") & (df["InternetService"] != "No")]
+fml.agg({"MonthlyCharges": "sum"})
+
+
+# 9- Classes with Yes in the Churn variable print 1 , otherwise 0
+# Apply the lambda function to the Churn variable.
+def check_churn(x):
+    if x == "Yes":
+        return 1
+    else:
+        return 0
+
+df["Churn"] = df["Churn"].apply(lambda x: check_churn(x))
+
+
