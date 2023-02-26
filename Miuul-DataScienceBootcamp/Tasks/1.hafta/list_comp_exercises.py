@@ -25,3 +25,4 @@ new_cols = [col for col in df.columns if col not in og_list]
 new_df = df[new_cols]
 
 new_df.head()
+
