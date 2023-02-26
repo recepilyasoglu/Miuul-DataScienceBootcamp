@@ -75,3 +75,4 @@ df.filter(like="Online").head(25)
 # to the query by converting it to the appropriate type for the specified query to arrive.
 # continue
 
+df["TotalCharges"].dtypes
