@@ -90,3 +90,4 @@ df2["total_bill_tip_sum"] = df2["total_bill"] + df2["tip"]
 
 # Task 23: Sort the total_bill_tip_sum variable from largest to smallest and assign the first 30 people to a new dataframe.
 df4 = df2.sort_values(by=["total_bill_tip_sum"], ascending=False).head(30)
+
