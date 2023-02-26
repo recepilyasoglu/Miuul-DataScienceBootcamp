@@ -119,4 +119,8 @@ df["Churn"] = df["Churn"].apply(lambda x: check_churn(x))
 cont_phone = df.groupby(["Contract", "PhoneService"])["Churn"].mean()
 
 
+# 11- Perform the same output requested in question 10 with a pivot table.
+
+pd.pivot_table(df, values="Churn", index="Contract", columns="PhoneService", aggfunc=np.mean)
+
 
