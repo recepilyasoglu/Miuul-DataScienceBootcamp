@@ -124,3 +124,11 @@ cont_phone = df.groupby(["Contract", "PhoneService"])["Churn"].mean()
 pd.pivot_table(df, values="Churn", index="Contract", columns="PhoneService", aggfunc=np.mean)
 
 
+# 12- to categorize the classes of the tenure variable,
+# by dividing the tenure values according to the intervals you specify,
+# create a variable. Name the ranges with the labels method.
+df["tenure"].max()
+
+df["NEWC_tenure"] = pd.cut(df["tenure"], bins=[0, 10, 15, 72], labels=["New", "Star", "Loyal"])
+df[["NEWC_tenure", "tenure"]].head(12)
+
