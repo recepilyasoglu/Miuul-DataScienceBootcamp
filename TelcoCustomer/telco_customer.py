@@ -112,3 +112,11 @@ def check_churn(x):
 df["Churn"] = df["Churn"].apply(lambda x: check_churn(x))
 
 
+# 10- Group the data by Contract and PhoneService variables and
+# with the mean of the Churn variable of the classes of the variables
+# examine the relationship
+
+cont_phone = df.groupby(["Contract", "PhoneService"])["Churn"].mean()
+
+
+
