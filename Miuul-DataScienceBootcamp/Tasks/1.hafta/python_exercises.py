@@ -146,3 +146,4 @@ def check_lists(l1, l2):
         print(l2.difference(l1))
 
 check_lists(kume1, kume2)
+
