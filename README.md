@@ -1,3 +1,3 @@
 ## Miuul Data Science Bootcamp
-### The work I have done during the training I received during the bootcamp process I attended..
+### The work I have done during the training I received during the bootcamp process I attended
 #### To be continued...
