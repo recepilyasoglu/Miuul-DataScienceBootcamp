@@ -103,13 +103,8 @@ fml.agg({"MonthlyCharges": "sum"})
 
 # 9- Classes with Yes in the Churn variable print 1 , otherwise 0
 # Apply the lambda function to the Churn variable.
-def check_churn(x):
-    if x == "Yes":
-        return 1
-    else:
-        return 0
 
-df["Churn"] = df["Churn"].apply(lambda x: check_churn(x))
+df["Churn"] = df["Churn"].apply(lambda x: 1 if x == "Yes" else 0)
 
 
 # 10- Group the data by Contract and PhoneService variables and
