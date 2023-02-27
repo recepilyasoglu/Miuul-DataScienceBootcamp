@@ -55,12 +55,12 @@ df["NEW_PaperlessBilling"] = df["PaperlessBilling"].apply(lambda x: "Evt" if x =
 # You can create the function to format it outside and apply this function inside the lambda.
 
 def check_online(col):
-        if col == "Yes":
-           return "Evet"
-        elif col == "No":
-           return "Hayır"
-        else:
-           return "Interneti_yok"
+    if col == "Yes":
+        return "Evet"
+    elif col == "No":
+        return "Hayır"
+    else:
+        return "Interneti_yok"
 
 online = df.filter(like="Online")
 #online.head(25)
