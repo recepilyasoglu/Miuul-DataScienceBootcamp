@@ -53,8 +53,7 @@ df["deck"] = df["deck"].fillna(df["deck"].mode()[0])
 df["age"] = df["age"].fillna(df["age"].median())
 
 # Task 15: Find the sum, count, mean values of the pclass and gender variables of the survived variable.
-survived = df[df["survived"] == 1]
-survived.groupby(["pclass", "sex"])["survived"].agg(["sum", "min", "max", "mean"])
+df.groupby(["pclass", "sex"])["survived"].agg(["sum", "max", "mean"])
 
 # Task 16: Write a function that returns 1 for those under 30 and 0 for those above or equal to 30. titanic data using the function you wrote
 #create a variable named age_flag in the set. (use apply and lambda constructs)
