@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 
 ## Task 1: Answer the Following Questions
 # Question 1: Read the persona.csv file and show the general information about the dataset.
-data = pd.read_csv(r"C:\Users\reco1\PycharmProjects\Miuul-DataScienceBootcamp\Tasks\2.hafta\persona.csv")
+data = pd.read_csv("persona.csv")
 df = data.copy()
 df.head()
 df.info()
