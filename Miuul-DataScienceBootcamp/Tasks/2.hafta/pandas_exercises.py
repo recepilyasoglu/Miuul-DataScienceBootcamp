@@ -73,8 +73,7 @@ df2.head()
 df2.groupby('time')["total_bill"].agg(['sum', 'min', 'max', 'mean'])
 
 # Task 19: Find the sum, min, max and average of total_bill values by days and time.
-df2.groupby('time')["total_bill"].agg(['sum', 'min', 'max', 'mean'])
-df2.groupby('day')["total_bill"].agg(['sum', 'min', 'max', 'mean'])
+df2.groupby(["day", "time"])["total_bill"].agg(['sum', 'min', 'max', 'mean'])
 
 # Task 20: Find the sum, min, max and average of the total_bill and type values of the lunch time and female customers according to the day.
 filter = df2[(df2["time"] == "Lunch") & (df2["sex"] == "Female")]
