@@ -61,6 +61,12 @@ df["TotalPrice"] = df["Quantity"] * df["Price"]
 df.groupby("Invoice").agg({"TotalPrice": "sum"}).head()
 
 
+## 3. Data Preparation
 
+df.shape
+df.isnull().sum()
+df.dropna(inplace=True)
+df.describe().T
 
-
+# başında C olmayanlar gelsin çünkü C olanlar, iptal edilen ürünler ve negatif değerli ürünler
+df = df[~df["Invoice"].str.contains("C", na=False)]
