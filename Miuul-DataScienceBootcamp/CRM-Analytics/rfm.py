@@ -31,6 +31,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+import datetime as dt
 pd.set_option('display.max_columns', None)
 pd.set_option('display.float_format', lambda x: '%.3f' % x)
 
@@ -70,3 +71,29 @@ df.describe().T
 
 # başında C olmayanlar gelsin çünkü C olanlar, iptal edilen ürünler ve negatif değerli ürünler
 df = df[~df["Invoice"].str.contains("C", na=False)]
+
+
+## 4. Calculating RFM Metrics
+
+# Recency, Frequency, Monetary
+df.head()
+df["InvoiceDate"].max()
+
+# analizi yaptığımız gün olarak belirliyoruz ki
+# müşterini recency değerine bakabilelim
+today_date = dt.datetime(2010, 12, 11)
+type(today_date)
+
+rfm = df.groupby("Customer ID").agg({"InvoiceDate": lambda InvoiceDate: (today_date - InvoiceDate.max()).days,
+                                     "Invoice": lambda Invoice: Invoice.nunique(),
+                                     "TotalPrice": lambda TotalPrice: TotalPrice.sum()})
+rfm.head()
+
+rfm.columns = ["recency", "frequency", "monetary"]
+
+rfm.describe().T
+
+# monetary değeri 0 dan büyük olanları seç
+rfm = rfm[rfm["monetary"] > 0]
+rfm.shape
+
