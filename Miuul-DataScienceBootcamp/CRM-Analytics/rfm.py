@@ -165,3 +165,60 @@ new_df.to_csv("new_customers.csv")
 # tüm segment bilgileri gider
 rfm.to_csv("rfm.csv")
 
+
+## 7. Functionalization of the whole process
+
+def create_rfm(dataframe, csv=False):
+
+    # VERININ HAZIRLANMASI
+    dataframe["TotalPrice"] = dataframe["Quantity"] * dataframe["Price"]
+    dataframe.dropna(inplace=True)
+    dataframe = dataframe[~dataframe["Invoice"].str.contains("C", na=False)]
+
+
+    # RFM METRIKLERININ HESAPLANMASI
+    today_date = dt.datetime(2010, 12, 11)
+    rfm = dataframe.groupby("Customer ID").agg({"InvoiceDate": lambda InvoiceDate: (today_date - InvoiceDate.max()).days,
+                                         "Invoice": lambda Invoice: Invoice.nunique(),
+                                         "TotalPrice": lambda TotalPrice: TotalPrice.sum()})
+
+    rfm.columns = ["recency", "frequency", "monetary"]
+    rfm = rfm[rfm["monetary"] > 0]
+
+
+    # RFM SKORLARININ HESAPLANMASI
+    rfm["recency_score"] = pd.qcut(rfm["recency"], 5, labels=[5, 4, 3, 2, 1])
+    rfm["monetary_score"] = pd.qcut(rfm["monetary"], 5, labels=[1, 2, 3, 4, 5])
+    rfm["frequency_score"] = pd.qcut(rfm["frequency"].rank(method="first"), 5, labels=[1, 2, 3, 4, 5])
+
+    rfm["RFM_SCORE"] = (rfm["recency_score"].astype(str) +
+                        rfm["frequency_score"].astype(str))
+
+
+    # SEGMENTLERIN ISIMLENDIRILMESI
+    seg_map = {
+        r"[1-2][1-2]": "hibernating",
+        # birinci elemanında 1 yada 2, ikinci elemanında 1 yada 2 görürsen o isimlendirmeyi yap
+        r"[1-2][3-4]": "at_Risk",
+        r"[1-2]5": "cant_loose",
+        r"3[1-2]": "need_attention",
+        r"33": "about_to_sleep",
+        r"[3-4][4-5]": "loyal_customers",
+        r"41": "promising",  # birinci elemanında 4, ikinci elemanında 1 görürsen o isimlendirmeyi yap
+        r"51": "new_customers",
+        r"[4-5][2-3]": "potential_loyalists",
+        r"5[4-5]": "champions",
+    }
+
+    rfm["segment"] = rfm["RFM_SCORE"].replace(seg_map, regex=True)
+    rfm = rfm[["recency", "frequency", "monetary", "segment"]]
+    rfm.index = rfm.index.astype(int)
+
+    if csv:     # eğer csv argümanında true yazıyorsa csv dosyası oluştur
+        rfm.to_csv("rfm.csv")
+
+    return rfm
+
+df = data.copy()
+
+rfm_new = create_rfm(df, csv=True)
