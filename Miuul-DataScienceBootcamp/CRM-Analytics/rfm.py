@@ -97,3 +97,29 @@ rfm.describe().T
 rfm = rfm[rfm["monetary"] > 0]
 rfm.shape
 
+
+## 5. Calculating RFM Scores
+
+# recency değerini küçükten büyüğe sırala, 5 parçaya böl
+# bunu tersten sıralıyoruz yani 5 olan müşteri sıklık açısından 1'e göre daha kötü,
+# daha az sıklıkla alışveriş yapmıştır yani
+rfm["recency_score"] = pd.qcut(rfm["recency"], 5, labels=[5, 4, 3, 2, 1])
+
+# burda ve frequency'de normal sıralama yapıyoruz, değeri 5 olan en çok para bırakan müşteridir gibi
+# yani küçük gördüğüne küçük puan, büyük gördüğüne büyük puan ver
+rfm["monetary_score"] = pd.qcut(rfm["monetary"], 5, labels=[1, 2, 3, 4, 5])
+
+# belirtilen aralıklarda kendini tekrar eden birden fazla değer var
+# bunun için rank methodunun kullanıyoruz, ilk gördüğünü ilk sınıfa ata
+rfm["frequency_score"] = pd.qcut(rfm["frequency"].rank(method="first"), 5, labels=[1, 2, 3, 4, 5])
+
+rfm["RFM_SCORE"] = (rfm["recency_score"].astype(str) +
+                    rfm["frequency_score"].astype(str))
+
+rfm.describe().T
+
+# şampiyon müşteriler
+rfm[rfm["RFM_SCORE"] == "55"]
+
+# görece önemi daha düşük müşteriler
+rfm[rfm["RFM_SCORE"] == "11"]
