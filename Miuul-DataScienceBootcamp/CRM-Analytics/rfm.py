@@ -123,3 +123,45 @@ rfm[rfm["RFM_SCORE"] == "55"]
 
 # görece önemi daha düşük müşteriler
 rfm[rfm["RFM_SCORE"] == "11"]
+
+
+## 6. Creating & Analysing RFM Segments
+# regex
+
+# RFM Naming
+seg_map = {
+    r"[1-2][1-2]": "hibernating",  # birinci elemanında 1 yada 2, ikinci elemanında 1 yada 2 görürsen o isimlendirmeyi yap
+    r"[1-2][3-4]": "at_Risk",
+    r"[1-2]5": "cant_loose",
+    r"3[1-2]": "need_attention",
+    r"33": "about_to_sleep",
+    r"[3-4][4-5]": "loyal_customers",
+    r"41": "promising",  # birinci elemanında 4, ikinci elemanında 1 görürsen o isimlendirmeyi yap
+    r"51": "new_customers",
+    r"[4-5][2-3]": "potential_loyalists",
+    r"5[4-5]": "champions",
+}
+
+# RFM_SCORE da değişkenleri seg_map deki değerler ile değiştir ve onlara da dağılım uygula yukarıdaki gibi
+rfm["segment"] = rfm["RFM_SCORE"].replace(seg_map, regex=True)
+
+# segmentlerin analizi
+rfm[["segment", "recency", "frequency", "monetary"]].groupby("segment").agg(["mean", "count"])
+
+rfm[rfm["segment"] == "need_attention"].head()
+rfm[rfm["segment"] == "cant_loose"].head()
+
+#Id bilgileri index ile geldi
+rfm[rfm["segment"] == "new_customers"].index
+
+new_df = pd.DataFrame()
+new_df["new_customer_id"] = rfm[rfm["segment"] == "new_customers"].index
+
+# ondalıklardan kurtulduk
+new_df["new_customer_id"] = new_df["new_customer_id"].astype(int)
+
+new_df.to_csv("new_customers.csv")
+
+# tüm segment bilgileri gider
+rfm.to_csv("rfm.csv")
+
