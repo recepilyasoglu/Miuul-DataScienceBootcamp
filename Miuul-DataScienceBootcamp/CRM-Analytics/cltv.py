@@ -34,12 +34,28 @@ pd.set_option('display.float_format', lambda x: '%.5f' % x)  # 0 dan sonra kaç 
 df_ = pd.read_excel(r"CRM-Analytics/datasets/online_retail_II.xlsx", sheet_name="Year 2009-2010")
 df = df_.copy()
 df.head()
+df.isnull().sum()
+
+df = df[~df["Invoice"].str.contains("C", na=False)]  # iptal edilen ürünleri düşürme
+df.describe().T
+
+df = df[(df["Quantity"] > 0)]  # Quantitiy min değeri 1 oldu, eksilerden kurtulduk
+df.dropna(inplace=True)
+
+df["TotalPrice"] = df["Quantity"] * df["Price"]   # !!! Bu TotalPrice CLTV deki değil o müşteri bazlı, eğer groupby yapıp sum'ını alrısak o zaman olur
+
+cltv_c = df.groupby("Customer ID").agg({"Invoice": lambda x: x.nunique(),  # Her bir müşterinin eşsiz kaç tane faturası olduğunu görürüz bu da = Total Transaction
+                                        "Quantity": lambda x: x.sum(),     # Bu tamamen analiz yapmak için, birinci önceliğimiz değil, önceliğimiz Invoice ve TotalPrice
+                                        "TotalPrice": lambda x: x.sum()})
+
+cltv_c.columns = ["total_transaction", "total_unit", "total_price"]
 
 
+## 2. Average Order Value (Total Price / Total Transaction)
 
+cltv_c.head()
 
-
-
+cltv_c["average_order_value"] = cltv_c["total_price"] / cltv_c["total_transaction"]
 
 
 
