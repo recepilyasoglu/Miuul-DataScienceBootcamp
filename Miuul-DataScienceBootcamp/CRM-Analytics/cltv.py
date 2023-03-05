@@ -64,3 +64,11 @@ cltv_c["purchase_frequency"] = cltv_c["total_transaction"] / cltv_c.shape[0]
 cltv_c.shape[0]  # = TotalNumberofCustomers
 
 
+## 4. Repeat Rate & Churn Rate (Birden fazla alışveriş yapan müşteriler sayısı / tüm müşteriler)
+
+cltv_c[cltv_c["total_transaction"] > 1].shape[0]  # 1 den fazla alışveriş yapan müşterilerin sayısı geldi
+
+repeat_rate = cltv_c[cltv_c["total_transaction"] > 1].shape[0] / cltv_c.shape[0]
+
+churn_rate = 1 - repeat_rate
+
