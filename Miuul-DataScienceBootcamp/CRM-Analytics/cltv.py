@@ -25,8 +25,15 @@
 # CustomerID: Eşsiz Müşteri numarası
 # Country: Ülke ismi. Müşterinin yaşadığı ülke
 
+import pandas as pd
+from sklearn.preprocessing import MinMaxScaler
+pd.set_option('display.max_columns', None)
+#pd.set_option('display.max_rows', None)
+pd.set_option('display.float_format', lambda x: '%.5f' % x)  # 0 dan sonra kaç basamak okuyacağını belirleme
 
-
+df_ = pd.read_excel(r"CRM-Analytics/datasets/online_retail_II.xlsx", sheet_name="Year 2009-2010")
+df = df_.copy()
+df.head()
 
 
 
