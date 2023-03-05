@@ -89,3 +89,16 @@ cltv_c["cltv"] = (cltv_c["customer_value"] / churn_rate) * cltv_c["profit_margin
 
 cltv_c.sort_values(by="cltv", ascending=False).head()
 
+
+## 8. Creating Segments (Segmentlerin Oluşturulması)
+# Müşterilere teker teker yaklaşım uygulamaktansa segmentlere ayırıp segment bazlı yaklaşım sergilemek mantıklı
+
+cltv_c.sort_values(by="cltv", ascending=False).tail()
+
+cltv_c["segment"] = pd.qcut(cltv_c["cltv"], 4, labels=["D", "C", "B", "A"])
+
+cltv_c.sort_values(by="cltv", ascending=False).head()
+
+cltv_c.groupby("segment").agg({"count", "mean", "sum"})
+
+cltv_c.to_csv("cltv_c.csv")
