@@ -222,3 +222,4 @@ def create_rfm(dataframe, csv=False):
 df = data.copy()
 
 rfm_new = create_rfm(df, csv=True)
+
