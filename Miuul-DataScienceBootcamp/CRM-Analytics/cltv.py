@@ -72,3 +72,7 @@ repeat_rate = cltv_c[cltv_c["total_transaction"] > 1].shape[0] / cltv_c.shape[0]
 
 churn_rate = 1 - repeat_rate
 
+
+## 5. Profit Margin = Total Price * 0.10
+cltv_c["profit_margin"] = cltv_c["total_price"] * 0.10
+
