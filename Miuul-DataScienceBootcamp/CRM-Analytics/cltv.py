@@ -74,9 +74,18 @@ churn_rate = 1 - repeat_rate
 
 
 ## 5. Profit Margin = Total Price * 0.10
+
 cltv_c["profit_margin"] = cltv_c["total_price"] * 0.10
 
 
 ## 6. Customer Value = Average Order Value * Purchase Frequency
+
 cltv_c["customer_value"] = cltv_c["average_order_value"] * cltv_c["purchase_frequency"]
+
+
+## 7. Customer Lifetime Value (CLTV = (Customer Value / Churn Rate) x Profit Margin)
+
+cltv_c["cltv"] = (cltv_c["customer_value"] / churn_rate) * cltv_c["profit_margin"]
+
+cltv_c.sort_values(by="cltv", ascending=False).head()
 
