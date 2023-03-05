@@ -52,11 +52,15 @@ cltv_c.columns = ["total_transaction", "total_unit", "total_price"]
 
 
 ## 2. Average Order Value (Total Price / Total Transaction)
-
 cltv_c.head()
 
 cltv_c["average_order_value"] = cltv_c["total_price"] / cltv_c["total_transaction"]
 
 
+## 3. Purchase Frequency (Total Transaction / Total Number of Customers)
+cltv_c.head()
+cltv_c["purchase_frequency"] = cltv_c["total_transaction"] / cltv_c.shape[0]
+
+cltv_c.shape[0]  # = TotalNumberofCustomers
 
 
