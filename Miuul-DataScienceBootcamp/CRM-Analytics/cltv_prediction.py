@@ -43,10 +43,12 @@ def outlier_thresholds(dataframe, variable):  # Amacı: kendisine girilen deği�
     low_limit = quartile1 - 1.5 * interquantile_range
     return low_limit, up_limit
 
+
 def replace_with_threshold(dataframe, variable):  #
     low_limit, upl_limit = outlier_thresholds(dataframe, variable)
     # dataframe.loc[(dataframe[variable] < low_limit), variable] = low_limit
     dataframe.loc[(dataframe[variable] > upl_limit), variable] = upl_limit
+
 
 df_ = pd.read_excel(r"CRM-Analytics/datasets/online_retail_II.xlsx", sheet_name="Year 2010-2011")
 df = df_.copy()
@@ -71,7 +73,6 @@ df["TotalPrice"] = df["Quantity"] * df["Price"]
 
 today_date = dt.datetime(2011, 12, 11)
 
-
 ## Preparation of Lifetime Data Structure (Lifetime Veri Yapısının Hazırlanması)
 
 # recency: Son satın alma ğzerinden geçen zaman. Haftalık. (kullanıcı özelinde)
@@ -80,10 +81,13 @@ today_date = dt.datetime(2011, 12, 11)
 # monetary: satın alma başına ortalama kazanç
 # (Not: rfm'dekiler gibi değil)
 
-cltv_df = df.groupby("Customer ID").agg({"InvoiceDate": [lambda InvoiceDate: (InvoiceDate.max() - InvoiceDate.min()).days,  # her bir müşterinin, son alışveriş ve ilk alışveriş tarihini birbirinden çıkar ve gün cinsine çevir
-                                                         lambda date: (today_date - date.min()).days],  # müşterinin yaşını hesapla
-                                         "Invoice": lambda Invoice: Invoice.nunique(),  # her bir müşterinin eşsiz kaç tane faturası var (=frequency)
-                                         "TotalPrice": lambda TotalPrice: TotalPrice.sum()})
+cltv_df = df.groupby("Customer ID").agg({"InvoiceDate": [
+    lambda InvoiceDate: (InvoiceDate.max() - InvoiceDate.min()).days,
+    # her bir müşterinin, son alışveriş ve ilk alışveriş tarihini birbirinden çıkar ve gün cinsine çevir
+    lambda date: (today_date - date.min()).days],  # müşterinin yaşını hesapla
+    "Invoice": lambda Invoice: Invoice.nunique(),
+    # her bir müşterinin eşsiz kaç tane faturası var (=frequency)
+    "TotalPrice": lambda TotalPrice: TotalPrice.sum()})
 
 cltv_df.columns = cltv_df.columns.droplevel(0)
 
@@ -99,3 +103,70 @@ cltv_df = cltv_df[(cltv_df["frequency"] > 1)]
 cltv_df["recency"] = cltv_df["recency"] / 7
 
 cltv_df["T"] = cltv_df["T"] / 7
+
+## 2. BG-NBD Modelinin Kurulması
+
+bgf = BetaGeoFitter(penalizer_coef=0.001)
+
+bgf.fit(cltv_df["frequency"],
+        cltv_df["recency"],
+        cltv_df["T"])
+
+# 1 hafta içerisinde en çok satın alma beklediğimiz 10 müşteri kimdir?
+
+# fonksiyona 1 haftalık tahmin yap diyoruz
+bgf.conditional_expected_number_of_purchases_up_to_time(1,
+                                                        cltv_df["frequency"],
+                                                        cltv_df["recency"],
+                                                        cltv_df["T"]).sort_values(ascending=False).head(10)
+
+# sklearn'den predict ile de yapılabilir ancak BG-NBD de geçerlidir, Gamma-Gamma da geçerli değildir!!!
+bgf.predict(1,
+            cltv_df["frequency"],
+            cltv_df["recency"],
+            cltv_df["T"]).sort_values(ascending=False).head(10)
+
+bgf.conditional_expected_number_of_purchases_up_to_time(1,
+                                                        cltv_df["frequency"],
+                                                        cltv_df["recency"],
+                                                        cltv_df["T"]).sort_values(ascending=False).head(10)
+
+# her bir müşteri için gerçekleştirilecek ve cltv_df'in içerisine kaydediyoruz
+cltv_df["expected_purc_1_week"] = bgf.predict(1,
+                                              cltv_df["frequency"],
+                                              cltv_df["recency"],
+                                              cltv_df["T"])
+
+# 1 ay içerisinde en çok satın alma beklediğimiz 10 müşteri kimdir?
+
+bgf.predict(4,
+            cltv_df["frequency"],
+            cltv_df["recency"],
+            cltv_df["T"]).sort_values(ascending=False).head(10)
+
+cltv_df["expected_purc_1_month"] = bgf.predict(4,
+                                               cltv_df["frequency"],
+                                               cltv_df["recency"],
+                                               cltv_df["T"])
+
+# 1 aylık periyotta şirketin beklediği satış sayısı
+bgf.predict(4,
+            cltv_df["frequency"],
+            cltv_df["recency"],
+            cltv_df["T"]).sum()
+
+
+# 3 Ayda Tüm Şirketin Beklenen Satış Sayısı Nedir?
+
+bgf.predict(4 * 3,
+            cltv_df["frequency"],
+            cltv_df["recency"],
+            cltv_df["T"]).sum()
+
+
+# Tahmin Sonuçlarının Değerlendirilmesi
+
+plot_period_transactions(bgf)
+plt.show()
+
+
