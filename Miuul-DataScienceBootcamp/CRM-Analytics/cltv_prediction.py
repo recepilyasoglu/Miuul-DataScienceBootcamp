@@ -185,6 +185,7 @@ cltv_df["expected_average_profit"] = ggf.conditional_expected_average_profit(clt
 
 cltv_df.sort_values("expected_average_profit", ascending=False).head(10)
 
+
 ## 4. Calculation of CLTV with BG-NBD and GG Model (BG-NBD ve Gamma-Gamma Modeli ile CLTV'nin Hesaplanması)
 
 # Her bir gözlem birimi için Customer Lifetime Value değeri hesaplanacaktır.
@@ -205,5 +206,14 @@ cltv_final = cltv_df.merge(cltv, on="Customer ID", how="left")
 cltv_final.sort_values(by="clv", ascending=False).head(10)
 
 
+## 5. Creating the Customer Segment (CLTV'ye Göre Segmentlerin Oluşturulması)
+
+cltv_final
+
+cltv_final["segment"] = pd.qcut(cltv_final["clv"], 4, labels=["D", "C", "B", "A"])
+
+cltv_final.sort_values(by="clv", ascending=False).head(50)
+
+cltv_final.groupby("segment").agg({"count", "mean", "sum"})
 
 
