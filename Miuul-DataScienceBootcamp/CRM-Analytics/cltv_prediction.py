@@ -82,12 +82,11 @@ today_date = dt.datetime(2011, 12, 11)
 # (Not: rfm'dekiler gibi değil)
 
 cltv_df = df.groupby("Customer ID").agg({"InvoiceDate": [
-    lambda InvoiceDate: (InvoiceDate.max() - InvoiceDate.min()).days,
-    # her bir müşterinin, son alışveriş ve ilk alışveriş tarihini birbirinden çıkar ve gün cinsine çevir
-    lambda date: (today_date - date.min()).days],  # müşterinin yaşını hesapla
-    "Invoice": lambda Invoice: Invoice.nunique(),
-    # her bir müşterinin eşsiz kaç tane faturası var (=frequency)
-    "TotalPrice": lambda TotalPrice: TotalPrice.sum()})
+                                                lambda InvoiceDate: (InvoiceDate.max() - InvoiceDate.min()).days,  # her bir müşterinin, son alışveriş ve ilk alışveriş tarihini birbirinden çıkar ve gün cinsine çevir
+                                                lambda date: (today_date - date.min()).days],  # müşterinin yaşını hesapla
+                                        "Invoice": lambda Invoice: Invoice.nunique(),
+                                        "TotalPrice": lambda TotalPrice: TotalPrice.sum()})  # her bir müşterinin eşsiz kaç tane faturası var (=frequency)
+
 
 cltv_df.columns = cltv_df.columns.droplevel(0)
 
@@ -169,4 +168,18 @@ bgf.predict(4 * 3,
 plot_period_transactions(bgf)
 plt.show()
 
+
+# 3. GAMMA-GAMMA Modelinin Kurulması
+
+ggf = GammaGammaFitter(penalizer_coef=0.01)
+
+ggf.fit(cltv_df["frequency"], cltv_df["monetary"])
+
+ggf.conditional_expected_average_profit(cltv_df["frequency"],
+                                        cltv_df["monetary"]).sort_values(ascending=False).head(10)
+
+cltv_df["expected_average_profit"] = ggf.conditional_expected_average_profit(cltv_df["frequency"],
+                                                                             cltv_df["monetary"])
+
+cltv_df.sort_values("expected_average_profit", ascending=False).head(10)
 
