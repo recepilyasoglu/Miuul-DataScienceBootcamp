@@ -82,11 +82,11 @@ today_date = dt.datetime(2011, 12, 11)
 # (Not: rfm'dekiler gibi değil)
 
 cltv_df = df.groupby("Customer ID").agg({"InvoiceDate": [
-                                                lambda InvoiceDate: (InvoiceDate.max() - InvoiceDate.min()).days,  # her bir müşterinin, son alışveriş ve ilk alışveriş tarihini birbirinden çıkar ve gün cinsine çevir
-                                                lambda date: (today_date - date.min()).days],  # müşterinin yaşını hesapla
-                                        "Invoice": lambda Invoice: Invoice.nunique(),
-                                        "TotalPrice": lambda TotalPrice: TotalPrice.sum()})  # her bir müşterinin eşsiz kaç tane faturası var (=frequency)
-
+    lambda InvoiceDate: (InvoiceDate.max() - InvoiceDate.min()).days,
+    # her bir müşterinin, son alışveriş ve ilk alışveriş tarihini birbirinden çıkar ve gün cinsine çevir
+    lambda date: (today_date - date.min()).days],  # müşterinin yaşını hesapla
+    "Invoice": lambda Invoice: Invoice.nunique(),
+    "TotalPrice": lambda TotalPrice: TotalPrice.sum()})  # her bir müşterinin eşsiz kaç tane faturası var (=frequency)
 
 cltv_df.columns = cltv_df.columns.droplevel(0)
 
@@ -154,7 +154,6 @@ bgf.predict(4,
             cltv_df["recency"],
             cltv_df["T"]).sum()
 
-
 # 3 Ayda Tüm Şirketin Beklenen Satış Sayısı Nedir?
 
 bgf.predict(4 * 3,
@@ -162,14 +161,17 @@ bgf.predict(4 * 3,
             cltv_df["recency"],
             cltv_df["T"]).sum()
 
+cltv_df["expected_purc_3_month"] = bgf.predict(4 * 3,
+                                               cltv_df["frequency"],
+                                               cltv_df["recency"],
+                                               cltv_df["T"]).sum()
 
 # Tahmin Sonuçlarının Değerlendirilmesi
 
 plot_period_transactions(bgf)
 plt.show()
 
-
-# 3. GAMMA-GAMMA Modelinin Kurulması
+## 3. GAMMA-GAMMA Modelinin Kurulması
 
 ggf = GammaGammaFitter(penalizer_coef=0.01)
 
@@ -182,4 +184,26 @@ cltv_df["expected_average_profit"] = ggf.conditional_expected_average_profit(clt
                                                                              cltv_df["monetary"])
 
 cltv_df.sort_values("expected_average_profit", ascending=False).head(10)
+
+## 4. Calculation of CLTV with BG-NBD and GG Model (BG-NBD ve Gamma-Gamma Modeli ile CLTV'nin Hesaplanması)
+
+# Her bir gözlem birimi için Customer Lifetime Value değeri hesaplanacaktır.
+cltv = ggf.customer_lifetime_value(bgf,
+                                   cltv_df["frequency"],
+                                   cltv_df["recency"],
+                                   cltv_df["T"],
+                                   cltv_df["monetary"],
+                                   time=3,  # 3 aylık
+                                   freq="W",  # T'nin frekans bilgisi.
+                                   discount_rate=0.01)
+
+cltv.head()
+
+cltv = cltv.reset_index()
+
+cltv_final = cltv_df.merge(cltv, on="Customer ID", how="left")
+cltv_final.sort_values(by="clv", ascending=False).head(10)
+
+
+
 
