@@ -86,16 +86,16 @@ df["total_number_purchases"].sort_values(ascending=False).head(10)
 
 # 8. Veri ön hazırlık sürecini fonksiyonlaştırınız.
 def date_preparation(dataframe):
-    dataframe["total_number_purchases"] = dataframe["order_num_total_ever_offline"] + dataframe[
+    dataframe["total_number_purchase"] = dataframe["order_num_total_ever_offline"] + dataframe[
         "order_num_total_ever_online"]
     dataframe["total_number_price"] = dataframe["customer_value_total_ever_offline"] + dataframe[
         "customer_value_total_ever_online"]
 
     dt = dataframe.columns[dataframe.columns.str.contains("date")]
     dataframe[dt] = dataframe[dt].apply(pd.to_datetime)
-    dataframe.groupby("order_channel")["total_number_purchases", "total_number_price"].agg({"count", "sum"})
+    dataframe.groupby("order_channel")["total_number_purchase", "total_number_price"].agg({"count", "sum"})
     dataframe["total_number_price"].sort_values(ascending=False).head(10)
-    dataframe["total_number_purchases"].sort_values(ascending=False).head(10)
+    dataframe["total_number_purchase"].sort_values(ascending=False).head(10)
 
     return dataframe
 
