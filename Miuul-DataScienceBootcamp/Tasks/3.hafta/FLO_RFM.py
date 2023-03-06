@@ -180,85 +180,46 @@ tsk_df2.master_id.to_csv("male-child_customers.csv")
 
 # GÖREV 6: Tüm süreci fonksiyonlaştırınız.
 
-###############################################################
-# GÖREV 1: Veriyi  Hazırlama ve Anlama (Data Understanding)
-###############################################################
+def rfm(dataframe, csv=False):
+    # Verinin Hazırlanması
+    dataframe["total_number_purchase"] = dataframe["order_num_total_ever_offline"] + dataframe["order_num_total_ever_online"]
+    dataframe["total_number_price"] = dataframe["customer_value_total_ever_offline"] + dataframe["customer_value_total_ever_online"]
+    date = dataframe.columns[dataframe.columns.str.contains("date")]
+    dataframe[date] = dataframe[date].apply(pd.to_datetime)
+    # RFM Metriklerinin Hazırlanması
+    today_date = dt.datetime(2021, 6, 1)
+    rfm = df.groupby("master_id").agg(
+        {"last_order_date": lambda last_order_date: (today_date - last_order_date.max()).days,
+         "total_number_purchase": lambda total_number_purchase: total_number_purchase.nunique(),
+         "total_number_price": lambda total_number_price: total_number_price.sum()})
+    rfm.columns = ["recency", "frequency", "monetary"]
+    # RF ve RFM Skorlarının Oluşturulması
+    rfm["recency_score"] = pd.qcut(rfm["recency"], 5, labels=[5, 4, 3, 2, 1])
+    rfm["monetary_score"] = pd.qcut(rfm["monetary"], 5, labels=[1, 2, 3, 4, 5])
+    rfm["frequency_score"] = pd.qcut(rfm["frequency"].rank(method="first"), 5, labels=[1, 2, 3, 4, 5])
+    rfm["RF_SCORE"] = (rfm["recency_score"].astype(str) +
+                       rfm["frequency_score"].astype(str))
+    # RF Skorlarının Segment Olarak Tanımlanması
+    seg_map = {
+        r"[1-2][1-2]": "hibernating",
+        r"[1-2][3-4]": "at_Risk",
+        r"[1-2]5": "cant_loose",
+        r"3[1-2]": "need_attention",
+        r"33": "about_to_sleep",
+        r"[3-4][4-5]": "loyal_customers",
+        r"41": "promising",
+        r"51": "new_customers",
+        r"[4-5][2-3]": "potential_loyalists",
+        r"5[4-5]": "champions",
+    }
+    rfm["segment"] = rfm["RF_SCORE"].replace(seg_map, regex=True)
 
+    if csv:
+        rfm.to_csv("rfm.csv")
 
-# 2. Veri setinde
-# a. İlk 10 gözlem,
-# b. Değişken isimleri,
-# c. Boyut,
-# d. Betimsel istatistik,
-# e. Boş değer,
-# f. Değişken tipleri, incelemesi yapınız.
+    return rfm
 
+df = df_.copy()
 
-# 3. Omnichannel müşterilerin hem online'dan hemde offline platformlardan alışveriş yaptığını ifade etmektedir.
-# Herbir müşterinin toplam alışveriş sayısı ve harcaması için yeni değişkenler oluşturunuz.
+new_df2 = rfm(df, csv=True)
 
-
-# 4. Değişken tiplerini inceleyiniz. Tarih ifade eden değişkenlerin tipini date'e çeviriniz.
-
-
-# df["last_order_date"] = df["last_order_date"].apply(pd.to_datetime)
-
-
-# 5. Alışveriş kanallarındaki müşteri sayısının, toplam alınan ürün sayısı ve toplam harcamaların dağılımına bakınız.
-
-
-# 6. En fazla kazancı getiren ilk 10 müşteriyi sıralayınız.
-
-
-# 7. En fazla siparişi veren ilk 10 müşteriyi sıralayınız.
-
-
-# 8. Veri ön hazırlık sürecini fonksiyonlaştırınız.
-
-
-###############################################################
-# GÖREV 2: RFM Metriklerinin Hesaplanması
-###############################################################
-
-# Veri setindeki en son alışverişin yapıldığı tarihten 2 gün sonrasını analiz tarihi
-
-
-# customer_id, recency, frequnecy ve monetary değerlerinin yer aldığı yeni bir rfm dataframe
-
-
-###############################################################
-# GÖREV 3: RF ve RFM Skorlarının Hesaplanması (Calculating RF and RFM Scores)
-###############################################################
-
-#  Recency, Frequency ve Monetary metriklerini qcut yardımı ile 1-5 arasında skorlara çevrilmesi ve
-# Bu skorları recency_score, frequency_score ve monetary_score olarak kaydedilmesi
-
-
-# recency_score ve frequency_score’u tek bir değişken olarak ifade edilmesi ve RF_SCORE olarak kaydedilmesi
-
-
-###############################################################
-# GÖREV 4: RF Skorlarının Segment Olarak Tanımlanması
-###############################################################
-
-# Oluşturulan RFM skorların daha açıklanabilir olması için segment tanımlama ve  tanımlanan seg_map yardımı ile RF_SCORE'u segmentlere çevirme
-
-
-###############################################################
-# GÖREV 5: Aksiyon zamanı!
-###############################################################
-
-# 1. Segmentlerin recency, frequnecy ve monetary ortalamalarını inceleyiniz.
-
-
-# 2. RFM analizi yardımı ile 2 case için ilgili profildeki müşterileri bulunuz ve müşteri id'lerini csv ye kaydediniz.
-
-# a. FLO bünyesine yeni bir kadın ayakkabı markası dahil ediyor. Dahil ettiği markanın ürün fiyatları genel müşteri tercihlerinin üstünde. Bu nedenle markanın
-# tanıtımı ve ürün satışları için ilgilenecek profildeki müşterilerle özel olarak iletişime geçeilmek isteniliyor. Bu müşterilerin sadık  ve
-# kadın kategorisinden alışveriş yapan kişiler olması planlandı. Müşterilerin id numaralarını csv dosyasına yeni_marka_hedef_müşteri_id.cvs
-# olarak kaydediniz.
-
-
-# b. Erkek ve Çoçuk ürünlerinde %40'a yakın indirim planlanmaktadır. Bu indirimle ilgili kategorilerle ilgilenen geçmişte iyi müşterilerden olan ama uzun süredir
-# alışveriş yapmayan ve yeni gelen müşteriler özel olarak hedef alınmak isteniliyor. Uygun profildeki müşterilerin id'lerini csv dosyasına indirim_hedef_müşteri_ids.csv
-# olarak kaydediniz.
