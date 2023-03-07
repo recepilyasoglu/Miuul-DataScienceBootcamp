@@ -191,3 +191,4 @@ cltv_df["cltv_segment"] = pd.qcut(cltv_df["cltv"], 4, labels=["D", "C", "B", "A"
 
 cltv_df.groupby("cltv_segment")[["recency_cltv_weekly", "frequency", "monetary_cltv_avg"]].mean()
 
+
