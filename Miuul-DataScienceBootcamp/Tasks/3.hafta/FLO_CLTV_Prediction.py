@@ -72,7 +72,9 @@ df.describe().T
 
 # 3. "order_num_total_ever_online","order_num_total_ever_offline","customer_value_total_ever_offline","customer_value_total_ever_online" değişkenlerinin
 #aykırı değerleri varsa baskılayanız.
+
 values = ["order_num_total_ever_online", "order_num_total_ever_offline", "customer_value_total_ever_offline", "customer_value_total_ever_online"]
+
 for x in values:
     replace_with_threshold(df, x)
 
@@ -90,6 +92,7 @@ date = df.columns[df.columns.str.contains("date")]
 df[date] = df[date].apply(pd.to_datetime)
 df.dtypes
 
+
 ###############################################################
 # GÖREV 2: CLTV Veri Yapısının Oluşturulması
 ###############################################################
@@ -100,14 +103,21 @@ today_date = dt.datetime(2021, 6, 1)
 # 2.customer_id, recency_cltv_weekly, T_weekly, frequency ve monetary_cltv_avg değerlerinin yer aldığı yeni bir cltv dataframe'i oluşturunuz.
 
 cltv_df = pd.DataFrame()
+
 cltv_df["customer_id"] = df["master_id"]
+
 cltv_df["recency_cltv_weekly"] = ((df["last_order_date"] - df["first_order_date"]).astype("timedelta64[D]"))/7
 cltv_df["T_weekly"] = ((today_date - df["first_order_date"]).astype("timedelta64[D]")) / 7
+
 cltv_df["frequency"] = df["total_number_purchase"]
 cltv_df["monetary_cltv_avg"] = df["total_number_price"] / df["total_number_purchase"]
+
 cltv_df = cltv_df[(cltv_df['frequency'] > 1)]
+
 cltv_df.head()
 df.head()
+
+
 ###############################################################
 # GÖREV 3: BG/NBD, Gamma-Gamma Modellerinin Kurulması, 6 aylık CLTV'nin hesaplanması
 ###############################################################
@@ -135,8 +145,10 @@ cltv_df["exp_sales_6_month"] = bgf.predict(4 * 6,
 
 
 # 3. ve 6.aydaki en çok satın alım gerçekleştirecek 10 kişiyi inceleyeniz.
+
 cltv_df["exp_sales_3_month"].sort_values(ascending=False).head(10)
 cltv_df["exp_sales_6_month"].sort_values(ascending=False).head(10)
+
 
 # 2.  Gamma-Gamma modelini fit ediniz. Müşterilerin ortalama bırakacakları değeri tahminleyip exp_average_value olarak cltv dataframe'ine ekleyiniz.
 
@@ -163,6 +175,7 @@ cltv_df["cltv"] = ggf.customer_lifetime_value(bgf,
 # CLTV değeri en yüksek 20 kişiyi gözlemleyiniz.
 
 cltv_df["cltv"].sort_values(ascending=False).head(20)
+
 
 ###############################################################
 # GÖREV 4: CLTV'ye Göre Segmentlerin Oluşturulması
