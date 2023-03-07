@@ -43,10 +43,10 @@ import datetime as dt
 from lifetimes import BetaGeoFitter
 from lifetimes import GammaGammaFitter
 from lifetimes.plotting import plot_period_transactions
-
+pd.set_option('display.max_rows', 500)
 pd.set_option('display.max_columns', None)
 pd.set_option('display.float_format', lambda x: '%.4f' % x)
-
+pd.set_option("display.width", 500)
 # 1. flo_data_20K.csv verisini okuyunuz.
 df_ = pd.read_csv(r"Tasks/3.hafta/flo_data_20k.csv")
 df = df_.copy()
@@ -75,13 +75,13 @@ df[date] = df[date].apply(pd.to_datetime)
 df.dtypes
 
 # 5. Alışveriş kanallarındaki müşteri sayısının, ortalama alınan ürün sayısının ve ortalama harcamaların dağılımına bakınız.
-df.groupby("order_channel")["total_number_purchases", "total_number_price"].agg({"count", "sum"})
+df.groupby("order_channel")["total_number_purchase", "total_number_price"].agg({"count", "mean"})
 
 # 6. En fazla kazancı getiren ilk 10 müşteriyi sıralayınız.
 df["total_number_price"].sort_values(ascending=False).head(10)
 
 # 7. En fazla siparişi veren ilk 10 müşteriyi sıralayınız.
-df["total_number_purchases"].sort_values(ascending=False).head(10)
+df["total_number_purchase"].sort_values(ascending=False).head(10)
 
 
 # 8. Veri ön hazırlık sürecini fonksiyonlaştırınız.
@@ -93,7 +93,7 @@ def date_preparation(dataframe):
 
     dt = dataframe.columns[dataframe.columns.str.contains("date")]
     dataframe[dt] = dataframe[dt].apply(pd.to_datetime)
-    dataframe.groupby("order_channel")["total_number_purchase", "total_number_price"].agg({"count", "sum"})
+    dataframe.groupby("order_channel")["total_number_purchase", "total_number_price"].agg({"count", "mean"})
     dataframe["total_number_price"].sort_values(ascending=False).head(10)
     dataframe["total_number_purchase"].sort_values(ascending=False).head(10)
 
