@@ -111,9 +111,9 @@ new_df
 df["last_order_date"].max()
 today_date = dt.datetime(2021, 6, 1)
 
-rfm = df.groupby("master_id").agg({"last_order_date": lambda last_order_date: (today_date - last_order_date.max()).days,
-                                   "total_number_purchase": lambda total_number_purchase: total_number_purchase,
-                                   "total_number_price": lambda total_number_price: total_number_price})
+rfm = df.groupby("master_id").agg({"last_order_date": lambda x: (today_date - x.max()).days,
+                                   "total_number_purchase": lambda x: x,
+                                   "total_number_price": lambda x: x})
 rfm.head()
 rfm.columns = ["recency", "frequency", "monetary"]
 rfm.describe().T
@@ -190,9 +190,9 @@ def rfm(dataframe, csv=False):
     # RFM Metriklerinin Hazırlanması
     today_date = dt.datetime(2021, 6, 1)
     rfm = df.groupby("master_id").agg(
-        {"last_order_date": lambda last_order_date: (today_date - last_order_date.max()).days,
-         "total_number_purchase": lambda total_number_purchase: total_number_purchase.nunique(),
-         "total_number_price": lambda total_number_price: total_number_price.sum()})
+        {"last_order_date": lambda x: (today_date - x.max()).days,
+         "total_number_purchase": lambda x: x,
+         "total_number_price": lambda x: x})
     rfm.columns = ["recency", "frequency", "monetary"]
     # RF ve RFM Skorlarının Oluşturulması
     rfm["recency_score"] = pd.qcut(rfm["recency"], 5, labels=[5, 4, 3, 2, 1])
