@@ -47,6 +47,7 @@ pd.set_option('display.max_rows', 500)
 pd.set_option('display.max_columns', None)
 pd.set_option('display.float_format', lambda x: '%.4f' % x)
 pd.set_option("display.width", 500)
+
 # 1. flo_data_20K.csv verisini okuyunuz.
 df_ = pd.read_csv(r"Tasks/3.hafta/flo_data_20k.csv")
 df = df_.copy()
@@ -85,7 +86,7 @@ df["total_number_purchase"].sort_values(ascending=False).head(10)
 
 
 # 8. Veri ön hazırlık sürecini fonksiyonlaştırınız.
-def date_preparation(dataframe):
+def data_preparation(dataframe):
     dataframe["total_number_purchase"] = dataframe["order_num_total_ever_offline"] + dataframe[
         "order_num_total_ever_online"]
     dataframe["total_number_price"] = dataframe["customer_value_total_ever_offline"] + dataframe[
@@ -93,15 +94,12 @@ def date_preparation(dataframe):
 
     dt = dataframe.columns[dataframe.columns.str.contains("date")]
     dataframe[dt] = dataframe[dt].apply(pd.to_datetime)
-    dataframe.groupby("order_channel")["total_number_purchase", "total_number_price"].agg({"count", "mean"})
-    dataframe["total_number_price"].sort_values(ascending=False).head(10)
-    dataframe["total_number_purchase"].sort_values(ascending=False).head(10)
 
     return dataframe
 
 
 df = df_.copy()
-new_df = date_preparation(df)
+new_df = data_preparation(df)
 new_df
 
 # GÖREV 2: RFM Metriklerinin Hesaplanması
@@ -114,8 +112,8 @@ df["last_order_date"].max()
 today_date = dt.datetime(2021, 6, 1)
 
 rfm = df.groupby("master_id").agg({"last_order_date": lambda last_order_date: (today_date - last_order_date.max()).days,
-                                   "total_number_purchase": lambda total_number_purchase: total_number_purchase.nunique(),
-                                   "total_number_price": lambda total_number_price: total_number_price.sum()})
+                                   "total_number_purchase": lambda total_number_purchase: total_number_purchase,
+                                   "total_number_price": lambda total_number_price: total_number_price})
 rfm.head()
 rfm.columns = ["recency", "frequency", "monetary"]
 rfm.describe().T
@@ -132,6 +130,9 @@ rfm["frequency_score"] = pd.qcut(rfm["frequency"].rank(method="first"), 5, label
 
 rfm["RF_SCORE"] = (rfm["recency_score"].astype(str) +
                    rfm["frequency_score"].astype(str))
+
+rfm = rfm[(rfm['frequency'] > 1)]
+
 
 rfm.describe().T
 
@@ -157,7 +158,7 @@ rfm.head()
 
 # GÖREV 5: Aksiyon zamanı!
 # 1. Segmentlerin recency, frequnecy ve monetary ortalamalarını inceleyiniz.
-rfm.groupby("segment")[["recency", "frequency", "monetary"]].agg({"mean"})
+rfm.groupby("segment")[["recency", "frequency", "monetary"]].mean()
 
 # 2. RFM analizi yardımı ile 2 case için ilgili profildeki müşterileri bulun ve müşteri id'lerini csv ye kaydediniz.
 # a. FLO bünyesine yeni bir kadın ayakkabı markası dahil ediyor. Dahil ettiği markanın ürün fiyatları genel müşteri tercihlerinin üstünde. Bu nedenle markanın
@@ -173,7 +174,7 @@ tsk_df.master_id.to_csv("special_customers.csv")
 # alışveriş yapmayan kaybedilmemesi gereken müşteriler, uykuda olanlar ve yeni gelen müşteriler özel olarak hedef alınmak isteniliyor. Uygun profildeki müşterilerin id'lerini csv dosyasına indirim_hedef_müşteri_ids.csv
 # olarak kaydediniz.
 main_df.segment.head(35)
-tsk_df2 = main_df[(main_df["interested_in_categories_12"].str.contains("ERKEK")) & (main_df["interested_in_categories_12"].str.contains("COCUK") & ((main_df["segment"] == "cant_loose") | (main_df["segment"] == "about_to_sleep") | (main_df["segment"] == "new_customers")))]
+tsk_df2 = main_df[(main_df["interested_in_categories_12"].str.contains("ERKEK")) & (main_df["interested_in_categories_12"].str.contains("COCUK") & ((main_df["segment"] == "cant_loose") | (main_df["segment"] == "hibernating") | (main_df["segment"] == "new_customers")))]
 tsk_df2.head()
 tsk_df2.master_id.to_csv("male-child_customers.csv")
 
