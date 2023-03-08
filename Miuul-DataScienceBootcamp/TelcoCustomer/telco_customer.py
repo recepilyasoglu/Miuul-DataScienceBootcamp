@@ -126,3 +126,4 @@ df["tenure"].max()
 
 df["NEWC_tenure"] = pd.cut(df["tenure"], bins=[0, 10, 15, 72], labels=["New", "Star", "Loyal"])
 df[["NEWC_tenure", "tenure"]].head(12)
+
