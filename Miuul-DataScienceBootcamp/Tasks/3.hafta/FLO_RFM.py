@@ -223,4 +223,3 @@ def rfm(dataframe, csv=False):
 df = df_.copy()
 
 new_df2 = rfm(df, csv=True)
-
