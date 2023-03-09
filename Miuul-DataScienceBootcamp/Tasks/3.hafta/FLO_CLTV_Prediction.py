@@ -245,3 +245,4 @@ def create_cltv(dataframe):
 df = df_.copy()
 new_df = create_cltv(df)
 new_df
+
