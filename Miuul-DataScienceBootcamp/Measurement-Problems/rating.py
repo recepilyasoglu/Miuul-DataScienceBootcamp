@@ -95,3 +95,12 @@ def user_based_weighted_average(dataframe, w1=22, w2=24, w3=26, w4=28):
 
 user_based_weighted_average(df, 20, 24, 26, 30)
 
+
+# Weighted Rating
+
+def course_weighted_rating(dataframe, time_w=50, user_w=50):
+    return time_based_weighted_average(dataframe) * time_w / 100 + user_based_weighted_average(dataframe)*user_w/100
+
+course_weighted_rating(df)
+
+course_weighted_rating(df, time_w=40, user_w=60)
