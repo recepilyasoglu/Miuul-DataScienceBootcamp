@@ -61,9 +61,9 @@ df.loc[df["days"] > 180, "Rating"].mean()
 #Ağırlık oluşturma
 # %28, %26 gibi önem sırasına göre, Not: \ atınca "alt satırdan koda devam edicem" demek
 df.loc[df["days"] <= 30, "Rating"].mean() * 28/100 + \
-df.loc[(df["days"] > 30) & (df["days"] <= 90), "Rating"].mean() * 26/100 + \
-df.loc[(df["days"] > 90) & (df["days"] <= 180), "Rating"].mean() * 24/100 + \
-df.loc[df["days"] > 180, "Rating"].mean() * 22/100
+    df.loc[(df["days"] > 30) & (df["days"] <= 90), "Rating"].mean() * 26/100 + \
+    df.loc[(df["days"] > 90) & (df["days"] <= 180), "Rating"].mean() * 24/100 + \
+    df.loc[df["days"] > 180, "Rating"].mean() * 22/100
 
 def time_based_weighted_average(dataframe, w1=28, w2=26, w3=24, w4=22):
     return dataframe.loc[dataframe["days"] <= 30, "Rating"].mean() * w1 / 100 + \
@@ -74,3 +74,24 @@ def time_based_weighted_average(dataframe, w1=28, w2=26, w3=24, w4=22):
 time_based_weighted_average(df)
 
 time_based_weighted_average(df, 30, 26, 22, 22)
+
+
+# User-Based Weighted Average
+df.head()
+
+## İzleme oranlarına göre puan ortalamaları
+df.groupby("Progress").agg({"Rating": "mean"})
+
+df.loc[df["Progress"] <= 10, "Rating"].mean() * 22/100 + \
+    df.loc[(df["Progress"] > 10) & (df["Progress"] <= 45), "Rating"].mean() * 26/100 + \
+    df.loc[(df["Progress"] > 45) & (df["Progress"] <= 75), "Rating"].mean() * 24/100 + \
+    df.loc[df["Progress"] > 75, "Rating"].mean() * 28/100
+
+def user_based_weighted_average(dataframe, w1=22, w2=24, w3=26, w4=28):
+    return dataframe.loc[dataframe["Progress"] <= 10, "Rating"].mean() * w1 / 100 + \
+           dataframe.loc[(dataframe["Progress"] > 10) & (dataframe["Progress"] <= 45), "Rating"].mean() * w2 / 100 + \
+           dataframe.loc[(dataframe["Progress"] > 45) & (dataframe["Progress"] <= 75), "Rating"].mean() * w3 / 100 + \
+           dataframe.loc[dataframe["Progress"] > 75, "Rating"].mean() * w4 / 100
+
+user_based_weighted_average(df, 20, 24, 26, 30)
+
