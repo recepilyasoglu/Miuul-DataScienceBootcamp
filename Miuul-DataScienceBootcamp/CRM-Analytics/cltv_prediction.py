@@ -291,4 +291,3 @@ df = df_.copy()
 cltv_final2 = create_cltv_p(df)
 
 cltv_final2.to_csv("cltv_prediction.csv")
-
