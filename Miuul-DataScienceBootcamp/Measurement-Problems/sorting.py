@@ -93,3 +93,37 @@ df.sort_values("bar_score", ascending=False).head(20)
 
 # aralarındaki farkın sebebi düşük puan miktarının diğer kursa göre az olması veya olmaması
 df[df["course_name"].index.isin([5, 1])].sort_values("bar_score", ascending=False)
+
+
+# Hybrid Sorting: BAR Score + Diğer Faktörler
+
+# Rating Products
+# - Average
+# - Time-Based Weighted Average
+# - User-Based Weighted Average
+# - Weighted Rating
+
+# Sorting Products
+# - Sorting by Rating
+# - Sorting by Comment Count or Purchase Count
+# - Sorting by Rating, Comment and Purchase
+# - Sorting by Rating, Comment and Purchase
+# - Hybrid Sorting: BAR Score + Diğer Faktörler
+
+
+def hybrid_sorting_score(dataframe, bar_w=60, wss_w=40):
+    bar_score = dataframe.apply(lambda x: bayesian_average_rating(x[["1_point",
+                                                                "2_point",
+                                                                "3_point",
+                                                                "4_point",
+                                                                "5_point"]]), axis=1)
+    wss_score = weighted_sorting_score(dataframe)
+
+    return bar_score*bar_w/100 + wss_score*wss_w/100
+
+
+df["hybrid_sorting_score"] = hybrid_sorting_score(df)
+
+df.sort_values("hybrid_sorting_score", ascending=False).head(200)
+
+df[df["course_name"].str.contains("Veri Bilimi")].sort_values("hybrid_sorting_score", ascending=False).head(20)
