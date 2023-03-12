@@ -127,3 +127,4 @@ df["hybrid_sorting_score"] = hybrid_sorting_score(df)
 df.sort_values("hybrid_sorting_score", ascending=False).head(200)
 
 df[df["course_name"].str.contains("Veri Bilimi")].sort_values("hybrid_sorting_score", ascending=False).head(20)
+
