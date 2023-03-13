@@ -160,5 +160,5 @@ df.sort_values("wilson_lower_bound", ascending=False).head(20)
 
 df.sort_values("score_average_rating", ascending=False).head(20)
 
-df.sort_values("score_average_rating", ascending=False).head(20)
+df.sort_values("score_pos_neg_diff", ascending=False).head(20)
 
