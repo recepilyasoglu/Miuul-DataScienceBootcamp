@@ -128,3 +128,61 @@ df.sort_values("hybrid_sorting_score", ascending=False).head(200)
 
 df[df["course_name"].str.contains("Veri Bilimi")].sort_values("hybrid_sorting_score", ascending=False).head(20)
 
+
+# Uygulama: IMDB Movie Scoring & Sorting
+
+df = pd.read_csv(r"Measurement-Problems/movies_metadata.csv", low_memory=False)
+
+df = df[["title", "vote_average", "vote_count"]]
+
+df.head()
+df.shape
+
+
+# Vote Average'a Göre Sıralama
+df.sort_values("vote_average", ascending=False).head(20)
+
+df["vote_count"].describe([0.10, 0.25, 0.50, 0.70, 0.80, 0.90, 0.95, 0.99]).T
+
+df[df['vote_count'] > 400].sort_values("vote_average", ascending=False).head(20)
+
+df["vote_count_score"] = MinMaxScaler(feature_range=(1, 10)). \
+    fit(df[['vote_count']]). \
+    transform(df[['vote_count']])
+
+df["average_count_score"] = df["vote_average"] * df["vote_count_score"]
+
+df.sort_values("average_count_score", ascending=False).head(20)
+
+df.head()
+
+
+# IMDB Weighted Rating
+# weighted_rating = (v/(v+M) * r) + (M/(v+M) * C)
+# r = vote average
+# v = vote count
+# M = minimum votes required to be listed in the Top 250
+# C = the mean vote across the whole report (currently 7.0)
+
+M = 2500
+C = df["vote_average"].mean()
+
+def weighted_rating(r, v, M, C):
+    return (v/(v+M) * r) + (M/(v+M) * C)
+
+df.sort_values("average_count_score", ascending=False).head(20)
+
+# Deadpool filmi için
+weighted_rating(7.40000, 11444.00000, M, C)
+
+# Inception
+weighted_rating(8.1000, 14075.00000, M, C)
+
+# Esaretin bedeli
+weighted_rating(8.000, 8358.00000, M, C)
+
+df["weighted_rating"] = weighted_rating(df["vote_average"],
+                                        df["vote_count"], M, C)
+
+df.sort_values("weighted_rating", ascending=False).head(10)
+
