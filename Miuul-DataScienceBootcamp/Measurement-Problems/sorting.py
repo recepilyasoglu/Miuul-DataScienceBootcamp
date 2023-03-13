@@ -175,6 +175,13 @@ df.sort_values("average_count_score", ascending=False).head(20)
 # Deadpool filmi için
 weighted_rating(7.40000, 11444.00000, M, C)
 
+weighted_rating(7.40000, 12.00000, M, C)
+
+weighted_rating(8.10000, 14075.00000, M, C)
+
+weighted_rating(8.50000, 8358.00000, M, C)
+
+
 # Inception
 weighted_rating(8.1000, 14075.00000, M, C)
 
@@ -185,4 +192,32 @@ df["weighted_rating"] = weighted_rating(df["vote_average"],
                                         df["vote_count"], M, C)
 
 df.sort_values("weighted_rating", ascending=False).head(10)
+
+
+# Bayesian Average Rating Score (BAR Score)
+df.head()
+
+def bayesian_average_rating(n, confidence=0.95):  # n = girilecek olan yıldızların ve bu yıldızlara ait gözlenme frakanslarını ifade etmektedir
+    if sum(n) == 0:
+        return 0
+    K = len(n)
+    z = st.norm.ppf(1 -(1 - confidence) / 2)
+    N = sum(n)
+    first_part = 0.0
+    second_part = 0.0
+    for k, n_k in enumerate(n):
+        first_part += (k + 1) * (n[k] + 1) / (N + K)
+        second_part += (k + 1) * (k + 1) * (n[k] + 1) / (N + K)
+    score = first_part - z * math.sqrt((second_part - first_part * first_part) / (N + K + 1))
+    return score
+
+# Esaretin Bedeli için sırasıyla almış olduğu yıldız sayıları, kaç tane 1 yıldız..., kaç tane  10 yıldız vs
+bayesian_average_rating([34733, 4355, 4704, 6561, 13515, 26183, 87368, 273082, 600260, 1295351])
+
+df = pd.read_csv("Measurement-Problems/imdb_ratings.csv")
+df = df.iloc[0:, 1:]
+
+df["bar_score"] = df.apply(lambda x: bayesian_average_rating(x[["one", "two", "three", "four", "five",
+                                                                "six", "seven", "eight", "nine", "ten"]]), axis=1)
+df.sort_values("bar_score", ascending=False).head(20)
 
