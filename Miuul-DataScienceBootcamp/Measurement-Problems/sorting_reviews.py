@@ -82,6 +82,8 @@ wilson_lower_bound(5500, 4500)  # bu yönteme göre daha iyi sonuç aldık
 wilson_lower_bound(2, 0)
 wilson_lower_bound(100, 1)
 
+wilson_lower_bound(280, 47)
+wilson_lower_bound(376, 12)
 
 # Case Study
 
