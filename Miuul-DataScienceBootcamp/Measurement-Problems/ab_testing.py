@@ -93,5 +93,152 @@ plt.show()
 df["tip"].corr(df["total_bill"])  # Yorum: Pozitif yönlü orta şiddetli bir ilişki vardır.
 
 
+# AB Testing (Bağımsız İki Örneklem T Testi)
 
+# 1. Hipotezleri Kur
+# 2. Varsayım Kontrolü
+#   - 1. Normallik Varsayımı
+#   - 2. Varyans Homojenliği
+# 3. Hipotezin Uygulanması
+#   - 1. Varsayımlar sağlanıyorsa bağımsız iki örneklem t testi (parametrik test)
+#   - 2. Varsayımlar sağlanmıyorsa mannwhitneyu testi (non-parametrik test)
+# 4. p-value değerine göre sonuçları yorumla
+# Not:
+# - Normallik sağlanmıyorsa direkt 2 numara. Varyans homojenliği sağlanmıyorsa 1 numaraya arguman girilir.
+# - Normallik incelemesi öncesi aykırı değer incelemesi ve düzeltmesi yapmak faydalı olabilir.
+
+
+# Uygulama 1: Sigara İçenler ile İçmeyenlerin Hesap Ortalamaları Arasında İst Ol An Fark var mı?
+
+df = sns.load_dataset("tips")
+df.head()
+
+df.groupby("smoker").agg({"total_bill": "mean"})
+
+
+# 1. Hipotezi Kur
+# H0: M1=M2
+# H1 = M1 != M2
+
+
+# 2. Varsayım Kontrolü
+
+# Normallik Varsayımı
+# Varyans Homojenliği
+
+
+## Normallik Varsayımı
+
+# H0: Normal dağılım varsayımı sağlanmaktadır.
+# H1: ...sağlanmamaktadır.
+
+# shapiro testi bir değişkenin dağılımının normal olup olmadığını test eder.
+test_stat, pvalue = shapiro(df.loc[df["smoker"] == "Yes", "total_bill"])
+print("Test Stat = %.4f, p-value = %.4f" % (test_stat, pvalue))
+
+# p-value < ise 0.05'ten H0 RED.
+# p-value < değilse 0.05 H0 REDDEILEMEZ.
+
+test_stat, pvalue = shapiro(df.loc[df["smoker"] == "No", "total_bill"])
+print("Test Stat = %.4f, p-value = %.4f" % (test_stat, pvalue))
+
+
+## Varyans Homjenliği Varsayımı
+
+# H0: Varyanslar Homojendir.
+# H1: Varyanslar Homojen Değildir..
+
+# levene: bana ik farlı grup gönder, bu iki farklu gruba göre bize
+# varyans homojenliği vrsayımının sağlanığ sağlanmadığını ifade eder.
+test_stat, pvalue = levene(df.loc[df["smoker"] == "Yes", "total_bill"],
+                           df.loc[df["smoker"] == "No", "total_bill"])
+
+print("Test Stat = %.4f, p-value = %.4f" % (test_stat, pvalue))
+
+# p-value < ise 0.05'ten H0 RED.
+# p-value < değilse 0.05 H0 REDDEILEMEZ.
+
+
+# 3. ve 4. Hipotezin Uygulanması
+
+## 1. Varsayımlar sağlanıyorsa bağımsız iki örneklem t testi (parametrik test)
+## 2. Varsayımlar sağlanmıyorsa mannwhitneyu testi (non-parametrik test)
+
+
+## 1.1 Varsayımlar sağlanıyorsa bağımsız iki örneklem t testi (parametrik test)
+
+# ttest: normallik varsayımı sağlanıyorsa kullanılır
+# normallik varsayımı sağlanıyor ve varyans homojenliği varsayımı sağlanılıyorsa da kullanılır
+# normallik varsayımı sağlanıyor ve varyans homojenliği varsayımı sağlanmıyorsa da kullanılır,
+# sadece equal_var=False gir der
+
+test_stat, pvalue = ttest_ind(df.loc[df["smoker"] == "Yes", "total_bill"],
+                              df.loc[df["smoker"] == "No", "total_bill"],
+                              equal_var=True)
+
+print("Test Stat = %.4f, p-value = %.4f" % (test_stat, pvalue))
+
+# p-value < ise 0.05'ten H0 RED.
+# p-value < değilse 0.05 H0 REDDEILEMEZ.
+
+
+# 1.2 Varsayımlar sağlanmıyorsa mannwhitneyu testi (non-parametrik test)
+# mannwhitneyu testi: non-parametrik ortalama/medyan kıyaslama testidir.
+
+test_stat, pvalue = mannwhitneyu(df.loc[df["smoker"] == "Yes", "total_bill"],
+                                 df.loc[df["smoker"] == "No", "total_bill"])
+
+print("Test Stat = %.4f, p-value = %.4f" % (test_stat, pvalue))
+
+
+### Sonuç: H0 REDDEILEMEZ ÇIKTI.
+#Yani sigara içenler ile içmeyenler arasında fark yoktur.
+
+
+# NOT:
+# H0 ya reddedilir ya reddedilemez !!!
+# H1'i kabul etmek diye br durum YOK !!!
+
+
+# Uygulama 2: Titanic Kadın ve Erkek Yolcuların Yaş Ortalamaları Arasında İstatistiksel Olarak Anl. Fark. var mıdır?
+
+df = sns.load_dataset("titanic")
+df.head()
+
+df.groupby("sex").agg({"age": "mean"})
+
+
+# 1. Hipotezleri kur:
+# H0: M1  = M2 (Kadın ve Erkek Yolcuların Yaş Ortalamaları Arasında İstatistiksel Olarak Anl. Fark. Yoktur)
+# H1: M1! = M2 (... vardır)
+
+
+# 2. Varsayımları İncele
+
+# Normallik varsayımı
+# H0: Normal dağılım varsayımı sağlanmaktadır.
+# H1:..sağlanmamaktadır
+
+test_stat, pvalue = shapiro(df.loc[df["sex"] == "female", "age"].dropna())
+print("Test Stat = %.4f, p-value = %.4f" % (test_stat, pvalue))
+
+test_stat, pvalue = shapiro(df.loc[df["sex"] == "male", "age"].dropna())
+print("Test Stat = %.4f, p-value = %.4f" % (test_stat, pvalue))
+
+
+# Varyans homojenliği
+# H0: Varyanslar Homojendir
+# H1: Varyanslar Homojen Değildir
+
+test_stat, pvalue = levene(df.loc[df["sex"] == "female", "age"].dropna(),
+                           df.loc[df["sex"] == "male", "age"].dropna())
+
+print("Test Stat = %.4f, p-value = %.4f" % (test_stat, pvalue))
+
+# Varsayımlar sağlanmadığı için nonparametrik
+
+test_stat, pvalue = mannwhitneyu(df.loc[df["sex"] == "female", "age"].dropna(),
+                                 df.loc[df["sex"] == "male", "age"].dropna())
+
+print("Test Stat = %.4f, p-value = %.4f" % (test_stat, pvalue))
 
