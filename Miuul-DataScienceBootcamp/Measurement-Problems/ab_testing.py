@@ -148,8 +148,8 @@ print("Test Stat = %.4f, p-value = %.4f" % (test_stat, pvalue))
 # H0: Varyanslar Homojendir.
 # H1: Varyanslar Homojen Değildir..
 
-# levene: bana ik farlı grup gönder, bu iki farklu gruba göre bize
-# varyans homojenliği vrsayımının sağlanığ sağlanmadığını ifade eder.
+# levene: bana ik farlı grup gönder, bu iki farkli gruba göre bize
+# varyans homojenliği varsayımının sağlanıp sağlanmadığını ifade eder.
 test_stat, pvalue = levene(df.loc[df["smoker"] == "Yes", "total_bill"],
                            df.loc[df["smoker"] == "No", "total_bill"])
 
@@ -191,7 +191,7 @@ test_stat, pvalue = mannwhitneyu(df.loc[df["smoker"] == "Yes", "total_bill"],
 print("Test Stat = %.4f, p-value = %.4f" % (test_stat, pvalue))
 
 
-### Sonuç: H0 REDDEILEMEZ ÇIKTI.
+### Sonuç: H0 REDDEDILEMEZ ÇIKTI.
 #Yani sigara içenler ile içmeyenler arasında fark yoktur.
 
 
@@ -241,4 +241,65 @@ test_stat, pvalue = mannwhitneyu(df.loc[df["sex"] == "female", "age"].dropna(),
                                  df.loc[df["sex"] == "male", "age"].dropna())
 
 print("Test Stat = %.4f, p-value = %.4f" % (test_stat, pvalue))
+
+
+# Uygulama 3: Diyabet Hastası Olan ve Olmayanların Yaşları Ort. Arasında İst. Ol. Anl. Fark var mıdır?
+
+df = pd.read_csv("Measurement-Problems/diabetes.csv")
+df.head()
+
+df.groupby("Outcome").agg({"Age": "mean"})
+
+# 1. Hipotezleri kur
+# H0: M1 = M2
+# Diyabet Hastası Olan ve Olmayanların Yaşları Ort. Arasında İst. Ol. Anl. Fark Yoktur
+# H1: M1 != M2
+# .... vardır.
+
+# 2. Varsayımları İncele
+
+# Normallik Varsayımı (H0: Normal dağılım varsayımı sağlanmaktadır.)
+
+test_stat, pvalue = shapiro(df.loc[df["Outcome"] == 1, "Age"].dropna())
+print('Test Stat = %.4f, p-value = %.4f' % (test_stat, pvalue))
+
+test_stat, pvalue = shapiro(df.loc[df["Outcome"] == 0, "Age"].dropna())
+print('Test Stat = %.4f, p-value = %.4f' % (test_stat, pvalue))
+
+
+# Normallik varsayımı sağlanmadığı için nonparametrik.
+
+# Hipotez (H0: M1 = M2)
+test_stat, pvalue = mannwhitneyu(df.loc[df["Outcome"] == 1, "Age"].dropna(),
+                                 df.loc[df["Outcome"] == 0, "Age"].dropna())
+print('Test Stat = %.4f, p-value = %.4f' % (test_stat, pvalue))
+
+# Sonuç: Yaşı daha büyük olanlar diyabet hastalığına yakalana ihtimali vardır denebilir.
+
+
+# İş Problemi: Kursun Büyük Çoğunluğunu İzleyenler ile İzlemeyenlerin Puanları Birbirinden Farklı mı?
+###################################################
+
+# H0: M1 = M2 (... iki grup ortalamaları arasında ist ol.anl.fark yoktur.)
+# H1: M1 != M2 (...vardır)
+
+df = pd.read_csv("Measurement-Problems/course_reviews.csv")
+df.head()
+
+df[(df["Progress"] > 75)]["Rating"].mean()
+
+df[(df["Progress"] < 10)]["Rating"].mean()
+
+test_stat, pvalue = shapiro(df[(df["Progress"] > 75)]["Rating"])
+print('Test Stat = %.4f, p-value = %.4f' % (test_stat, pvalue))
+
+test_stat, pvalue = shapiro(df[(df["Progress"] < 25)]["Rating"])
+print('Test Stat = %.4f, p-value = %.4f' % (test_stat, pvalue))
+
+test_stat, pvalue = mannwhitneyu(df[(df["Progress"] > 75)]["Rating"],
+                                 df[(df["Progress"] < 25)]["Rating"])
+print('Test Stat = %.4f, p-value = %.4f' % (test_stat, pvalue))
+
+
+
 
