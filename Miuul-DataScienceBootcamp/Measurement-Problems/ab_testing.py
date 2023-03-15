@@ -417,4 +417,3 @@ tukey = comparison.tukeyhsd(0.05)
 print(tukey.summary())
 
 
-
