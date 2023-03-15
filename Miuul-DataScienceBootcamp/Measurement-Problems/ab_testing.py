@@ -332,6 +332,18 @@ basari_sayisi / gozlem_sayilari
 df = sns.load_dataset("titanic")
 df.head()
 
+df.loc[df["sex"] == "female", "survived"].mean()
+
+df.loc[df["sex"] == "male", "survived"].mean()
+
+female_succ_count = df.loc[df["sex"] == "female", "survived"].sum()
+male_succ_count = df.loc[df["sex"] == "male", "survived"].sum()
+
+test_stat, pvalue = proportions_ztest(count=[female_succ_count, male_succ_count],
+                                      nobs=[df.loc[df["sex"] == "female", "survived"].shape[0],
+                                            df.loc[df["sex"] == "male", "survived"].shape[0]])
+print('Test Stat = %.4f, p-value = %.4f' % (test_stat, pvalue))
+
 
 
 
