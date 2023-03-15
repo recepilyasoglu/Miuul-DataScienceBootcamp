@@ -301,5 +301,39 @@ test_stat, pvalue = mannwhitneyu(df[(df["Progress"] > 75)]["Rating"],
 print('Test Stat = %.4f, p-value = %.4f' % (test_stat, pvalue))
 
 
+######################################################
+# AB Testing (İki Örneklem Oran Testi)
+######################################################
+
+# H0: p1 = p2
+# Yeni Tasarımın Dönüşüm Oranı ile Eski Tasarımın Dönüşüm Oranı Arasında İst. Ol. Anlamlı Farklılık Yoktur.
+# H1: p1 != p2
+# ... vardır
+
+basari_sayisi = np.array([300, 250])
+gozlem_sayilari = np.array([1000, 1100])
+
+proportions_ztest(count=basari_sayisi, nobs=gozlem_sayilari)
+
+
+basari_sayisi / gozlem_sayilari
+
+
+############################
+# Uygulama: Kadın ve Erkeklerin Hayatta Kalma Oranları Arasında İst. Olarak An. Farklılık var mıdır?
+############################
+
+# H0: p1 = p2
+# Kadın ve Erkeklerin Hayatta Kalma Oranları Arasında İst. Olarak An. Fark yoktur
+
+# H1: p1 != p2
+# .. vardır
+
+df = sns.load_dataset("titanic")
+df.head()
+
+
+
+
 
 
