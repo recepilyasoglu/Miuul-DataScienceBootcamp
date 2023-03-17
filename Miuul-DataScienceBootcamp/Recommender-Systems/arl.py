@@ -50,7 +50,6 @@ def outlier_thresholds(dataframe, variable):
     low_limit = quartile1 - 1.5 * interquantile_range
     return low_limit, up_limit
 
-
 # yukarıda hesaplanan değere göre baskılama yapmak
 # ilgili değişkenden küçük olanlar var mı bak, yukarıda belirlenen low limitten küçük ve ilgili değişkeni, low limite tekrar ata yani baskıla
 # aynı şeyi up limit için de yap
