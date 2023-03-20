@@ -202,3 +202,50 @@ rules = create_rules(df)
 
 rules[(rules["support"] > 0.05) & (rules["confidence"] > 0.1) & (rules["lift"] > 5)]. \
     sort_values("confidence", ascending=False)
+
+
+################################################################################################
+# 5. Sepet Aşamasındaki Kullanıcılara Ürün Önerisinde Bulunmak (Product Recommendation Practice)
+################################################################################################
+
+# Örnek:
+# Kullanıcı örenek ürün kodu: 22492
+
+product_id = 22492
+check_id(df, product_id)
+
+sorted_rules = rules.sort_values("lift", ascending=False)
+
+recommendation_list = []
+
+# yukarıda oluşturulan değerin içerisnde gez, (index bilgilerinde de geziyoruz (i))
+# ürünleri daha sonrasında işlem yapabilmek adına da list'e çeviriyoruz
+# sonra o liste de, product_id ile aranan ürün denk gelirse
+# recommendation liste o ürünün "consequents" değerini ekle diyoruz(değer olarak isrediğimiz için [0] diyoruz, yani ilk yakaladığını getir)
+for i, product in enumerate(sorted_rules["antecedents"]):
+    for j in list(product):
+        if j == product_id:
+            recommendation_list.append(list(sorted_rules.iloc[i]["consequents"])[0])
+
+# bu listeye birden çok değer geldiği için il değeri alıyoruz
+# istersek birden fazla ürün de alabiliriz ama
+# sayı arttıkça diğer denk gelen ürünlerin ilgili istatistikteki değerleri düşük olacaktır
+recommendation_list[0]
+
+check_id(df, 22556)
+
+
+def arl_recommender(rules_df, product_id, rec_count=1):
+    sorted_rules = rules.sort_values("lift", ascending=False)
+    recommendation_list = []
+    for i, product in enumerate(sorted_rules["antecedents"]):
+        for j in list(product):
+            if j == product_id:
+                recommendation_list.append(list(sorted_rules.iloc[i]["consequents"])[0])
+
+    return recommendation_list[0:rec_count]
+
+arl_recommender(rules, 22492, 1)
+arl_recommender(rules, 22492, 2)
+arl_recommender(rules, 22492, 3)
+
