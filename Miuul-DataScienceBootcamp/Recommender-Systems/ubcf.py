@@ -81,7 +81,7 @@ user_movie_count[user_movie_count["movie_count"] > 20].sort_values("movie_count"
 user_movie_count[user_movie_count["movie_count"] == 33].count()
 
 # en az 20 film izleyen kullanıcıların id bilgileri
-user_movie_count[user_movie_count["movie_count"] > 20]["userId"]
+users_same_movies = user_movie_count[user_movie_count["movie_count"] > 20]["userId"]
 
 # perc = len(movies_watched) * 60 / 100
 # users_same_movies = user_movie_count[user_movie_count["movie_count"] > perc]["userId"]
@@ -96,9 +96,32 @@ user_movie_count[user_movie_count["movie_count"] > 20]["userId"]
 # 2. Korelasyon df'ini oluşturacağız.
 # 3. En benzer bullanıcıları (Top Users) bulacağız
 
+final_df = pd.concat([movies_watched_df[movies_watched_df.index.isin(users_same_movies)],
+                      random_user_df[movies_watched]])
 
+# final_df'in Transpozunu alıp, corelasyona bakıyoruz,
+# sonra bunu pivot ediyoruzi sonra değerleri sırala ve
+# son olarak da duplicate değerleri de çıkar diyoruz
+corr_df = final_df.T.corr().unstack().sort_values().drop_duplicates()
 
+corr_df = pd.DataFrame(corr_df, columns=["corr"])
 
+corr_df.index.names = ["user_id_1", "user_id_2"]
 
+# kullanıcılar ve aralarındaki korelasyonlar geldi
+corr_df = corr_df.reset_index()
 
+# user'imiz ile %65 ve daha yüksek korelasyona sahip kullanıcılar
+top_users = corr_df[(corr_df["user_id_1"] == random_user) & (corr_df["corr"] >= 0.65)][
+    ["user_id_2", "corr"]].reset_index(drop=True)
+
+top_users = top_users.sort_values(by="corr", ascending=False)
+
+top_users.rename(columns={"user_id_2": "userId"}, inplace=True)
+
+rating = pd.read_csv("Recommender-Systems/rating.csv")
+top_users_rating = top_users.merge(rating[["userId", "movieId", "rating"]], how="inner")
+
+# kendisini veri setimizden çıkarıyoruz
+top_users_rating = top_users_rating[top_users_rating["userId"] != random_user]
 
