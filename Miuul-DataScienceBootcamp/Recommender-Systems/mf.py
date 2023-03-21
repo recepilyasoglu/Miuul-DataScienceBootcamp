@@ -49,6 +49,27 @@ data = Dataset.load_from_df(sample_df[['userId',
                                        'rating']], reader)
 
 
+####################
+# Adım 2: Modelleme
+####################
+
+# %75 test %25 train olarak ayırdık
+trainset, testset = train_test_split(data, test_size=.25)
+svd_model = SVD()
+svd_model.fit(trainset)  # bu aşamada, p ve q ağırlıklarını bulduk
+predictions = svd_model.test(testset)
+
+# tahminde bulunduğumuz yapmamız beklenen ortalama hata
+accuracy.rmse(predictions)  # RootMeanSquareError
+
+# 1 numaralı id'nin BladeRunner filmine 4.0 vermiş biz 4.16 tahmin ettik
+svd_model.predict(uid=1.0, iid=541, verbose=True)
+
+svd_model.predict(uid=1.0, iid=356, verbose=True)
+
+
+sample_df[sample_df["userId"] == 1]
+
 
 
 
