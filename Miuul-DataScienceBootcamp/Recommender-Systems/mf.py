@@ -71,6 +71,49 @@ svd_model.predict(uid=1.0, iid=356, verbose=True)
 sample_df[sample_df["userId"] == 1]
 
 
+#######################
+# Adım 3: Model Tuning
+#######################
 
+param_grid = {'n_epochs': [5, 10, 20],  # iterasyon sayısı, kaç defa ağırlıkları güncellicem
+              'lr_all': [0.002, 0.005, 0.007]}  # bütün parametreler için öğrenme oranı
+
+# param_gird= yukarıdaki iki hiper parametrenin olası tüm kombinasyonlarını dene
+# measures= gerçek değerler ile tahmin edilen değerler arasındaki farklarının karelerinin ortalamasını
+# veya karekökünü al
+# cv= 3 katlı çapraz doğrulama yap, veri setini 3'e böl, 2 parçasıyla model kur, 1 parçasıyla test et
+# sonra diğer iki parçasıyla model urup dışarda bıraktığınla test et, aynısını sonuncuya da yap
+# n_jobs= işlemcileri full performasn ile kullan
+# joblib_verbose= işlemler gerçekleşirken bana raporlama yap
+gs = GridSearchCV(SVD,
+                  param_grid,
+                  measures=['rmse', 'mae'],
+                  cv=3,
+                  n_jobs=-1,
+                  joblib_verbose=True)
+
+gs.fit(data)
+
+gs.best_score['rmse']  # en iyi skorumuz
+gs.best_params['rmse']  # en iyi parametreler
+
+
+################################
+# Adım 4: Final Model ve Tahmin
+################################
+
+# model oluşturma basamağına tekrar gidip daha iyi parametreler bulduk dememiz lazım aslında
+dir(svd_model)
+svd_model.n_epochs
+
+# iki yıldız ve sözlük yapısını gönderdiğimizde, modeli yenideğerler ile oluşturur
+svd_model = SVD(**gs.best_params['rmse'])
+
+# bütün veri setini train set'e çevirmiş olduk, çünkü öğreneceğimizi öğrendik zaten
+data = data.build_full_trainset()
+svd_model.fit(data)  # modeli fit ettik
+
+# Blade Runner için tahmin 4.20, normalde puan 4.0 - çok iyi değil, çok kötü de değil
+svd_model.predict(uid=1.0, iid=541, verbose=True)
 
 
