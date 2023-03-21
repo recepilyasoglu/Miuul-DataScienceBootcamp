@@ -1,3 +1,3 @@
-## Miuul Data Science amd Machine Learning Bootcamp
+## Miuul Data Science and Machine Learning Bootcamp
 ### The work I have done during the training I received during the bootcamp process I attended
 #### To be continued...
