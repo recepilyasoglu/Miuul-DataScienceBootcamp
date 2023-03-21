@@ -102,7 +102,7 @@ rules[(rules["support"] > 0.01) & (rules["confidence"] > 0.1) & (rules["lift"] >
 #Adım 3: arl_recommender fonksiyonunu kullanarak en son 2_0 hizmetini alan bir kullanıcıya hizmet önerisinde bulununuz.
 
 def arl_recommender(rules_df, hizmet, rec_count=1):
-    sorted_rules = rules.sort_values("lift", ascending=False)
+    sorted_rules = rules_df.sort_values("lift", ascending=False)
     recommendation_list = []
     for i, product in enumerate(sorted_rules["antecedents"]):
         for j in list(product):
