@@ -1,3 +1,4 @@
 ## Miuul Data Science and Machine Learning Bootcamp
-### The work I have done during the training I received during the bootcamp process I attended
+###I participated in the Data Science and Machine Learning Bootcamp program organized by Miuul. 
+### And in this program, I included the trainings I received and the projects I did.
 #### To be continued...
