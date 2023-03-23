@@ -21,8 +21,6 @@ df.describe().T
 
 # Step 2: Drop the observation units whose StockCode is POST. (POST price added to each invoice does not represent the product.)
 
-df = df[df["Country"] == "Germany"]
-
 df = df[~df["StockCode"].str.contains("POST", na=False)]
 
 # Step 3: Drop the observation units with null values.
@@ -59,22 +57,31 @@ def replace_with_threshold(dataframe, variable):  #
 replace_with_threshold(df, "Quantity")
 replace_with_threshold(df, "Price")
 
+df.describe().T
+
 ## Task 2: Generating Association Rules Through German Customers
 
 # Step 1: Define the create_invoice_product_df function that will create the invoice product pivot table as follows.
 df.head()
-
+df_ge = df[df["Country"] == "Germany"]
 
 def create_invoice_product_df(dataframe):
-    return dataframe.groupby(["Invoice", "Description"])["Description"].count() \
-            .unstack() \
+    return dataframe.groupby(["Invoice", "Description"])["Quantity"].sum().unstack() \
             .fillna(0) \
             .applymap(lambda x: 1 if x > 0 else 0)
 
-pivot_df = create_invoice_product_df(df)
+# def create_invoice_product_df(dataframe):
+#     return dataframe.groupby(["Invoice", "Description"])["Description"].count() \
+#             .unstack() \
+#             .fillna(0) \
+#             .applymap(lambda x: 1 if x > 0 else 0)
+
+df_ge_pro_df = create_invoice_product_df(df)
+
+df_ge_pro_df.head(10)
 
 # Step 2: Define the create_rules function that will create the rules and find the rules for german customers
-frequent_itemsets = apriori(pivot_df,
+frequent_itemsets = apriori(df_ge_pro_df,
                             min_support=0.01,
                             use_colnames=True)
 
