@@ -103,4 +103,3 @@ comments["score_average_rating"] = comments.apply(lambda  x: score_average_ratin
 comments["wilson_lower_bound"] = comments.apply(lambda x: wilson_lower_bound(x["up"],
                                                                              x["down"]), axis=1)
 comments.sort_values("wilson_lower_bound", ascending=False)
-
