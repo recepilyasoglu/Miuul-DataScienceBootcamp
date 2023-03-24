@@ -71,11 +71,11 @@ def create_invoice_product_df(dataframe):
             .fillna(0) \
             .applymap(lambda x: 1 if x > 0 else 0)
 
-# def create_invoice_product_df(dataframe):
-#     return dataframe.groupby(["Invoice", "Description"])["Description"].count() \
-#             .unstack() \
-#             .fillna(0) \
-#             .applymap(lambda x: 1 if x > 0 else 0)
+def create_invoice_product_df(dataframe):
+    return dataframe.groupby(["Invoice", "Description"])["Description"].count() \
+            .unstack() \
+            .fillna(0) \
+            .applymap(lambda x: 1 if x > 0 else 0)
 
 df_ge_pro_df = create_invoice_product_df(df_ge)
 
@@ -110,10 +110,25 @@ def create_rules(dataframe, id=True, country="France"):
 # Task 2: Making Product Suggestions to Users Given the Product IDs in the Basket
 
 # Step 1: Find the names of the given products using the check_id function.
+def check_id(dataframe, stock_code):
+    product_name = dataframe[dataframe["StockCode"] == stock_code][["Description"]].values[0].tolist()
+    print(product_name)
 
+check_id(df_ge, 22556)
 
 # Step 2: Make a product recommendation for 3 users using the arl_recommender function.
 
+def arl_recommender(rules_df, product_id, rec_count=1):
+    sorted_rules = rules_df.sort_values("lift", ascending=False)
+    recommendation_list = []
+    for i, product in enumerate(sorted_rules["antecedents"]):
+        for j in list(product):
+            if j == product_id:
+                recommendation_list.append(list(sorted_rules.iloc[i]["consequents"])[0])
+
+    return recommendation_list[0:rec_count]
+
+arl_recommender(rules, 536983, 1)
 
 # Step 3: Look at the names of the products to be recommended.
 
