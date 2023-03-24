@@ -283,7 +283,7 @@ print('Test Stat = %.4f, p-value = %.4f' % (test_stat, pvalue))
 # H0: M1 = M2 (... iki grup ortalamaları arasında ist ol.anl.fark yoktur.)
 # H1: M1 != M2 (...vardır)
 
-df = pd.read_csv("Measurement-Problems/course_reviews.csv")
+df = pd.read_csv("Measurement-Problems/Datasets/course_reviews.csv")
 df.head()
 
 df[(df["Progress"] > 75)]["Rating"].mean()
