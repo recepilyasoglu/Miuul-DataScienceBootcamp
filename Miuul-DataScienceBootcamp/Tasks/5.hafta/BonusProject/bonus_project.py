@@ -66,7 +66,8 @@ df.head()
 df_ge = df[df["Country"] == "Germany"]
 
 def create_invoice_product_df(dataframe):
-    return dataframe.groupby(["Invoice", "Description"])["Quantity"].sum().unstack() \
+    return dataframe.groupby(["Invoice", "Description"])["Quantity"].sum() \
+            .unstack() \
             .fillna(0) \
             .applymap(lambda x: 1 if x > 0 else 0)
 
@@ -76,7 +77,7 @@ def create_invoice_product_df(dataframe):
 #             .fillna(0) \
 #             .applymap(lambda x: 1 if x > 0 else 0)
 
-df_ge_pro_df = create_invoice_product_df(df)
+df_ge_pro_df = create_invoice_product_df(df_ge)
 
 df_ge_pro_df.head(10)
 
@@ -97,6 +98,13 @@ rules["lift"].describe().T
 
 rules[(rules["support"] > 0.01) & (rules["confidence"] > 0.1) & (rules["lift"] > 7)]. \
     sort_values("confidence", ascending=False)
+
+def create_rules(dataframe, id=True, country="France"):
+    dataframe = dataframe[dataframe["Country"] == country]
+    dataframe = create_invoice_product_df(dataframe, id)
+    frequent_itemsets = apriori(dataframe, min_support=0.01, use_colnames=True)
+    rules = association_rules(frequent_itemsets, metric="support", min_threshold=0.01)
+    return rules
 
 
 # Task 2: Making Product Suggestions to Users Given the Product IDs in the Basket
