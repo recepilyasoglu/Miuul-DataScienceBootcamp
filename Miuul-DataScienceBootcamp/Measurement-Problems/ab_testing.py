@@ -245,7 +245,7 @@ print("Test Stat = %.4f, p-value = %.4f" % (test_stat, pvalue))
 
 # Uygulama 3: Diyabet Hastası Olan ve Olmayanların Yaşları Ort. Arasında İst. Ol. Anl. Fark var mıdır?
 
-df = pd.read_csv("Measurement-Problems/diabetes.csv")
+df = pd.read_csv("Measurement-Problems/Datasets/diabetes.csv")
 df.head()
 
 df.groupby("Outcome").agg({"Age": "mean"})
