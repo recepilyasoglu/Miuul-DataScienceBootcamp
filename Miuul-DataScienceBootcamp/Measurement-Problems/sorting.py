@@ -11,7 +11,7 @@ pd.set_option('display.expand_frame_repr', False)
 pd.set_option('display.float_format', lambda x: '%.5f' % x)
 pd.set_option("display.width", 500)
 
-df = pd.read_csv("Measurement-Problems/product_sorting.csv")
+df = pd.read_csv("Measurement-Problems/Datasets/product_sorting.csv")
 df.head()
 df.shape
 
@@ -131,7 +131,7 @@ df[df["course_name"].str.contains("Veri Bilimi")].sort_values("hybrid_sorting_sc
 
 # Uygulama: IMDB Movie Scoring & Sorting
 
-df = pd.read_csv(r"Measurement-Problems/movies_metadata.csv", low_memory=False)
+df = pd.read_csv("Measurement-Problems/Datasets/movies_metadata.csv", low_memory=False)
 
 df = df[["title", "vote_average", "vote_count"]]
 
@@ -214,7 +214,7 @@ def bayesian_average_rating(n, confidence=0.95):  # n = girilecek olan yıldızl
 # Esaretin Bedeli için sırasıyla almış olduğu yıldız sayıları, kaç tane 1 yıldız..., kaç tane  10 yıldız vs
 bayesian_average_rating([34733, 4355, 4704, 6561, 13515, 26183, 87368, 273082, 600260, 1295351])
 
-df = pd.read_csv("Measurement-Problems/imdb_ratings.csv")
+df = pd.read_csv("Measurement-Problems/Datasets/imdb_ratings.csv")
 df = df.iloc[0:, 1:]
 
 df["bar_score"] = df.apply(lambda x: bayesian_average_rating(x[["one", "two", "three", "four", "five",
