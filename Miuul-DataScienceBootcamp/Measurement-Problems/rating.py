@@ -18,7 +18,7 @@ pd.set_option("display.width", 500)
 # Puan Yüzdeleri: 75, 20, 4, 1, <1
 # Yaklaşık Sayısal Karılıkları: 3458, 922, 184, 46, 6
 
-df = pd.read_csv(r"Measurement-Problems/course_reviews.csv")
+df = pd.read_csv("Measurement-Problems/Datasets/course_reviews.csv")
 df.head()
 df.shape
 df["Rating"].value_counts()
