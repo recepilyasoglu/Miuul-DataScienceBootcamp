@@ -31,6 +31,7 @@ from lifetimes.plotting import plot_period_transactions
 
 pd.set_option('display.max_columns', None)
 pd.set_option('display.max_rows', 500)
+pd.set_option('display.width', 500)
 pd.set_option('display.float_format', lambda x: '%.4f' % x)
 from sklearn.preprocessing import MinMaxScaler
 
