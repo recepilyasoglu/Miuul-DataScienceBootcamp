@@ -59,9 +59,19 @@ replace_with_threshold(df, "Price")
 
 df.describe().T
 
+
 ## Task 2: Generating Association Rules Through German Customers
 
 # Step 1: Define the create_invoice_product_df function that will create the invoice product pivot table as follows.
+
+# Description      NINE DRAWER OFFICE TIDY   SET 2 TEA TOWELS I LOVE LONDON   SPACEBOY BABY GIFT SET…
+# Invoice
+# 536370                    0                               1                           0
+# 536852                    1                               0                           1
+# 536974                    0                               0                           0
+# 537065                    1                               0                           0
+# 537463                    0                               0                           1
+
 df.head()
 df_ge = df[df["Country"] == "Germany"]
 
@@ -107,7 +117,7 @@ def create_rules(dataframe, id=True, country="France"):
     return rules
 
 
-# Task 2: Making Product Suggestions to Users Given the Product IDs in the Basket
+## Task 3: Making Product Suggestions to Users Given the Product IDs in the Basket
 
 # Step 1: Find the names of the given products using the check_id function.
 def check_id(dataframe, stock_code):
