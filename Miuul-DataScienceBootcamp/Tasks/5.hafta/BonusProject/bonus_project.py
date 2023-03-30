@@ -148,6 +148,3 @@ def arl_recommender(rules_df, product_id, rec_count=1):
 
 arl_recommender(rules, 536983, 1)
 
-
-# Step 3: Look at the names of the products to be recommended.
-
