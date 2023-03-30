@@ -302,8 +302,57 @@ replace_with_thresholds(df, "Age")
 check_outlier(df, "Age")
 
 
+############################################################
+# Çok Değişkenli Aykırı Değer Analizi: Local Outlier Factor
+############################################################
 
+# 17, 3
 
+df = sns.load_dataset('diamonds')
+df = df.select_dtypes(include=['float64', 'int64'])
+df = df.dropna()
+df.head()
+df.shape
+for col in df.columns:
+    print(col, check_outlier(df, col))
 
+low, up = outlier_thresholds(df, "carat")
 
+df[((df["carat"] < low) | (df["carat"] > up))].shape
 
+low, up = outlier_thresholds(df, "depth")
+
+df[((df["depth"] < low) | (df["depth"] > up))].shape
+
+clf = LocalOutlierFactor(n_neighbors=20)
+clf.fit_predict(df)
+
+df_scores = clf.negative_outlier_factor_
+df_scores[0:5]
+# df_scores = -df_scores
+np.sort(df_scores)[0:5]
+
+# PCA Analizi - Elbow Curve
+scores = pd.DataFrame(np.sort(df_scores))
+scores.plot(stacked=True, xlim=[0, 50], style='.-')
+plt.show()
+
+# kırılma noktası olarak(elbow curve) 3. index'i seçiyoruz
+th = np.sort(df_scores)[3]
+
+df[df_scores < th]
+
+df[df_scores < th].shape
+
+# bunlar acaba neden aykırı ?
+df.describe([0.01, 0.05, 0.75, 0.90, 0.99]).T
+
+df[df_scores < th].index
+
+# yukarıda gelen değerleri sildik
+df[df_scores < th].drop(axis=0, labels=df[df_scores < th].index)
+
+# baskılama yapmamamızın sebebi, hangisine uygulayacağız ?
+# yani gözlem sayısı fazlaysa ve değiştirme yapılırsa ciddi problemler açabilir, veriyi bozabiliriz,
+# en kötü ucundan tıraşlama yapabiliriz, kullandığımız fonksiyonlarla (replace, outliers vs.)
+# özetle: ağaç yöntemlerinde hiç dokunmıcaz, dokunaksak da ucundan tıraşlayabiliriz
