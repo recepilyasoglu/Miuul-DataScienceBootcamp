@@ -89,11 +89,11 @@ def create_invoice_product_df(dataframe):
             .fillna(0) \
             .applymap(lambda x: 1 if x > 0 else 0)
 
-def create_invoice_product_df(dataframe):
-    return dataframe.groupby(["Invoice", "Description"])["Description"].sum() \
-            .unstack() \
-            .fillna(0) \
-            .applymap(lambda x: 1 if x > 0 else 0)
+# def create_invoice_product_df(dataframe):
+#     return dataframe.groupby(["Invoice", "Description"])["Description"].sum() \
+#             .unstack() \
+#             .fillna(0) \
+#             .applymap(lambda x: 1 if x > 0 else 0)
 
 df_ge_pro_df = create_invoice_product_df(df_ge)
 
