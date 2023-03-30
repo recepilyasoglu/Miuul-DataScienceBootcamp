@@ -27,10 +27,11 @@ df = df[~df["StockCode"].str.contains("POST", na=False)]
 
 df.isnull().sum()
 df.dropna(inplace=True)
+df["Customer ID"].value_counts()
 
 # Step 4: Extract the values with C in Invoice from the data set. (C means the cancellation of the invoice.)
 
-df = df[~df["StockCode"].str.contains("C", na=False)]
+df = df[~df["Invoice"].str.contains("C", na=False)]
 df.shape
 
 # Step 5: Filter out the observation units whose price is less than zero.
@@ -75,6 +76,13 @@ df.describe().T
 df.head()
 df_ge = df[df["Country"] == "Germany"]
 
+df.groupby(["Invoice", "Description"])["Quantity"].sum() \
+            .unstack() \
+            .fillna(0) \
+            .applymap(lambda x: 1 if x > 0 else 0)
+
+df.groupby(["Invoice", "Description"])["Description"].count()
+
 def create_invoice_product_df(dataframe):
     return dataframe.groupby(["Invoice", "Description"])["Quantity"].sum() \
             .unstack() \
@@ -82,7 +90,7 @@ def create_invoice_product_df(dataframe):
             .applymap(lambda x: 1 if x > 0 else 0)
 
 def create_invoice_product_df(dataframe):
-    return dataframe.groupby(["Invoice", "Description"])["Description"].count() \
+    return dataframe.groupby(["Invoice", "Description"])["Description"].sum() \
             .unstack() \
             .fillna(0) \
             .applymap(lambda x: 1 if x > 0 else 0)
@@ -109,7 +117,7 @@ rules["lift"].describe().T
 rules[(rules["support"] > 0.01) & (rules["confidence"] > 0.1) & (rules["lift"] > 7)]. \
     sort_values("confidence", ascending=False)
 
-def create_rules(dataframe, id=True, country="France"):
+def create_rules(dataframe, id=True, country="Germany"):
     dataframe = dataframe[dataframe["Country"] == country]
     dataframe = create_invoice_product_df(dataframe, id)
     frequent_itemsets = apriori(dataframe, min_support=0.01, use_colnames=True)
@@ -121,7 +129,7 @@ def create_rules(dataframe, id=True, country="France"):
 
 # Step 1: Find the names of the given products using the check_id function.
 def check_id(dataframe, stock_code):
-    product_name = dataframe[dataframe["StockCode"] == stock_code][["Description"]].values[0].tolist()
+    product_name = dataframe[dataframe["StockCode"] == stock_code][["Description"]].iloc[0]
     print(product_name)
 
 check_id(df_ge, 22556)
