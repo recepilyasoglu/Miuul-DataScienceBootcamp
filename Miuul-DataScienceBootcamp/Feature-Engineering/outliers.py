@@ -356,3 +356,4 @@ df[df_scores < th].drop(axis=0, labels=df[df_scores < th].index)
 # yani gözlem sayısı fazlaysa ve değiştirme yapılırsa ciddi problemler açabilir, veriyi bozabiliriz,
 # en kötü ucundan tıraşlama yapabiliriz, kullandığımız fonksiyonlarla (replace, outliers vs.)
 # özetle: ağaç yöntemlerinde hiç dokunmıcaz, dokunaksak da ucundan tıraşlayabiliriz
+
