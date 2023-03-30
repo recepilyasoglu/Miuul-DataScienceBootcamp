@@ -27,7 +27,6 @@ df = df[~df["StockCode"].str.contains("POST", na=False)]
 
 df.isnull().sum()
 df.dropna(inplace=True)
-df["Customer ID"].value_counts()
 
 # Step 4: Extract the values with C in Invoice from the data set. (C means the cancellation of the invoice.)
 
