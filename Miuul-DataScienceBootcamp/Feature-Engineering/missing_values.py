@@ -278,3 +278,22 @@ def missing_vs_target(dataframe, target, na_columns):
 # NA olanlar 1, NA olmayan 0
 missing_vs_target(df, "Survived", na_cols)
 
+###################
+# Recap
+###################
+
+df = load()
+na_cols = missing_values_table(df, True)
+
+# sayısal değişkenleri direk median ile oldurma
+df.apply(lambda x: x.fillna(x.median()) if x.dtype != "O" else x, axis=0).isnull().sum()
+
+# kategorik değişkenleri mode ile doldurma
+df.apply(lambda x: x.fillna(x.mode()[0]) if (x.dtype == "O" and len(x.unique()) <= 10) else x, axis=0).isnull().sum()
+
+# kategorik değişken kırılımında sayısal değişkenleri doldurmak
+df["Age"].fillna(df.groupby("Sex")["Age"].transform("mean")).isnull().sum()
+
+# Tahmine Dayalı Atama ile Doldurma
+missing_vs_target(df, "Survived", na_cols)
+
