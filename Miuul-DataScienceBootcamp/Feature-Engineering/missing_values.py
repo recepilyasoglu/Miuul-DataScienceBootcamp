@@ -236,3 +236,45 @@ df.loc[df["Age"].isnull()]
 
 
 
+#############################################
+# Gelişmiş Analizler
+#############################################
+
+###################
+# Eksik Veri Yapısının İncelenmesi
+###################
+
+msno.bar(df)
+plt.show()
+
+msno.matrix(df)
+plt.show()
+
+msno.heatmap(df)
+plt.show()
+
+#################################################################
+# Eksik Değerlerin Bağımlı Değişken ile İlişkisinin İncelenmesi
+#################################################################
+
+missing_values_table(df, True)
+na_cols = missing_values_table(df, True)
+
+def missing_vs_target(dataframe, target, na_columns):
+    temp_df = dataframe.copy()
+
+    for col in na_columns:
+        temp_df[col + '_NA_FLAG'] = np.where(temp_df[col].isnull(), 1, 0)  # seçtiğin ilgili değişken de eksiklik varsa 1, yoksa 0 yaz
+
+    na_flags = temp_df.loc[:, temp_df.columns.str.contains("_NA_")].columns  # tüm satırları getir ama içerisinde "_NA_" içeren sütunları seç getir
+
+    for col in na_flags:
+        print(pd.DataFrame({"TARGET_MEAN": temp_df.groupby(col)[target].mean(),
+                            "Count": temp_df.groupby(col)[target].count()}), end="\n\n\n")
+
+# "Survived" değişkeni ile bu eksikliğe sahip olan değişkenleri bi karşılaştır
+# mesela "Age" değişkeninde dolu olan senaryonun hayatta kalma oranı,
+# yine "Age" değişkeninde dolu olmayan senaryonun hayatta kalma oranı gibi
+# NA olanlar 1, NA olmayan 0
+missing_vs_target(df, "Survived", na_cols)
+
