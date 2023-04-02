@@ -114,9 +114,11 @@ df.groupby("NEW_NAME_DR").agg({"Survived": ["mean", "count"]})
 
 df.head()
 
+# Name sütununa baktığımızda boşlukla başlayıp . ile bitmiş,
+# aralarına da büyük veya küçük harfler oluşacak şekilde göreceğin harfleri yakala
 df['NEW_TITLE'] = df.Name.str.extract(' ([A-Za-z]+)\.', expand=False)
 
-
+# isimlendirmelere göre Survived ve Age değişken kırılımı
 df[["NEW_TITLE", "Survived", "Age"]].groupby(["NEW_TITLE"]).agg({"Survived": "mean", "Age": ["count", "mean"]})
 
 
