@@ -152,3 +152,36 @@ dff['day_name'] = dff['Timestamp'].dt.day_name()
 dff.head()
 
 # date
+
+#############################################
+# Feature Interactions (Özellik Etkileşimleri)
+#############################################
+# iki değişkenin birbiri ile etkileşimi
+
+df = load()
+df.head()
+
+# yaşı büyük veya küçük olanların, yolculuk sınıflarına göre refah durumlarıyla ilgili durum ortaya çıkarmak
+# mesela yaşı küçük 1. sınıf refah seviyesi yüksek mi
+df["NEW_AGE_PCLASS"] = df["Age"] * df["Pclass"]
+
+# aile bireylerinin sayısıyla aile yapısı
+df["NEW_FAMILY_SIZE"] = df["SibSp"] + df["Parch"] + 1
+
+df.loc[(df['Sex'] == 'male') & (df['Age'] <= 21), 'NEW_SEX_CAT'] = 'youngmale'
+
+df.loc[(df['Sex'] == 'male') & (df['Age'] > 21) & (df['Age'] < 50), 'NEW_SEX_CAT'] = 'maturemale'
+
+df.loc[(df['Sex'] == 'male') & (df['Age'] >= 50), 'NEW_SEX_CAT'] = 'seniormale'
+
+df.loc[(df['Sex'] == 'female') & (df['Age'] <= 21), 'NEW_SEX_CAT'] = 'youngfemale'
+
+df.loc[(df['Sex'] == 'female') & (df['Age'] > 21) & (df['Age'] < 50), 'NEW_SEX_CAT'] = 'maturefemale'
+
+df.loc[(df['Sex'] == 'female') & (df['Age'] >= 50), 'NEW_SEX_CAT'] = 'seniorfemale'
+
+
+df.head()
+
+# olgun kadınların, hayatta kalma oranları daha yüksek geldi mesela
+df.groupby("NEW_SEX_CAT")["Survived"].mean()
