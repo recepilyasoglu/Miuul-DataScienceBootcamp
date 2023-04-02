@@ -78,7 +78,46 @@ test_stat, pvalue = proportions_ztest(count=[df.loc[df["NEW_IS_ALONE"] == "YES",
 # H0 Reddedildi, ikisi arasında fark var
 print('Test Stat = %.4f, p-value = %.4f' % (test_stat, pvalue))
 
+#############################################
+# Text'ler Üzerinden Özellik Türetmek
+#############################################
 
+df.head()
+
+###################
+# Letter Count
+###################
+# harf sayımı
+df["NEW_NAME_COUNT"] = df["Name"].str.len()
+
+###################
+# Word Count
+###################
+# kelime sayımı, boşlklara göre split, sonra len-boyutuna bak
+df["NEW_NAME_WORD_COUNT"] = df["Name"].apply(lambda x: len(str(x).split(" ")))
+
+###################
+# Özel Yapıları Yakalamak
+###################
+# isminde Dr(Doktor) ünvanı olanları al
+
+# önce split et sonra bunlar da gez,
+# eğer o gexdiğin her bir kelimenin başlangıcında Dr varsa al
+df["NEW_NAME_DR"] = df["Name"].apply(lambda x: len([x for x in x.split() if x.startswith("Dr")]))
+
+# Dr lanların hayatta kalma oranı daha yüksek
+df.groupby("NEW_NAME_DR").agg({"Survived": ["mean", "count"]})
+
+###################
+# Regex ile Değişken Türetmek
+###################
+
+df.head()
+
+df['NEW_TITLE'] = df.Name.str.extract(' ([A-Za-z]+)\.', expand=False)
+
+
+df[["NEW_TITLE", "Survived", "Age"]].groupby(["NEW_TITLE"]).agg({"Survived": "mean", "Age": ["count", "mean"]})
 
 
 
