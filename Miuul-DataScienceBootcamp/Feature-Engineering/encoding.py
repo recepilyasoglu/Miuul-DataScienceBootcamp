@@ -180,10 +180,78 @@ ohe_cols = [col for col in df.columns if 10 >= df[col].nunique() > 2]
 one_hot_encoder(df, ohe_cols).head()
 
 
+#############################################
+# Rare Encoding
+#############################################
+
+# 1. Kategorik değişkenlerin azlık çokluk durumunun analiz edilmesi.
+# 2. Rare kategoriler ile bağımlı değişken arasındaki ilişkinin analiz edilmesi.
+# 3. Rare encoder yazacağız.
+
+###################
+# 1. Kategorik değişkenlerin azlık çokluk durumunun analiz edilmesi.
+###################
+
+df = load_application_train()
+df["NAME_EDUCATION_TYPE"].value_counts()
+
+cat_cols, num_cols, cat_but_car = grab_col_names(df)
 
 
+# kategorik değişkenlerin sınıfları ve sınıflarının oranları
+def cat_summary(dataframe, col_name, plot=False):
+    print(pd.DataFrame({col_name: dataframe[col_name].value_counts(),
+                        "Ratio": 100 * dataframe[col_name].value_counts() / len(dataframe)}))
+    print("##########################################")
+    if plot:
+        sns.countplot(x=dataframe[col_name], data=dataframe)
+        plt.show()
 
 
+for col in cat_cols:
+    cat_summary(df, col)
+
+###################
+# 2. Rare kategoriler ile bağımlı değişken arasındaki ilişkinin analiz edilmesi.
+###################
+
+df["NAME_INCOME_TYPE"].value_counts()
+
+df.groupby("NAME_INCOME_TYPE")["TARGET"].mean()
+
+
+def rare_analyser(dataframe, target, cat_cols):
+    for col in cat_cols:
+        print(col, ":", len(dataframe[col].value_counts()))
+        print(pd.DataFrame({"COUNT": dataframe[col].value_counts(),
+                            "RATIO": dataframe[col].value_counts() / len(dataframe),
+                            "TARGET_MEAN": dataframe.groupby(col)[target].mean()}), end="\n\n\n")
+
+rare_analyser(df, "TARGET", cat_cols)
+
+#############################################
+# 3. Rare encoder'ın yazılması.
+#############################################
+
+# 0.01 rare oranının altında kalan kategorik değişken sınıflarını bir araya getirecek
+def rare_encoder(dataframe, rare_perc):
+    temp_df = dataframe.copy()
+
+    rare_columns = [col for col in temp_df.columns if temp_df[col].dtypes == 'O'
+                    and (temp_df[col].value_counts() / len(temp_df) < rare_perc).any(axis=None)]
+
+    for var in rare_columns:
+        tmp = temp_df[var].value_counts() / len(temp_df)
+        rare_labels = tmp[tmp < rare_perc].index
+        temp_df[var] = np.where(temp_df[var].isin(rare_labels), 'Rare', temp_df[var])
+
+    return temp_df
+
+new_df = rare_encoder(df, 0.01)
+
+rare_analyser(new_df, "TARGET", cat_cols)
+
+df["OCCUPATION_TYPE"].value_counts()
 
 
 
