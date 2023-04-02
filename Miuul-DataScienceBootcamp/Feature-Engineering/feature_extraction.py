@@ -121,5 +121,34 @@ df['NEW_TITLE'] = df.Name.str.extract(' ([A-Za-z]+)\.', expand=False)
 # isimlendirmelere göre Survived ve Age değişken kırılımı
 df[["NEW_TITLE", "Survived", "Age"]].groupby(["NEW_TITLE"]).agg({"Survived": "mean", "Age": ["count", "mean"]})
 
+#############################################
+# Date Değişkenleri Üretmek
+#############################################
+
+dff = pd.read_csv("Feature-Engineering/course_reviews.csv")
+dff.head()
+dff.info()
+
+dff['Timestamp'] = pd.to_datetime(dff["Timestamp"], format="%Y-%m-%d")
+
+# year
+dff['year'] = dff['Timestamp'].dt.year
+
+# month
+dff['month'] = dff['Timestamp'].dt.month
+
+# year diff
+dff['year_diff'] = date.today().year - dff['Timestamp'].dt.year
+
+# month diff (iki tarih arasındaki ay farkı): yıl farkı + ay farkı
+# yıl farkını alıp bunu 12 ile çarpıp ay cinsine çeviriyoruz
+# sonra ay farkını alıp topluyoruz
+dff['month_diff'] = (date.today().year - dff['Timestamp'].dt.year) * 12 + date.today().month - dff['Timestamp'].dt.month
 
 
+# day name
+dff['day_name'] = dff['Timestamp'].dt.day_name()
+
+dff.head()
+
+# date
