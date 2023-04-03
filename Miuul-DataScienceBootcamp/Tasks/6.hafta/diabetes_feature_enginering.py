@@ -275,7 +275,6 @@ for col in num_cols:
     df[col] = df[col].fillna(df.groupby(cat_cols)[col].transform("mean"))
 
 
-
 # Adım 2: Yeni değişkenler oluşturunuz.
 df.head()
 df["Age"]
@@ -363,6 +362,7 @@ def replace_with_thresholds(dataframe, variable):
 
 for col in num_cols:
     replace_with_thresholds(df, col)
+
 
 # standartlaştırma
 scaler = StandardScaler()
