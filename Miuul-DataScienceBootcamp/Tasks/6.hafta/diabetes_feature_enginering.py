@@ -158,8 +158,8 @@ def check_outlier(dataframe, col_name):  # q1 ve q3 'ü de biçimlendirmek ister
     else:
         return False   # var mı yok mu sorusuna bool dönmesi lazım (True veya False)
 
-for col in cat_cols:
-    print(col, check_outlier(df, col))
+# for col in cat_cols:
+#     print(col, check_outlier(df, col))
 
 for col in num_cols:
     print(col, check_outlier(df, col))
@@ -175,6 +175,11 @@ def grab_outliers(dataframe, col_name, index=False):
     if index:
         outlier_index = dataframe[((dataframe[col_name] < low) | (dataframe[col_name] > up))].index
         return outlier_index
+
+# for col in num_cols:
+#     grab_outliers(df, col, True)
+#
+# df[num_cols].head()
 
 grab_outliers(df, "Age")
 grab_outliers(df, "Glucose")
@@ -209,13 +214,79 @@ df.corr().sort_values("Outcome", ascending=False) \
 # değişkenlerde 0 değeri içeren gözlem birimleri eksik değeri ifade ediyor olabilir. Örneğin; bir kişinin glikoz veya insulin değeri 0
 # olamayacaktır. Bu durumu dikkate alarak sıfır değerlerini ilgili değerlerde NaN olarak atama yapıp sonrasında eksik
 # değerlere işlemleri uygulayabilirsiniz.
+
+# ilk olarak, aykırı değer var mı? yok mu? kontrolü
+def check_outlier(dataframe, col_name):  # q1 ve q3 'ü de biçimlendirmek istersek check_outlier'a argüman olarak girmemiz gerekir
+    low_limit, up_limit = outlier_thresholds(dataframe, col_name)
+    if dataframe[(dataframe[col_name] > up_limit) | (dataframe[col_name] < low_limit)].any(axis=None):
+        return True
+    else:
+        return False   # var mı yok mu sorusuna bool dönmesi lazım (True veya False)
+
+for col in num_cols:
+    print(col, check_outlier(df, col))  # numerik değişkenlerin hepsinde var
+
+
+# baskılama
+def outlier_thresholds(dataframe, col_name, q1=0.25, q3=0.75):
+    quartile1 = dataframe[col_name].quantile(q1)
+    quartile3 = dataframe[col_name].quantile(q3)
+    interquantile_range = quartile3 - quartile1
+    up_limit = quartile3 + 1.5 * interquantile_range
+    low_limit = quartile1 - 1.5 * interquantile_range
+    return low_limit, up_limit
+
+outlier_thresholds(df, num_cols)
+def replace_with_thresholds(dataframe, variable):
+    low_limit, up_limit = outlier_thresholds(dataframe, variable)
+    dataframe.loc[(dataframe[variable] < low_limit), variable] = low_limit
+    dataframe.loc[(dataframe[variable] > up_limit), variable] = up_limit
+
+for col in num_cols:
+    replace_with_thresholds(df, col)
+
+# replace_with_thresholds(df, "Age")
+# replace_with_thresholds(df, "Insulin")
+df.describe().T
+
+df["Pregnancies"].describe().T
+num_cols = num_cols[1:]
+
+# for col in num_cols:
+#     print(df[col].value_counts())
+
+# 0 -> NAN
 df.head(10)
-df.replace(0, np.nan, inplace=True)
+df[num_cols] = df[num_cols].replace(0, np.nan)
 df.head(10)
+
+
+df.describe().T
+df.isnull().sum()
+def missing_values_table(dataframe, na_name=False):
+    na_columns = [col for col in dataframe.columns if dataframe[col].isnull().sum() > 0]
+
+    n_miss = dataframe[na_columns].isnull().sum().sort_values(ascending=False)
+    ratio = (dataframe[na_columns].isnull().sum() / dataframe.shape[0] * 100).sort_values(ascending=False)
+    missing_df = pd.concat([n_miss, np.round(ratio, 2)], axis=1, keys=['n_miss', 'ratio'])
+    print(missing_df, end="\n")
+
+    if na_name:
+        return na_columns
+
+missing_values_table(df)
+
+na_cols = missing_values_table(df)
+
+df.groupby(cat_cols)[num_cols].mean()
+
+for col in num_cols:
+    # print(df[col])
+    df[col] = df[col].fillna(df.groupby(cat_cols)[col].transform("mean"))
 
 
 # Adım 2: Yeni değişkenler oluşturunuz.
-
+df.head()
 
 # Adım 3: Encoding işlemlerini gerçekleştiriniz.
 
