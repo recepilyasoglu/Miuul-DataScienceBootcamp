@@ -20,7 +20,7 @@ from sklearn.preprocessing import MinMaxScaler, LabelEncoder, StandardScaler, Ro
 
 pd.set_option('display.max_columns', None)
 pd.set_option('display.max_rows', None)
-pd.set_option('display.float_format', lambda x: '%.3f' % x)
+pd.set_option('display.float_format', lambda x: '%.2f' % x)
 pd.set_option('display.width', 500)
 
 
@@ -111,18 +111,6 @@ df[cat_cols].dtypes
 df[cat_cols].isnull().sum()
 df[cat_cols].describe().T
 
-# def cat_summary(dataframe, col_name, plot=False):
-#     print(pd.DataFrame({col_name: dataframe[col_name].value_counts(),
-#                         "Ratio": 100 * dataframe[col_name].value_counts() / len(dataframe)}))
-#     print("##########################################")
-#     if plot:
-#         sns.countplot(x=dataframe[col_name], data=dataframe)
-#         plt.show()
-#
-# for col in cat_cols:
-#     cat_summary(df, col)
-
-
 df[num_cols].shape
 df[num_cols].dtypes
 df[num_cols].isnull().sum()
@@ -132,6 +120,7 @@ df[num_cols].describe().T
 # hedef değişkene göre Numerik değişkenlerin ortalaması)
 
 # Hedef değişkenimiz zaten outcome = kategorik değişken
+
 
 # Kategorik değişkenlere göre hedef değişkenin ortalamas
 # df.groupby(num_cols)[cat_cols].mean()  # saçma bi çıktı verdi
@@ -237,6 +226,7 @@ def outlier_thresholds(dataframe, col_name, q1=0.25, q3=0.75):
     return low_limit, up_limit
 
 outlier_thresholds(df, num_cols)
+
 def replace_with_thresholds(dataframe, variable):
     low_limit, up_limit = outlier_thresholds(dataframe, variable)
     dataframe.loc[(dataframe[variable] < low_limit), variable] = low_limit
@@ -287,11 +277,104 @@ for col in num_cols:
 
 # Adım 2: Yeni değişkenler oluşturunuz.
 df.head()
+df["Age"]
+df["NEW_AGE_CAT"] = pd.cut(df['Age'], bins=[df.Age.min()-1, df.Age.median(), 45, df.Age.max()], labels=["Young", "Mature", "Old"])
+df[["Age", "NEW_AGE_CAT"]].head(20)
+
+df["Number_of_Pregnancies"] = pd.cut(df["Pregnancies"], bins=[df.Pregnancies.min(), df.Pregnancies.median(), 7, df.Pregnancies.max()], labels=["Normal", "Much", "Extreme"])
+df[["Pregnancies", "Number_of_Pregnancies"]].head(20)
+
+df["BMI"].head()
+def calculate_bmi(col):
+    if col["BMI"] < 18.5:
+        return "Under"
+    elif col["BMI"] >= 18.5 and col["BMI"] <= 24.9:
+        return "Healthy"
+    elif col["BMI"] >= 25 and col["BMI"] <= 29.9:
+        return "Over"
+    elif col["BMI"] >= 30:
+        return "Obese"
+
+df = df.assign(Result_of_BMI=df.apply(calculate_bmi, axis=1))
+df.head()
+
 
 # Adım 3: Encoding işlemlerini gerçekleştiriniz.
 
+# yeni oluşturduğum kategorik değişkenleri gözlemlerken, teker teker value_counts'larına bakmak yerine
+# fonksiyon yazmayı tercih ettim
+new_variables = df[["Number_of_Pregnancies", "NEW_AGE_CAT", "Result_of_BMI"]]
+def count_of_values(dataframe):
+    for col in dataframe:
+        print(dataframe[col].value_counts())
+
+count_of_values(new_variables)
+
+# eşsiz değer sayısı 2 den fazla olanların sayısı 10 dan büyk veya 10'a eşitse getir
+ohe_cols = [col for col in df.columns if 10 >= df[col].nunique() > 2]
+
+def one_hot_encoder(dataframe, categorical_cols, drop_first=True):
+    dataframe = pd.get_dummies(dataframe, columns=categorical_cols, drop_first=drop_first)
+    return dataframe
+
+df = one_hot_encoder(df, ohe_cols)
+df.head()
+
+def rare_analyser(dataframe, target, cat_cols):
+    for col in cat_cols:
+        print(col, ":", len(dataframe[col].value_counts()))
+        print(pd.DataFrame({"COUNT": dataframe[col].value_counts(),
+                            "RATIO": dataframe[col].value_counts() / len(dataframe),
+                            "TARGET_MEAN": dataframe.groupby(col)[target].mean()}), end="\n\n\n")
+
+
+cat_cols, num_cols, cat_but_car = grab_col_names(df)
+cat_cols
+
+rare_analyser(df, "Outcome", cat_cols)
+
+useless_cols = [col for col in df.columns if df[col].nunique() == 2 and
+                (df[col].value_counts() / len(df) < 0.01).any(axis=None)]
+
 
 # Adım 4: Numerik değişkenler için standartlaştırma yapınız.
+for col in num_cols:
+    print(col, check_outlier(df, col))
+
+# num_cols da aykırı değerler çıktı baskılama yapalım
+def outlier_thresholds(dataframe, col_name, q1=0.25, q3=0.75):
+    quartile1 = dataframe[col_name].quantile(q1)
+    quartile3 = dataframe[col_name].quantile(q3)
+    interquantile_range = quartile3 - quartile1
+    up_limit = quartile3 + 1.5 * interquantile_range
+    low_limit = quartile1 - 1.5 * interquantile_range
+    return low_limit, up_limit
+
+outlier_thresholds(df, num_cols)
+def replace_with_thresholds(dataframe, variable):
+    low_limit, up_limit = outlier_thresholds(dataframe, variable)
+    dataframe.loc[(dataframe[variable] < low_limit), variable] = low_limit
+    dataframe.loc[(dataframe[variable] > up_limit), variable] = up_limit
+
+for col in num_cols:
+    replace_with_thresholds(df, col)
+
+# standartlaştırma
+scaler = StandardScaler()
+df[num_cols] = scaler.fit_transform(df[num_cols])
+
+df[num_cols].head()
 
 
 # Adım 5: Model oluşturunuz.
+y = df["Outcome"]  #bağımlı değişken
+X = df.drop(["Outcome"], axis=1)  # bağımsız değişkenler, ilgili sütunlar dışındaki değerler
+X.head()
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.30, random_state=17)
+
+from sklearn.ensemble import RandomForestClassifier
+
+rf_model = RandomForestClassifier(random_state=46).fit(X_train, y_train)
+y_pred = rf_model.predict(X_test)  # modeli test seti üzerinde tahmin et,
+accuracy_score(y_pred, y_test)  # bu değerleri kıyaslıyoruz
