@@ -275,13 +275,17 @@ for col in num_cols:
     df[col] = df[col].fillna(df.groupby(cat_cols)[col].transform("mean"))
 
 
+
 # Adım 2: Yeni değişkenler oluşturunuz.
 df.head()
 df["Age"]
 df["NEW_AGE_CAT"] = pd.cut(df['Age'], bins=[df.Age.min()-1, df.Age.median(), 45, df.Age.max()], labels=["Young", "Mature", "Old"])
 df[["Age", "NEW_AGE_CAT"]].head(20)
 
-df["Number_of_Pregnancies"] = pd.cut(df["Pregnancies"], bins=[df.Pregnancies.min(), df.Pregnancies.median(), 7, df.Pregnancies.max()], labels=["Normal", "Much", "Extreme"])
+df["Number_of_Pregnancies"] = pd.cut(df["Pregnancies"], \
+                                     bins=[df.Pregnancies.min(), df.Pregnancies.median(), 7, df.Pregnancies.max()], \
+                                     labels=["Normal", "Much", "Extreme"], \
+                                     right=False)
 df[["Pregnancies", "Number_of_Pregnancies"]].head(20)
 
 df["BMI"].head()
@@ -379,3 +383,18 @@ from sklearn.ensemble import RandomForestClassifier
 rf_model = RandomForestClassifier(random_state=46).fit(X_train, y_train)
 y_pred = rf_model.predict(X_test)  # modeli test seti üzerinde tahmin et,
 accuracy_score(y_pred, y_test)  # bu değerleri kıyaslıyoruz
+
+# oluşturduğum değişkenler ne alem de ? - önem sırası
+def plot_importance(model, features, num=len(X), save=False):
+    feature_imp = pd.DataFrame({'Value': model.feature_importances_, 'Feature': features.columns})
+    plt.figure(figsize=(10, 10))
+    sns.set(font_scale=1)
+    sns.barplot(x="Value", y="Feature", data=feature_imp.sort_values(by="Value",
+                                                                      ascending=False)[0:num])
+    plt.title('Features')
+    plt.tight_layout()
+    plt.show()
+    if save:
+        plt.savefig('importances.png')
+
+plot_importance(rf_model, X_train)
