@@ -310,7 +310,8 @@ def count_of_values(dataframe):
 
 count_of_values(new_variables)
 
-# eşsiz değer sayısı 2 den fazla olanların sayısı 10 dan büyk veya 10'a eşitse getir
+#One Hot Encoding
+# eşsiz değer sayısı 2 den fazla olanların sayısı 10 dan küçük veya 10'a eşitse getir
 ohe_cols = [col for col in df.columns if 10 >= df[col].nunique() > 2]
 
 def one_hot_encoder(dataframe, categorical_cols, drop_first=True):
