@@ -106,15 +106,17 @@ cat_cols
 num_cols
 
 # Adım 3: Numerik ve kategorik değişkenlerin analizini yapınız.
-df[cat_cols].shape
-df[cat_cols].dtypes
-df[cat_cols].isnull().sum()
-df[cat_cols].describe().T
+def get_stats(col):
+    return print("------ İlk 5 Satır ------ \n", df[col].head(), "\n", \
+                 "------ Sahip olduğu Değer Sayısı ------ \n", df[col].value_counts(), "\n", \
+                 "------ Toplam Gözlem Sayısı ------ \n",  df[col].shape, "\n", \
+                 "------ Değişken Tipleri ------ \n", df[col].dtypes, "\n", \
+                 "------ Toplam Null Değer Sayısı ------ \n", df[col].isnull().sum(), "\n", \
+                 "------ Betimsel İstatistik ------ \n", df[col].describe().T
+                 )
 
-df[num_cols].shape
-df[num_cols].dtypes
-df[num_cols].isnull().sum()
-df[num_cols].describe().T
+get_stats(cat_cols)
+get_stats(num_cols)
 
 # Hedef değişken analizi yapınız. (Kategorik değişkenlere göre hedef değişkenin ortalaması,
 # hedef değişkene göre Numerik değişkenlerin ortalaması)
