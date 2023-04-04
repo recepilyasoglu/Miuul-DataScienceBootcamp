@@ -308,8 +308,9 @@ for col in num_cols:
 df.head()
 df["Age"]
 df["NEW_AGE_CAT"] = pd.cut(df['Age'], \
-                           bins=[df.Age.min()-1, df.Age.median(), 45, df.Age.max()], \
-                           labels=["Young", "Mature", "Old"])
+                           bins=[df.Age.min(), df.Age.median(), 45, df.Age.max()], \
+                           labels=["Young", "Mature", "Old"], \
+                           right=False)
 df[["Age", "NEW_AGE_CAT"]].head(20)
 
 df["Number_of_Pregnancies"] = pd.cut(df["Pregnancies"], \
@@ -330,6 +331,7 @@ def calculate_bmi(col):
         return "Obese"
 
 df = df.assign(Result_of_BMI=df.apply(calculate_bmi, axis=1))
+df[["BMI", "Result_of_BMI"]].head(20)
 df.head()
 
 
@@ -355,18 +357,10 @@ def one_hot_encoder(dataframe, categorical_cols, drop_first=True):
 df = one_hot_encoder(df, ohe_cols)
 df.head()
 
-def rare_analyser(dataframe, target, cat_cols):
-    for col in cat_cols:
-        print(col, ":", len(dataframe[col].value_counts()))
-        print(pd.DataFrame({"COUNT": dataframe[col].value_counts(),
-                            "RATIO": dataframe[col].value_counts() / len(dataframe),
-                            "TARGET_MEAN": dataframe.groupby(col)[target].mean()}), end="\n\n\n")
-
-
 cat_cols, num_cols, cat_but_car = grab_col_names(df)
 cat_cols
+df.head()
 
-rare_analyser(df, "Outcome", cat_cols)
 
 useless_cols = [col for col in df.columns if df[col].nunique() == 2 and
                 (df[col].value_counts() / len(df) < 0.01).any(axis=None)]
@@ -377,22 +371,22 @@ for col in num_cols:
     print(col, check_outlier(df, col))
 
 # num_cols da aykırı değerler çıktı baskılama yapalım
-def outlier_thresholds(dataframe, col_name, q1=0.25, q3=0.75):
-    quartile1 = dataframe[col_name].quantile(q1)
-    quartile3 = dataframe[col_name].quantile(q3)
-    interquantile_range = quartile3 - quartile1
-    up_limit = quartile3 + 1.5 * interquantile_range
-    low_limit = quartile1 - 1.5 * interquantile_range
-    return low_limit, up_limit
-
-outlier_thresholds(df, num_cols)
-def replace_with_thresholds(dataframe, variable):
-    low_limit, up_limit = outlier_thresholds(dataframe, variable)
-    dataframe.loc[(dataframe[variable] < low_limit), variable] = low_limit
-    dataframe.loc[(dataframe[variable] > up_limit), variable] = up_limit
-
-for col in num_cols:
-    replace_with_thresholds(df, col)
+# def outlier_thresholds(dataframe, col_name, q1=0.25, q3=0.75):
+#     quartile1 = dataframe[col_name].quantile(q1)
+#     quartile3 = dataframe[col_name].quantile(q3)
+#     interquantile_range = quartile3 - quartile1
+#     up_limit = quartile3 + 1.5 * interquantile_range
+#     low_limit = quartile1 - 1.5 * interquantile_range
+#     return low_limit, up_limit
+#
+# outlier_thresholds(df, num_cols)
+# def replace_with_thresholds(dataframe, variable):
+#     low_limit, up_limit = outlier_thresholds(dataframe, variable)
+#     dataframe.loc[(dataframe[variable] < low_limit), variable] = low_limit
+#     dataframe.loc[(dataframe[variable] > up_limit), variable] = up_limit
+#
+# for col in num_cols:
+#     replace_with_thresholds(df, col)
 
 
 # standartlaştırma
