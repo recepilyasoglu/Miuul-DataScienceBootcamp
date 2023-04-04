@@ -278,7 +278,9 @@ for col in num_cols:
 # Adım 2: Yeni değişkenler oluşturunuz.
 df.head()
 df["Age"]
-df["NEW_AGE_CAT"] = pd.cut(df['Age'], bins=[df.Age.min()-1, df.Age.median(), 45, df.Age.max()], labels=["Young", "Mature", "Old"])
+df["NEW_AGE_CAT"] = pd.cut(df['Age'], \
+                           bins=[df.Age.min()-1, df.Age.median(), 45, df.Age.max()], \
+                           labels=["Young", "Mature", "Old"])
 df[["Age", "NEW_AGE_CAT"]].head(20)
 
 df["Number_of_Pregnancies"] = pd.cut(df["Pregnancies"], \
