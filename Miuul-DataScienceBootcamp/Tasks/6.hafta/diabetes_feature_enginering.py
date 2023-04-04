@@ -34,7 +34,7 @@ df.head()
 
 df.shape
 df.describe().T
-df.isnull().sum() * df.shape[0] / 100
+df.isnull().sum() / df.shape[0] * 100
 df.info()
 df.dtypes
 
@@ -106,17 +106,42 @@ cat_cols
 num_cols
 
 # Adım 3: Numerik ve kategorik değişkenlerin analizini yapınız.
-def get_stats(col):
-    return print("------ İlk 5 Satır ------ \n", df[col].head(), "\n", \
-                 "------ Sahip olduğu Değer Sayısı ------ \n", df[col].value_counts(), "\n", \
-                 "------ Toplam Gözlem Sayısı ------ \n",  df[col].shape, "\n", \
-                 "------ Değişken Tipleri ------ \n", df[col].dtypes, "\n", \
-                 "------ Toplam Null Değer Sayısı ------ \n", df[col].isnull().sum(), "\n", \
-                 "------ Betimsel İstatistik ------ \n", df[col].describe().T
+def get_stats(dataframe, col):
+    return print("------ İlk 5 Satır ------ \n", dataframe[col].head(), "\n", \
+                 "------ Sahip olduğu Değer Sayısı ------ \n", dataframe[col].value_counts(), "\n", \
+                 "------ Toplam Gözlem Sayısı ------ \n",  dataframe[col].shape, "\n", \
+                 "------ Değişken Tipleri ------ \n", dataframe[col].dtypes, "\n", \
+                 "------ Toplam Null Değer Sayısı ------ \n", dataframe[col].isnull().sum(), "\n", \
+                 "------ Betimsel İstatistik ------ \n", dataframe[col].describe().T
                  )
 
-get_stats(cat_cols)
-get_stats(num_cols)
+get_stats(df, cat_cols)
+get_stats(df, num_cols)
+
+def cat_summary(dataframe, col_name, plot=False):
+    print(pd.DataFrame({col_name: dataframe[col_name].value_counts(),
+                        "Ratio": 100 * dataframe[col_name].value_counts() / len(dataframe)}))
+    print("###############################################")
+
+    if plot:
+        sns.countplot(x=dataframe[col_name], data=dataframe)
+        plt.show(block=True)
+
+for col in cat_cols:
+    cat_summary(df, col)
+
+def num_summary(dataframe, numerical_col, plot=False):
+    quantiles = [0.05, 0.10, 0.20, 0.30, 0.40, 0.50, 0.60, 0.70, 0.80, 0.90, 0.95, 0.99]
+    print(dataframe[numerical_col].describe(quantiles).T)
+
+    if plot:
+        dataframe[numerical_col].hist(bins=20)
+        plt.xlabel(numerical_col)
+        plt.title(numerical_col)
+        plt.show(block=True)
+
+for col in num_cols:
+    num_summary(df, col, True)
 
 # Hedef değişken analizi yapınız. (Kategorik değişkenlere göre hedef değişkenin ortalaması,
 # hedef değişkene göre Numerik değişkenlerin ortalaması)
@@ -124,7 +149,7 @@ get_stats(num_cols)
 # Hedef değişkenimiz zaten outcome = kategorik değişken
 
 
-# Kategorik değişkenlere göre hedef değişkenin ortalamas
+# Numerik değişkenlere göre hedef değişkenin ortalamas
 # df.groupby(num_cols)[cat_cols].mean()  # saçma bi çıktı verdi
 
 # hedef değişkene göre Numerik değişkenlerin ortalaması
@@ -160,7 +185,7 @@ def grab_outliers(dataframe, col_name, index=False):
     # 10 dan çok aykırı değer varsa head ile getir, çok gelmesin yani 10 tane gelsin
     if dataframe[((dataframe[col_name] < low) | (dataframe[col_name] > up))].shape[0] > 10:
         print(dataframe[((dataframe[col_name] < low) | (dataframe[col_name] > up))].head())
-    else:  # değilse hepsini geir azmış zaten
+    else:  # değilse hepsini getir azmış zaten
         print(dataframe[((dataframe[col_name] < low) | (dataframe[col_name] > up))])
 
     if index:
@@ -190,7 +215,7 @@ def missing_values_table(dataframe, na_name=False):
 
 missing_values_table(df)
 
-missing_values_table(df, True)
+# missing_values_table(df, True)
 
 
 # Adım 7: Korelasyon analizi yapınız
@@ -199,6 +224,8 @@ missing_values_table(df, True)
 df.corr().sort_values("Outcome", ascending=False) \
     .drop("Outcome", axis=0)
 
+sns.heatmap(df.corr(), annot=True)
+plt.show(block=True)
 
 ## Görev 2 : Feature Engineering
 # Adım 1: Eksik ve aykırı değerler için gerekli işlemleri yapınız. Veri setinde eksik gözlem bulunmamakta ama Glikoz, Insulin vb.
@@ -207,12 +234,12 @@ df.corr().sort_values("Outcome", ascending=False) \
 # değerlere işlemleri uygulayabilirsiniz.
 
 # ilk olarak, aykırı değer var mı? yok mu? kontrolü
-def check_outlier(dataframe, col_name):  # q1 ve q3 'ü de biçimlendirmek istersek check_outlier'a argüman olarak girmemiz gerekir
+def check_outlier(dataframe, col_name):
     low_limit, up_limit = outlier_thresholds(dataframe, col_name)
     if dataframe[(dataframe[col_name] > up_limit) | (dataframe[col_name] < low_limit)].any(axis=None):
         return True
     else:
-        return False   # var mı yok mu sorusuna bool dönmesi lazım (True veya False)
+        return False   # var mı? yok mu? sorusuna bool dönmesi lazım (True veya False)
 
 for col in num_cols:
     print(col, check_outlier(df, col))  # numerik değişkenlerin hepsinde var
@@ -227,7 +254,7 @@ def outlier_thresholds(dataframe, col_name, q1=0.25, q3=0.75):
     low_limit = quartile1 - 1.5 * interquantile_range
     return low_limit, up_limit
 
-outlier_thresholds(df, num_cols)
+# outlier_thresholds(df, num_cols)
 
 def replace_with_thresholds(dataframe, variable):
     low_limit, up_limit = outlier_thresholds(dataframe, variable)
