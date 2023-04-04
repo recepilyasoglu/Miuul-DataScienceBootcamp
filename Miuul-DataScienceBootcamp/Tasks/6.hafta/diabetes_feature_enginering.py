@@ -334,12 +334,15 @@ df = df.assign(Result_of_BMI=df.apply(calculate_bmi, axis=1))
 df[["BMI", "Result_of_BMI"]].head(20)
 df.head()
 
+df["risk_tansion"] = df["BloodPressure"] * df["Glucose"] / df["BMI"]
+df["risk_tansion_seg"] = pd.qcut(df["risk_tansion"], 4, labels=["Low Risk", "Normal", "Moderate Risk", "High Risk"])
+df[["risk_tansion", "risk_tansion_seg"]].head(20)
 
 # Adım 3: Encoding işlemlerini gerçekleştiriniz.
 
 # yeni oluşturduğum kategorik değişkenleri gözlemlerken, teker teker value_counts'larına bakmak yerine
 # fonksiyon yazmayı tercih ettim
-new_variables = df[["Number_of_Pregnancies", "NEW_AGE_CAT", "Result_of_BMI"]]
+new_variables = df[["Number_of_Pregnancies", "NEW_AGE_CAT", "Result_of_BMI", "risk_tansion_seg"]]
 def count_of_values(dataframe):
     for col in dataframe:
         print(dataframe[col].value_counts())
@@ -361,33 +364,9 @@ cat_cols, num_cols, cat_but_car = grab_col_names(df)
 cat_cols
 df.head()
 
-
-useless_cols = [col for col in df.columns if df[col].nunique() == 2 and
-                (df[col].value_counts() / len(df) < 0.01).any(axis=None)]
-
-
 # Adım 4: Numerik değişkenler için standartlaştırma yapınız.
 for col in num_cols:
     print(col, check_outlier(df, col))
-
-# num_cols da aykırı değerler çıktı baskılama yapalım
-# def outlier_thresholds(dataframe, col_name, q1=0.25, q3=0.75):
-#     quartile1 = dataframe[col_name].quantile(q1)
-#     quartile3 = dataframe[col_name].quantile(q3)
-#     interquantile_range = quartile3 - quartile1
-#     up_limit = quartile3 + 1.5 * interquantile_range
-#     low_limit = quartile1 - 1.5 * interquantile_range
-#     return low_limit, up_limit
-#
-# outlier_thresholds(df, num_cols)
-# def replace_with_thresholds(dataframe, variable):
-#     low_limit, up_limit = outlier_thresholds(dataframe, variable)
-#     dataframe.loc[(dataframe[variable] < low_limit), variable] = low_limit
-#     dataframe.loc[(dataframe[variable] > up_limit), variable] = up_limit
-#
-# for col in num_cols:
-#     replace_with_thresholds(df, col)
-
 
 # standartlaştırma
 scaler = StandardScaler()
@@ -407,7 +386,7 @@ from sklearn.ensemble import RandomForestClassifier
 
 rf_model = RandomForestClassifier(random_state=46).fit(X_train, y_train)
 y_pred = rf_model.predict(X_test)  # modeli test seti üzerinde tahmin et,
-accuracy_score(y_pred, y_test)  # bu değerleri kıyaslıyoruz
+accuracy_score(y_pred, y_test)  # bu değerleri kıyaslıyoruz - %89
 
 # oluşturduğum değişkenler ne alem de ? - önem sırası
 def plot_importance(model, features, num=len(X), save=False):
