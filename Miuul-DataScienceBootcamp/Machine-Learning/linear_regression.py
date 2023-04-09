@@ -155,8 +155,11 @@ np.sqrt(mean_squared_error(y_test, y_pred))
 # TEST R-KARE
 reg_model.score(X_test, y_test)
 
-# 10 Katlı CV RMSE
-np.mean(np.sqrt(-cross_val_score(reg_model,
+
+# veri boyutumuz az lduğu Cross Validation daha çok güvenebiliriz
+# boyutumuz çok olsaydı farketmez diyebilirdik.
+# 10 Katlı CV RMSE (10 katlı Cross Validation(Çapraz Doğrulama) Skoru)
+np.mean(np.sqrt(-cross_val_score(reg_model,  # eksi değerler geldiği için - hatalar olmaz diyerek, - ile çarptık
                                  X,
                                  y,
                                  cv=10,
