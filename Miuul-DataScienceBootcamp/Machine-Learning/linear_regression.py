@@ -71,24 +71,104 @@ plt.show()
 y_pred = reg_model.predict(X)
 mean_squared_error(y, y_pred)
 # 10.51
-y.mean()
-y.std()
+y.mean()  # alınan MSE değerinin ne olduğunu anlayabilmek adına bağımlı değikenin ortalamasına ve
+y.std()  # standart sapmasına baktık, sonuç olarak büyük bir değer(10.51) geldi bu örneğe göre
 
 # RMSE
-np.sqrt(mean_squared_error(y, y_pred))
+np.sqrt(mean_squared_error(y, y_pred))  # yukarıdan gelen ifadenin karekökü
 # 3.24
 
 # MAE
-mean_absolute_error(y, y_pred)
-# 2.54
+mean_absolute_error(y, y_pred)  # bu daha düşük geldi daha mı iyi ?
+                                # hayır bunu anca model de diyelim ki değişiklik yaptık, bu değişiklikten öncesi ve sonrası
+# 2.54                          # değerlendirilir yani değişiklik öncesi MAE ve değişiklik sonrası MAE olarak
 
-# R-KARE
-reg_model.score(X, y)
-
-
-
+# R-KARE    # veri setindeki bağımsız değişkenlerin, bağımlı değişkeni açıklama yüzdesidir.
+reg_model.score(X, y)  # bağımsız değişkenlerin, bağımlı değişkenin %61'ini açıklar.
 
 
+######################################################
+# Multiple Linear Regression
+######################################################
+
+df = pd.read_csv("Machine-Learning/Datasets/advertising.csv")
+
+X = df.drop('sales', axis=1)  # bağımsız değişkenler için bağımlı değişken dışındakileri aldık
+
+y = df[["sales"]]  # bağımlı değişken
+
+##########################
+# Model
+##########################
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, random_state=1)
+
+y_test.shape
+y_train.shape
+
+reg_model = LinearRegression().fit(X_train, y_train)
+
+# sabit (b - bias)
+reg_model.intercept_
+
+# coefficients (w - weights)
+reg_model.coef_
+
+##########################
+# Tahmin
+##########################
+
+# Aşağıdaki gözlem değerlerine göre satışın beklenen değeri nedir?
+
+# TV: 30
+# radio: 10
+# newspaper: 40
+
+# 2.90
+# 0.0468431 , 0.17854434, 0.00258619
+
+# Sales = 2.90  + TV * 0.04 + radio * 0.17 + newspaper * 0.002
+
+# denklem (mülakat sorusu !!!)
+2.90794702 + 30 * 0.0468431 + 10 * 0.17854434 + 40 * 0.00258619
+
+yeni_veri = [[30], [10], [40]]
+yeni_veri = pd.DataFrame(yeni_veri).T
+
+reg_model.predict(yeni_veri)
+
+##########################
+# Tahmin Başarısını Değerlendirme
+##########################
+
+# Train RMSE
+y_pred = y_pred = reg_model.predict(X_train)
+np.sqrt(mean_squared_error(y_train, y_pred))
+
+# TRAIN R-KARE
+reg_model.score(X_train, y_train)
+
+# Test RMSE     # test hatası, train hatasına göre daha yüksek çıkar normal de, bizde daha düşük çıktı bu güzel bir durum
+y_pred = y_pred = reg_model.predict(X_test)
+np.sqrt(mean_squared_error(y_test, y_pred))
+
+# TEST R-KARE
+reg_model.score(X_test, y_test)
+
+# 10 Katlı CV RMSE
+np.mean(np.sqrt(-cross_val_score(reg_model,
+                                 X,
+                                 y,
+                                 cv=10,
+                                 scoring="neg_mean_squared_error")))
+
+# 1.69
 
 
-
+# 5 Katlı CV RMSE
+np.mean(np.sqrt(-cross_val_score(reg_model,
+                                 X,
+                                 y,
+                                 cv=5,
+                                 scoring="neg_mean_squared_error")))
+# 1.71
