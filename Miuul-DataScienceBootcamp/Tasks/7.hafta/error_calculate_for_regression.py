@@ -48,7 +48,6 @@ y_pred = reg_model.predict(X)
 
 df["Maaş Tahmini (y')"] = y_pred
 
-df["Maaş Tahmini"] = pd.DataFrame(data=df["Maaş Tahmini (y')"])
 
 # 3-Modelin başarısını ölçmek için MSE, RMSE, MAE skorlarını hesaplayınız
 #mse
