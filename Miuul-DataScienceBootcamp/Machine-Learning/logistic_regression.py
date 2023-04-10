@@ -234,6 +234,7 @@ roc_auc_score(y_test, y_prob)
 # Model Validation: 10-Fold Cross Validation
 ######################################################
 
+# Hangi 80'e 20 ?
 y = df["Outcome"]
 X = df.drop(["Outcome"], axis=1)
 
@@ -280,3 +281,4 @@ X.columns
 
 random_user = X.sample(1, random_state=45)
 log_model.predict(random_user)
+
