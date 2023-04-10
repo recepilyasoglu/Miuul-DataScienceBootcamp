@@ -125,10 +125,31 @@ for col in cols:
     target_summary_with_num(df, "Outcome", col)
 
 
+######################################################
+# Data Preprocessing (Veri Ön İşleme)
+######################################################
+df.shape
+df.head()
 
+df.isnull().sum()
 
+df.describe().T
 
+for col in cols:
+    print(col, check_outlier(df, col))
 
+replace_with_thresholds(df, "Insulin")  # Insulin için hesapladığımız eşik değerler ile hesapladık
+
+# bütün gözlem biriminin değerlerinden medyanı çıkarıp, range değerine bölüyor.
+# standartscaler'dan farkı aykırı değerlerden etkilenmemesi
+for col in cols:
+    df[col] = RobustScaler().fit_transform(df[[col]])
+
+df.head()
+
+######################################################
+# Model & Prediction
+######################################################
 
 
 
