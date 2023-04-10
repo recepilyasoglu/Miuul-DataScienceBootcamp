@@ -279,6 +279,6 @@ cv_results['test_roc_auc'].mean()
 
 X.columns
 
-random_user = X.sample(1, random_state=45)
-log_model.predict(random_user)
+random_user = X.sample(1, random_state=45)  # tahmin etmek için rastgele kullanıcı oluşturuyoruz
+log_model.predict(random_user)  # bu kişi diyabettir
 
