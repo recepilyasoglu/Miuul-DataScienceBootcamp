@@ -194,3 +194,36 @@ y_prob = log_model.predict_proba(X)[:, 1]
 roc_auc_score(y, y_prob)  # 1 sınıfının gerçekleşme olasılıkları
 # 0.83939
 
+
+######################################################
+# Model Validation: Holdout
+######################################################
+
+X_train, X_test, y_train, y_test = train_test_split(X,
+                                                    y,
+                                                    test_size=0.20, random_state=17)
+
+log_model = LogisticRegression().fit(X_train, y_train)
+
+y_pred = log_model.predict(X_test)
+y_prob = log_model.predict_proba(X_test)[:, 1]
+
+print(classification_report(y_test, y_pred))
+
+# Accuracy: 0.78
+# Precision: 0.74
+# Recall: 0.58
+# F1-score: 0.65
+
+# Accuracy: 0.77
+# Precision: 0.79
+# Recall: 0.53
+# F1-score: 0.63
+
+plot_roc_curve(log_model, X_test, y_test)
+plt.title('ROC Curve')
+plt.plot([0, 1], [0, 1], 'r--')
+plt.show()
+
+# AUC
+roc_auc_score(y_test, y_prob)
