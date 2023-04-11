@@ -23,7 +23,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, roc_auc_score, confusion_matrix, classification_report
 from sklearn import metrics
 
-# Görev1: Müşterinin churn olup olmama durumunu tahminleyen bir sınıflandırma modeli oluşturulmuştur.
+## Görev 1: Müşterinin churn olup olmama durumunu tahminleyen bir sınıflandırma modeli oluşturulmuştur.
 # 10 test verisi gözleminin gerçek değerleri ve modelin tahmin ettiği olasılık değerleri verilmiştir.
 
 # - Eşik değerini 0.5 alarak confusion matrix oluşturunuz.
@@ -55,7 +55,7 @@ print(classification_report(y, X))
 # plt.show()
 
 
-# Görev2: Banka üzerinden yapılan işlemler sırasında dolandırıcılık işlemlerinin yakalanması amacıyla sınıflandırma modeli oluşturulmuştur. %90.5 doğruluk
+## Görev 2: Banka üzerinden yapılan işlemler sırasında dolandırıcılık işlemlerinin yakalanması amacıyla sınıflandırma modeli oluşturulmuştur. %90.5 doğruluk
 # oranı elde edilen modelin başarısı yeterli bulunup model canlıya alınmıştır. Ancak canlıya alındıktan sonra modelin çıktıları beklendiği gibi
 # olmamış, iş birimi modelin başarısız olduğunu iletmiştir. Aşağıda modelin tahmin sonuçlarının karmaşıklık matriksi verilmiştir.
 
