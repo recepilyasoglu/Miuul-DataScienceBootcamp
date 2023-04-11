@@ -106,8 +106,20 @@ knn_gs_best = GridSearchCV(knn_model,  # modelimiz
 
 knn_gs_best.best_params_  # komşuluk sayısı 17 geldi, bu komşuluk sayısıyla model kurarsam başarısının daha iyi olmasını beklerim
 
+################################################
+# 6. Final Model
+################################################
 
+knn_final = knn_model.set_params(**knn_gs_best.best_params_)  # iki yıldız(**) kullanarak keyword'ümüzü bu giib durumlarda direkt kullanabiliriz.
 
+cv_results = cross_validate(knn_model,
+                            X, y,
+                            cv=5,
+                            scoring=["accuracy", "f1", "roc_auc"])
 
+cv_results['test_accuracy'].mean()  # 0.73 -> 0.76
+cv_results['test_f1'].mean()  # 0.59 -> 0.61
+cv_results['test_roc_auc'].mean()  # 0.78 -> 0.81
 
-
+random_user = X.sample(1)
+knn_final.predict(random_user)
