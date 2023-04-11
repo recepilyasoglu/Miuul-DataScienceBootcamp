@@ -54,6 +54,39 @@ print(classification_report(y, X))
 # cm_display.plot()
 # plt.show()
 
+# get the accuracy, precision, recall, f1-score values
+def get_stats_of_confusion(dataframe):
+    TP = 0
+    TN = 0
+    FP = 0
+    FN = 0
+
+    for i in range(len(dataframe)):
+        if dataframe.iloc[i]["Gerçek Değer"] == 1.0:
+            if dataframe.iloc[i]["Tahmin Edilen Değer"] == 1.0:
+                TP += 1
+            else:
+                FN += 1
+        else:
+            if dataframe.iloc[i]["Tahmin Edilen Değer"] == 1.0:
+                FP += 1
+            else:
+                TN += 1
+
+    Accuracy = (TP + TN) / (TP + TN + FP + FN)
+    Recall = TP / (TP + FN)
+    Precision = TP / (TP + FP)
+    F1_Score = 2 * (Precision * Recall) / (Precision + Recall)
+
+
+    return print("Accuracy..: ", Accuracy, "\n"
+                 "Recall..:", Recall, "\n"
+                 "Precision..:", Precision, "\n"
+                 "F1_Score..:", F1_Score)
+
+
+get_stats_of_confusion(df)
+
 
 ## Görev 2: Banka üzerinden yapılan işlemler sırasında dolandırıcılık işlemlerinin yakalanması amacıyla sınıflandırma modeli oluşturulmuştur. %90.5 doğruluk
 # oranı elde edilen modelin başarısı yeterli bulunup model canlıya alınmıştır. Ancak canlıya alındıktan sonra modelin çıktıları beklendiği gibi
@@ -64,9 +97,9 @@ print(classification_report(y, X))
 # - Veri Bilimi ekibinin gözden kaçırdığı durum ne olabilir yorumlayınız
 
 
-Accuracy = (5+900) / 1000
-Precision = 5 / (5+90)
-Recall = 5 / (5+5)
+Accuracy = (5 + 900) / 1000
+Precision = 5 / (5 + 90)
+Recall = 5 / (5 + 5)
 F1_Score = 2 * (0.05 * 0.50) / (0.05 + 0.50)
 
 print("Accuracy..: ", Accuracy, "\n"
