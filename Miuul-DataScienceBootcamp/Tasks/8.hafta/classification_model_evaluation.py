@@ -78,6 +78,7 @@ def get_stats_of_confusion(dataframe):
     Precision = TP / (TP + FP)
     F1_Score = 2 * (Precision * Recall) / (Precision + Recall)
 
+    # results = {"Accuracy": Accuracy, "Recall": Recall, "Precision": Precision, "F1_Score": F1_Score}
 
     return print("Accuracy..: ", Accuracy, "\n"
                  "Recall..:", Recall, "\n"
