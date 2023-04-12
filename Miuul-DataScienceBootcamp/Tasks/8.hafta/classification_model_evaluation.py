@@ -55,20 +55,22 @@ print(classification_report(y, X))
 # plt.show()
 
 # get the accuracy, precision, recall, f1-score values
-def get_stats_of_confusion(dataframe):
+def get_stats_of_confusion(dataframe, actual, prob):
     TP = 0
     TN = 0
     FP = 0
     FN = 0
 
-    for i in range(len(dataframe)):
-        if dataframe.iloc[i]["Gerçek Değer"] == 1.0:
-            if dataframe.iloc[i]["Tahmin Edilen Değer"] == 1.0:
+    n = range(len(dataframe))
+
+    for i in n:
+        if dataframe.iloc[i][actual] == 1.0:
+            if dataframe.iloc[i][prob] == 1.0:
                 TP += 1
             else:
                 FN += 1
         else:
-            if dataframe.iloc[i]["Tahmin Edilen Değer"] == 1.0:
+            if dataframe.iloc[i][prob] == 1.0:
                 FP += 1
             else:
                 TN += 1
@@ -86,7 +88,7 @@ def get_stats_of_confusion(dataframe):
                  "F1_Score..:", F1_Score)
 
 
-get_stats_of_confusion(df)
+get_stats_of_confusion(df, "Gerçek Değer", "Tahmin Edilen Değer")
 
 
 ## Görev 2: Banka üzerinden yapılan işlemler sırasında dolandırıcılık işlemlerinin yakalanması amacıyla sınıflandırma modeli oluşturulmuştur. %90.5 doğruluk
