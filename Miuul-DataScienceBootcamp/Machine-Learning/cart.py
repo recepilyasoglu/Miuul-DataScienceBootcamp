@@ -109,6 +109,19 @@ cv_results['test_roc_auc'].mean()
 # 0.6719440950384347
 
 
+################################################
+# 4. Hyperparameter Optimization with GridSearchCV
+################################################
+
+cart_model.get_params()
+# CART ile ilgili ilgilendiğimiz hiper parametreler; max_depth ve min_samples_split
+
+cart_params = {"max_depth": range(1, 11),
+               "min_samples_split": range(2, 20)}
+
+
+
+
 
 
 
