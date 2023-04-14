@@ -206,6 +206,7 @@ train_score, test_score = validation_curve(cart_final, X, y,
 mean_train_score = np.mean(train_score, axis=1)  # train_score için ortalamalarını aldık
 mean_test_score = np.mean(test_score, axis=1)  # test_score için ortalamalarını aldık
 
+
 # train hatası ve test hatası birlikte görselleştirilir
 # ve ayrım noktasından itibaren karar verilir.
 
