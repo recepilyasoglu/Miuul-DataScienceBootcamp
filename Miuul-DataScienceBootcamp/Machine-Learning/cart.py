@@ -189,13 +189,75 @@ def plot_importance(model, features, num=len(X), save=False):
 plot_importance(cart_final, X, num=5)
 
 
+#############################################################
+# 7. Analyzing Model Complexity with Learning Curves (BONUS)
+#############################################################
+
+# seçilen parametreye göre öğrenme eğrilerini yazdırma
+train_score, test_score = validation_curve(cart_final, X, y,
+                                           param_name="max_depth",
+                                           param_range=range(1, 11),  # 1ile 11 arasındaki derinlikleri denesin bana raporlasın
+                                           scoring="roc_auc",  # roc_auc metriği açısından
+                                           cv=10)  # 5 de denilebilir
+
+# değişkenlerin max_depth de yer alan her bir değer için 10 array geldi
+# array'in içerisinde ise 10 katlı cross validation'ın sonuçları
+
+mean_train_score = np.mean(train_score, axis=1)  # train_score için ortalamalarını aldık
+mean_test_score = np.mean(test_score, axis=1)  # test_score için ortalamalarını aldık
 
 
+# train hatası ve test hatası birlikte görselleştirilir
+# ve ayrım noktasından itibaren karar verilir.
 
 
+plt.plot(range(1, 11), mean_train_score,
+         label="Training Score", color='b')
+
+plt.plot(range(1, 11), mean_test_score,
+         label="Validation Score", color='g')  # test de denilebilir burada
+
+plt.title("Validation Curve for CART")
+plt.xlabel("Number of max_depth")
+plt.ylabel("AUC")
+plt.tight_layout()
+plt.legend(loc='best')
+plt.show()
+
+# buraya fikir edinebilmek için bakıyoruz,
+# zaten hiperparametre optimizasyon kısmında optimum değerlerimizi bulmuştuk
 
 
+# Fonksiyonlaştırılması
+def val_curve_params(model, X, y, param_name, param_range, scoring="roc_auc", cv=10):
+    train_score, test_score = validation_curve(
+        model, X=X, y=y, param_name=param_name, param_range=param_range, scoring=scoring, cv=cv)
 
+    mean_train_score = np.mean(train_score, axis=1)
+    mean_test_score = np.mean(test_score, axis=1)
+
+    plt.plot(param_range, mean_train_score,
+             label="Training Score", color='b')
+
+    plt.plot(param_range, mean_test_score,
+             label="Validation Score", color='g')
+
+    plt.title(f"Validation Curve for {type(model).__name__}")
+    plt.xlabel(f"Number of {param_name}")
+    plt.ylabel(f"{scoring}")
+    plt.tight_layout()
+    plt.legend(loc='best')
+    plt.show(block=True)
+
+
+val_curve_params(cart_final, X, y, "max_depth", range(1, 11), scoring="f1")
+
+# birden fazla parametreler için, liste oluştuyoruz
+cart_val_params = [["max_depth", range(1, 11)], ["min_samples_split", range(2, 20)]]
+
+# listenin elemanlarında gezip validation curve uyguluyoruz
+for i in range(len(cart_val_params)):
+    val_curve_params(cart_model, X, y, cart_val_params[i][0], cart_val_params[i][1])
 
 
 
