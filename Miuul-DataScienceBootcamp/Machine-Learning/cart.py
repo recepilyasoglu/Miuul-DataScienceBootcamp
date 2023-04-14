@@ -260,5 +260,45 @@ for i in range(len(cart_val_params)):
     val_curve_params(cart_model, X, y, cart_val_params[i][0], cart_val_params[i][1])
 
 
+################################################
+# 8. Visualizing the Decision Tree
+################################################
+
+def tree_graph(model, col_names, file_name):
+    tree_str = export_graphviz(model, feature_names=col_names, filled=True, out_file=None)
+    graph = pydotplus.graph_from_dot_data(tree_str)
+    graph.write_png(file_name)
+
+
+tree_graph(model=cart_final, col_names=X.columns, file_name="cart_final.png")
+
+cart_final.get_params()  # 5 tane dallanma işlemi olmuş, 5 seviye gerçekleşmiş yani
+
+
+################################################
+# 9. Extracting Decision Rules
+################################################
+
+tree_rules = export_text(cart_final, feature_names=list(X.columns))
+print(tree_rules)  # yukarıda çıkardığımız karar kuralları geldi
+
+
+################################################
+# 10. Extracting Python Codes of Decision Rules
+################################################
+
+# canlı ortamlarda kullanabilmemiz adına
+
+print(skompile(cart_final.predict).to('python/code'))
+# python dilinde karar kurallarımız
+
+print(skompile(cart_final.predict).to('sqlalchemy/sqlite'))
+# sql dilinde karar kurallarımız (en temizi)
+
+print(skompile(cart_final.predict).to('excel'))
+# excel kodları üzerinden karar kurallarımız
+
+
+
 
 
