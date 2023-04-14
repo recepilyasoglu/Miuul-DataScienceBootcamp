@@ -16,6 +16,8 @@
 # 12. Saving and Loading Model
 
 import warnings
+import matplotlib
+matplotlib.use("Qt5Agg")
 import joblib
 import pydotplus
 import numpy as np
@@ -116,8 +118,81 @@ cv_results['test_roc_auc'].mean()
 cart_model.get_params()
 # CART ile ilgili ilgilendiğimiz hiper parametreler; max_depth ve min_samples_split
 
-cart_params = {"max_depth": range(1, 11),
-               "min_samples_split": range(2, 20)}
+cart_params = {"max_depth": range(1, 11),  # bu değeleri girerken ön tanımlı değerlere bakıyoruz,
+               "min_samples_split": range(2, 20)}  # -> ön tanımlı değerlerin etrafındaki değerleri gir
+
+## en iyi parametreleri vermesi için kullanıyoruz
+cart_best_grid = GridSearchCV(cart_model,
+                              cart_params,
+                              cv=5,
+                              n_jobs=-1,
+                              verbose=1).fit(X, y)
+# bu iki hiperparametrenin olası 180 tane kombinasyonu varmış
+
+cart_best_grid.best_params_
+
+cart_best_grid.best_score_
+
+random = X.sample(1, random_state=45)  # verimizden rastgele kullanıcı çektik
+
+cart_best_grid.predict(random)  # verilen rastgele kullanıcı için diyabet olumlu (1) dedi
+
+# gGridSearchCV ile de final model'siz predict yapılabilir,
+# ama farkındalık açısından final model kurulması daha iyi
+
+
+################################################
+# 5. Final Model
+################################################
+
+cart_final = DecisionTreeClassifier(**cart_best_grid.best_params_, random_state=17).fit(X, y)
+cart_final.get_params()
+
+# bir diğer yolu, parametreleri var olan modele set_params diyerek set ediyoruz
+cart_final = cart_model.set_params(**cart_best_grid.best_params_).fit(X, y)
+
+# final modelin cv hatası
+cv_results = cross_validate(cart_final,
+                            X, y,
+                            cv=5,
+                            scoring=["accuracy", "f1", "roc_auc"])
+
+cv_results['test_accuracy'].mean()
+
+cv_results['test_f1'].mean()
+
+cv_results['test_roc_auc'].mean()
+
+
+################################################
+# 6. Feature Importance
+################################################
+
+cart_final.feature_importances_  # değişkenlerin önem düzeyleri geldi
+
+def plot_importance(model, features, num=len(X), save=False):
+    feature_imp = pd.DataFrame({'Value': model.feature_importances_, 'Feature': features.columns})
+    plt.figure(figsize=(10, 10))
+    sns.set(font_scale=1)
+    sns.barplot(x="Value", y="Feature", data=feature_imp.sort_values(by="Value",
+                                                                     ascending=False)[0:num])
+    plt.title('Features')
+    plt.tight_layout()
+    plt.show()
+    if save:
+        plt.savefig('importances.png')
+
+# num değeri = görselleştirmel istediğimiz değişken sayısı
+# cart_final = oluşturulan modelimiz
+# X = feature'larımız
+
+plot_importance(cart_final, X, num=5)
+
+
+
+
+
+
 
 
 
