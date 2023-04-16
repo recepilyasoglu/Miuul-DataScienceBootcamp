@@ -104,6 +104,62 @@ val_curve_params(rf_final, X, y, "max_depth", range(1, 11), scoring="roc_auc")
 # ama validation_score artış gözlemenemedi
 
 
+################################################
+# GBM
+################################################
+
+gbm_model = GradientBoostingClassifier(random_state=17)
+
+gbm_model.get_params()
+
+cv_results = cross_validate(gbm_model, X, y, cv=5, scoring=["accuracy", "f1", "roc_auc"])
+cv_results['test_accuracy'].mean()
+# 0.7591715474068416
+cv_results['test_f1'].mean()
+# 0.634
+cv_results['test_roc_auc'].mean()
+# 0.82548
+
+gbm_params = {"learning_rate": [0.01, 0.1],
+              "max_depth": [3, 8, 10],
+              "n_estimators": [100, 500, 1000],
+              "subsample": [1, 0.5, 0.7]}  # kaç tane gözlemin oransal olarak göz önünde bulundurulacağını ifade eder
+
+gbm_best_grid = GridSearchCV(gbm_model, gbm_params, cv=5, n_jobs=-1, verbose=True).fit(X, y)
+
+gbm_best_grid.best_params_
+
+# yukarıda elde ettiğimiz en iyi parametreleri direkt(**) kullan
+gbm_final = gbm_model.set_params(**gbm_best_grid.best_params_, random_state=17, ).fit(X, y)
+
+cv_results = cross_validate(gbm_final, X, y, cv=5, scoring=["accuracy", "f1", "roc_auc"])
+cv_results['test_accuracy'].mean()
+# 0.7800186741363212
+cv_results['test_f1'].mean()
+# 0.668605747317776
+cv_results['test_roc_auc'].mean()
+# 0.8257784765897973
+
+################################################
+# XGBoost
+################################################
+
+xgboost_model = XGBClassifier(random_state=17, use_label_encoder=False)
+xgboost_model.get_params()
+cv_results = cross_validate(xgboost_model, X, y, cv=5, scoring=["accuracy", "f1", "roc_auc"])
+cv_results['test_accuracy'].mean()
+# 0.75265
+cv_results['test_f1'].mean()
+# 0.631
+cv_results['test_roc_auc'].mean()
+# 0.7987
+
+xgboost_params = {"learning_rate": [0.1, 0.01],
+                  "max_depth": [5, 8],
+                  "n_estimators": [100, 500, 1000],
+                  "colsample_bytree": [0.7, 1]}
+
+
 
 
 
