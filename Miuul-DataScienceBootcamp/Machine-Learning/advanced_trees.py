@@ -146,7 +146,9 @@ cv_results['test_roc_auc'].mean()
 
 xgboost_model = XGBClassifier(random_state=17, use_label_encoder=False)
 xgboost_model.get_params()
+
 cv_results = cross_validate(xgboost_model, X, y, cv=5, scoring=["accuracy", "f1", "roc_auc"])
+
 cv_results['test_accuracy'].mean()
 # 0.75265
 cv_results['test_f1'].mean()
@@ -157,9 +159,88 @@ cv_results['test_roc_auc'].mean()
 xgboost_params = {"learning_rate": [0.1, 0.01],
                   "max_depth": [5, 8],
                   "n_estimators": [100, 500, 1000],
-                  "colsample_bytree": [0.7, 1]}
+                  "colsample_bytree": [0.7, 1]}  # değişkenlerden alınacak olan gözlem sayısı ile ilgili parametre
+
+xgboost_best_grid = GridSearchCV(xgboost_model, xgboost_params, cv=5, n_jobs=-1, verbose=True).fit(X, y)
+
+xgboost_best_grid.best_params_
+
+xgboost_final = xgboost_model.set_params(**xgboost_best_grid.best_params_, random_state=17).fit(X, y)
+
+cv_results = cross_validate(xgboost_final, X, y, cv=5, scoring=["accuracy", "f1", "roc_auc"])
+
+cv_results['test_accuracy'].mean()
+# 0.7578643578643579
+cv_results['test_f1'].mean()
+# 0.6297649135382188
+cv_results['test_roc_auc'].mean()
+# 0.8145597484276731
 
 
+################################################
+# LightGBM
+################################################
 
+lgbm_model = LGBMClassifier(random_state=17)
+lgbm_model.get_params()
 
+cv_results = cross_validate(lgbm_model, X, y, cv=5, scoring=["accuracy", "f1", "roc_auc"])
+
+cv_results['test_accuracy'].mean()
+# 0.7474492827434004
+cv_results['test_f1'].mean()
+# 0.624110522144179
+cv_results['test_roc_auc'].mean()
+# 0.7990293501048218
+
+lgbm_params = {"learning_rate": [0.01, 0.1],
+               "n_estimators": [100, 300, 500, 1000],
+               "colsample_bytree": [0.5, 0.7, 1]}
+
+lgbm_best_grid = GridSearchCV(lgbm_model, lgbm_params, cv=5, n_jobs=-1, verbose=True).fit(X, y)
+
+lgbm_final = lgbm_model.set_params(**lgbm_best_grid.best_params_, random_state=17).fit(X, y)
+
+cv_results = cross_validate(lgbm_final, X, y, cv=5, scoring=["accuracy", "f1", "roc_auc"])
+
+cv_results['test_accuracy'].mean()
+cv_results['test_f1'].mean()
+cv_results['test_roc_auc'].mean()
+
+# Hiperparametre yeni değerlerle
+lgbm_params = {"learning_rate": [0.01, 0.02, 0.05, 0.1],
+               "n_estimators": [200, 300, 350, 400],
+               "colsample_bytree": [0.9, 0.8, 1]}
+
+lgbm_best_grid = GridSearchCV(lgbm_model, lgbm_params, cv=5, n_jobs=-1, verbose=True).fit(X, y)
+
+lgbm_final = lgbm_model.set_params(**lgbm_best_grid.best_params_, random_state=17).fit(X, y)
+
+cv_results = cross_validate(lgbm_final, X, y, cv=5, scoring=["accuracy", "f1", "roc_auc"])
+
+cv_results['test_accuracy'].mean()
+# 0.7643578643578645
+cv_results['test_f1'].mean()
+# 0.6372062920577772
+cv_results['test_roc_auc'].mean()
+# 0.8147491264849755
+
+# Hiperparametre optimizasyonu sadece n_estimators için.
+lgbm_model = LGBMClassifier(random_state=17, colsample_bytree=0.9, learning_rate=0.01)
+
+# LightGBM ile çalışırken bu değerler denenebilir
+lgbm_params = {"n_estimators": [200, 400, 1000, 5000, 8000, 9000, 10000]}
+
+lgbm_best_grid = GridSearchCV(lgbm_model, lgbm_params, cv=5, n_jobs=-1, verbose=True).fit(X, y)
+
+lgbm_final = lgbm_model.set_params(**lgbm_best_grid.best_params_, random_state=17).fit(X, y)
+
+cv_results = cross_validate(lgbm_final, X, y, cv=5, scoring=["accuracy", "f1", "roc_auc"])
+
+cv_results['test_accuracy'].mean()
+# 0.7643833290892115
+cv_results['test_f1'].mean()
+# 0.6193071162618689
+cv_results['test_roc_auc'].mean()
+# 0.8227931516422082
 
