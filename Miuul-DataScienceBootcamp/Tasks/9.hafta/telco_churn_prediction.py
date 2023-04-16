@@ -16,6 +16,7 @@ from matplotlib import pyplot as plt
 from sklearn.tree import DecisionTreeClassifier, export_graphviz, export_text
 from sklearn.metrics import classification_report, roc_auc_score
 from sklearn.model_selection import train_test_split, GridSearchCV, cross_validate, validation_curve
+from sklearn.preprocessing import MinMaxScaler, LabelEncoder, StandardScaler, RobustScaler
 from skompiler import skompile
 import graphviz
 
@@ -201,24 +202,83 @@ def missing_values_table(dataframe, na_name=False):
 
 missing_values_table(df)
 
+df.isnull().sum()
 
 ## Görev 2 : Feature Engineering
 
 # Adım 1: Eksik ve aykırı gözlemler için gerekli işlemleri yapınız.
 
-df.groupby(cat_cols)[num_cols].mean()
+df.groupby(cat_cols)["TotalCharges"].mean()
 
 for col in num_cols:
     # print(df[col])
     df[col] = df[col].fillna(df.groupby(cat_cols)[col].transform("mean"))
 
+df.dropna(inplace=True)
+
+df.corr().sort_values("Churn", ascending=False) \
+    .drop("Churn", axis=0)
+
 # Adım 2: Yeni değişkenler oluşturunuz.
 
+df.columns
+
+# df["Num_Gender"] = [0 if col == "Male" else 1 for col in df.gender]
+# df[["gender", "Num_Gender"]].head(20)
+
+df["New_Tenure"] = pd.cut(df["tenure"], bins=[0, 10, 15, 72], labels=["New", "Star", "Loyal"])
+df[["New_Tenure", "tenure"]].head(20)
+
+df[["New_Tenure", "PaymentMethod"]].head(20)
+df.groupby(["New_Tenure", "PaymentMethod"]).agg({"PaymentMethod": "count"})
+
+df["ContractLength"] = np.where(df["Contract"] == "Month-to-month", "Short", "Long")
+df[["New_Tenure", "tenure"]].head(20)
+
+
 # Adım 3: Encoding işlemlerini gerçekleştiriniz.
+new_variables = df[["New_Tenure", "ContractLength"]]
+def count_of_values(dataframe):
+    for col in dataframe:
+        print(dataframe[col].value_counts())
+
+count_of_values(new_variables)
+
+# Label Encoding
+binary_cols = [col for col in df.columns if df[col].dtype not in ["int64", "float64"]
+               and df[col].nunique() == 2]
+
+df[binary_cols].head()
+
+def label_encoder(dataframe, binary_col):
+    labelencoder = LabelEncoder()
+    dataframe[binary_col] = labelencoder.fit_transform(dataframe[binary_col])
+    return dataframe
+
+for col in binary_cols:
+    label_encoder(df, col)
+
+df[binary_cols].head()
+df
+# One Hot Encoding
+ohe_cols = [col for col in df.columns if 10 >= df[col].nunique() > 2]
+
+def one_hot_encoder(dataframe, categorical_cols, drop_first=True):
+    dataframe = pd.get_dummies(dataframe, columns=categorical_cols, drop_first=drop_first)
+    return dataframe
+
+df = one_hot_encoder(df, ohe_cols)
+df.head()
+
 
 # Adım 4: Numerik değişkenler için standartlaştırma yapınız.
+for col in num_cols:
+    print(col, check_outlier(df, col))
 
+scaler = StandardScaler()
+df[num_cols] = scaler.fit_transform(df[num_cols])
 
+df[num_cols].head()
 
 
 
