@@ -305,3 +305,45 @@ plot_importance(xgboost_final, X)
 plot_importance(lgbm_final, X)  # LightGBM de ilk sıraya BMI geldi sıralamalarda değişiklikler oldu
 plot_importance(catboost_final, X)
 
+
+################################################################
+# Hyperparameter Optimization with RandomSearchCV (BONUS)
+################################################################
+
+rf_model = RandomForestClassifier(random_state=17)
+
+rf_random_params = {"max_depth": np.random.randint(5, 50, 10),
+                    "max_features": [3, 5, 7, "auto", "sqrt"],
+                    "min_samples_split": np.random.randint(2, 50, 20),
+                    "n_estimators": [int(x) for x in np.linspace(start=200, stop=1500, num=10)]}
+
+
+# GridSearch'e göre daha fazla, faha geniş hiperparemetre arasında rastgele seçim yapar
+# bu seçtikleri üzerinden tek tek deneme yapar,
+# Hangisi Avantajlı ?
+# GridSearchCV genelde uzun sürdüğünden dolayı RandomSearch tercih deilebilir.
+rf_random = RandomizedSearchCV(estimator=rf_model,
+                               param_distributions=rf_random_params,
+                               n_iter=100,  # denenecek parametre sayısı
+                               cv=3,
+                               verbose=True,
+                               random_state=42,
+                               n_jobs=-1)
+
+rf_random.fit(X, y)
+
+
+rf_random.best_params_
+
+
+rf_random_final = rf_model.set_params(**rf_random.best_params_, random_state=17).fit(X, y)
+
+cv_results = cross_validate(rf_random_final, X, y, cv=5, scoring=["accuracy", "f1", "roc_auc"])
+
+cv_results['test_accuracy'].mean()
+# 0.7617859264918089
+cv_results['test_f1'].mean()
+# 0.6249183636559463
+cv_results['test_roc_auc'].mean()
+# 0.8368294898672259
+# öncekilerine göre kötü değil, bazı noktalarda daha iyi
