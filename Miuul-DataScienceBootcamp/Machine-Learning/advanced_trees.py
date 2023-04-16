@@ -306,9 +306,9 @@ plot_importance(lgbm_final, X)  # LightGBM de ilk sıraya BMI geldi sıralamalar
 plot_importance(catboost_final, X)
 
 
-################################################################
+###########################################################
 # Hyperparameter Optimization with RandomSearchCV (BONUS)
-################################################################
+###########################################################
 
 rf_model = RandomForestClassifier(random_state=17)
 
@@ -347,3 +347,48 @@ cv_results['test_f1'].mean()
 cv_results['test_roc_auc'].mean()
 # 0.8368294898672259
 # öncekilerine göre kötü değil, bazı noktalarda daha iyi
+
+# GridSearchCv'ye bu değerleri sokup da bakılabilir.
+# n_estimators = 800, 900, 950, 1000
+# min_sapmles_split = 33, 35, 40, 42
+# max_depth = 20, 24, 27, 30
+
+
+##########################################################
+# Analyzing Model Complexity with Learning Curves (BONUS)
+##########################################################
+
+def val_curve_params(model, X, y, param_name, param_range, scoring="roc_auc", cv=10):
+    train_score, test_score = validation_curve(
+        model, X=X, y=y, param_name=param_name, param_range=param_range, scoring=scoring, cv=cv)
+
+    mean_train_score = np.mean(train_score, axis=1)
+    mean_test_score = np.mean(test_score, axis=1)
+
+    plt.plot(param_range, mean_train_score,
+             label="Training Score", color='b')
+
+    plt.plot(param_range, mean_test_score,
+             label="Validation Score", color='g')
+
+    plt.title(f"Validation Curve for {type(model).__name__}")
+    plt.xlabel(f"Number of {param_name}")
+    plt.ylabel(f"{scoring}")
+    plt.tight_layout()
+    plt.legend(loc='best')
+    plt.show(block=True)
+
+
+rf_val_params = [["max_depth", [5, 8, 15, 20, 30, None]],
+                 ["max_features", [3, 5, 7, "auto"]],
+                 ["min_samples_split", [2, 5, 8, 15, 20]],
+                 ["n_estimators", [10, 50, 100, 200, 500]]]
+
+
+rf_model = RandomForestClassifier(random_state=17)
+
+for i in range(len(rf_val_params)):
+    val_curve_params(rf_model, X, y, rf_val_params[i][0], rf_val_params[i][1])
+
+rf_val_params[0][1]
+
