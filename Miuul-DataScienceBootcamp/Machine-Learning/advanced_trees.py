@@ -282,3 +282,26 @@ cv_results['test_f1'].mean()
 cv_results['test_roc_auc'].mean()
 # 0.842001397624039  -> daha önce kullanılan yöntemlerden gelen en iyi auc_score
 
+
+################################################
+# Feature Importance
+################################################
+
+def plot_importance(model, features, num=len(X), save=False):
+    feature_imp = pd.DataFrame({'Value': model.feature_importances_, 'Feature': features.columns})
+    plt.figure(figsize=(10, 10))
+    sns.set(font_scale=1)
+    sns.barplot(x="Value", y="Feature", data=feature_imp.sort_values(by="Value",
+                                                                     ascending=False)[0:num])
+    plt.title('Features')
+    plt.tight_layout()
+    plt.show()
+    if save:
+        plt.savefig('importances.png')
+
+plot_importance(rf_final, X)
+plot_importance(gbm_final, X)
+plot_importance(xgboost_final, X)
+plot_importance(lgbm_final, X)  # LightGBM de ilk sıraya BMI geldi sıralamalarda değişiklikler oldu
+plot_importance(catboost_final, X)
+
