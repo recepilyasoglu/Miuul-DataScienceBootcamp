@@ -237,8 +237,8 @@ for col in num_cols:
 
 df.dropna(inplace=True)
 
-df.corr().sort_values("Churn", ascending=False) \
-    .drop("Churn", axis=0)
+# df.corr().sort_values("Churn", ascending=False) \
+#     .drop("Churn", axis=0)
 
 # Adım 2: Yeni değişkenler oluşturunuz.
 
@@ -247,22 +247,30 @@ df.columns
 # df["Num_Gender"] = [0 if col == "Male" else 1 for col in df.gender]
 # df[["gender", "Num_Gender"]].head(20)
 
-df["New_Tenure"] = pd.cut(df["tenure"], bins=[0, 10, 15, 72], labels=["New", "Star", "Loyal"])
-df[["New_Tenure", "tenure"]].head(20)
+df["Cat_Tenure"] = pd.cut(df["tenure"], bins=[0, 10, 15, 72], labels=["New", "Star", "Loyal"])
+df[["Cat_Tenure", "tenure"]].head(20)
 
-df[["New_Tenure", "PaymentMethod"]].head(20)
-df.groupby(["New_Tenure", "PaymentMethod"]).agg({"PaymentMethod": "count"})
+df["MonthlyCharges"].describe().T,
+
+df["Cat_MonthlyCharges"] = pd.cut(df["MonthlyCharges"], bins=[df.MonthlyCharges.min(), 40, 70, df.MonthlyCharges.max()],
+                                  labels=["Lower", "Middle", "High"], right=False)
+
+df[["MonthlyCharges", "Cat_MonthlyCharges"]].head(20)
+df["Cat_MonthlyCharges"].value_counts()
+
+df.groupby(["Cat_Tenure", "PaymentMethod"]).agg({"PaymentMethod": "count"})
 
 df["ContractLength"] = np.where(df["Contract"] == "Month-to-month", "Short", "Long")
 df[["Contract", "ContractLength"]].head(20)
 
 # Adım 3: Encoding işlemlerini gerçekleştiriniz.
-new_variables = df[["New_Tenure", "ContractLength"]]
+new_variables = df[["Cat_Tenure", "Cat_MonthlyCharges", "ContractLength"]]
 
 
 def count_of_values(dataframe):
     for col in dataframe:
-        print(dataframe[col].value_counts())
+        print("#######", col, "Değişkeninin Değer Sayısı #######", "\n",
+              dataframe[col].value_counts())
 
 
 count_of_values(new_variables)
@@ -313,7 +321,7 @@ df[num_cols].head()
 y = df["Churn"]
 X = df.drop(["Churn", "customerID"], axis=1)
 
-random_user = X.sample(1, random_state=45)  # rastgele bir kullanıcı oluşturuyoruz
+random_user = X.sample(1)  # rastgele bir kullanıcı oluşturuyoruz
 
 # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.30, random_state=42)
 
@@ -357,11 +365,11 @@ gbm_cv_results = cross_validate(gbm_model, X, y,
                                 scoring=["accuracy", "f1", "roc_auc"])
 
 gbm_test = gbm_cv_results['test_accuracy'].mean()
-# 0.8018179193319119
+# 0.8053167408234181
 gbm_f1 = gbm_cv_results['test_f1'].mean()
-# 0.582522324396216
+# 0.5916996422107582
 gbm_auc = gbm_cv_results['test_roc_auc'].mean()
-# 0.8455268626584862
+# 0.84598827585678
 
 # LightGBM
 lgbm_model = LGBMClassifier().fit(X, y)
@@ -372,11 +380,11 @@ lgbm_cv_results = cross_validate(lgbm_model,
                                  scoring=["accuracy", "f1", "roc_auc"])
 
 lgbm_test = lgbm_cv_results['test_accuracy'].mean()
-# 0.7938640805711701
+# 0.7950782563508408
 lgbm_f1 = lgbm_cv_results['test_f1'].mean()
-# 0.574774214849072
+# 0.5756609171367744
 lgbm_auc = lgbm_cv_results['test_roc_auc'].mean()
-# 0.833585885238031
+# 0.8350053407214943
 lgbm_model.predict(random_user)
 
 # XGBoost
@@ -388,11 +396,11 @@ xg_cv_results = cross_validate(xgboost_model,
                                scoring=["accuracy", "f1", "roc_auc"])
 
 xg_test = xg_cv_results['test_accuracy'].mean()
-# 0.7815045107255928
+# 0.7839858824147905
 xg_f1 = xg_cv_results['test_f1'].mean()
-# 0.5535958862511531
+# 0.5597840395783735
 xg_auc = xg_cv_results['test_roc_auc'].mean()
-# 0.8201984479635728
+# 0.8256516811522634
 
 
 # K-NN
@@ -405,11 +413,11 @@ knn_cv_results = cross_validate(knn_model,
                                 scoring=["accuracy", "f1", "roc_auc"])
 
 knn_test = knn_cv_results['test_accuracy'].mean()
-# 0.7736917078568198
+# 0.7519915156992926
 knn_f1 = knn_cv_results['test_f1'].mean()
-# 0.5573913274733598
+# 0.4495756497728191
 knn_auc = knn_cv_results['test_roc_auc'].mean()
-# 0.7887149853886167
+# 0.7040636259728742
 knn_model.predict(random_user)
 
 # Decision Tree
@@ -419,22 +427,23 @@ dt_cv_results = cross_validate(dt_model,
                                X, y,
                                cv=5,
                                scoring=["accuracy", "f1", "roc_auc"])
-dt_cv_results
+
 dt_test = dt_cv_results['test_accuracy'].mean()
-# 0.7340550696194353
+# 0.7296623972193493
 dt_f1 = dt_cv_results['test_f1'].mean()
-# 0.50013672303396
+# 0.495272831796155
 dt_auc = dt_cv_results['test_roc_auc'].mean()
-# 0.6606732044384354
+# 0.6571461457034756
 dt_model.predict(random_user)
 
 best_model_results = pd.DataFrame(
     {"Model": ["Logistic Regression", "Random Forest", "GBM", "LightGBM", "XGBoost", "KNN", "Decision Tree"],
      "Accuracy": [log_test, rf_test, gbm_test, lgbm_test, xg_test, knn_test, dt_test],
-     "AUC": [log_auc, rf_auc, gbm_auc, lgbm_auc, xg_auc, knn_auc, dt_auc]},
+     "AUC": [log_auc, rf_auc, gbm_auc, lgbm_auc, xg_auc, knn_auc, dt_auc],
+     "F1_Score": [log_f1, rf_auc, gbm_auc, lgbm_auc, xg_auc, knn_auc, dt_auc]},
     index=range(1, 8))
 
-best_model_results.sort_values("Accuracy", ascending=False)
+best_model_results = best_model_results.sort_values("Accuracy", ascending=False)
 
 top4_models = best_model_results.head(4).reset_index()
 # del top4_models["index"]
@@ -442,6 +451,33 @@ top4_models = best_model_results.head(4).reset_index()
 
 # Adım 2: Seçtiğiniz modeller ile hiperparametre optimizasyonu gerçekleştirin
 # ve bulduğunuz hiparparametreler ile modeli tekrar kurunuz.
+
+# Seçilen Modeller: GBM, Logistic Regression, LightGBM, Random Forest
+
+# GBM
+gbm_params = {"learning_rate": [0.01, 0.1],
+              "max_depth": [3, 8, 10],
+              "n_estimators": [100, 500, 1000],
+              "subsample": [1, 0.5, 0.7]}  # kaç tane gözlemin oransal olarak göz önünde bulundurulacağını ifade eder
+
+gbm_best_grid = GridSearchCV(gbm_model, gbm_params, cv=5, n_jobs=-1, verbose=True).fit(X, y)
+
+gbm_best_grid.best_params_
+
+gbm_final = gbm_model.set_params(**gbm_best_grid.best_params_, random_state=17).fit(X, y)
+
+gbm_final_cv_results = cross_validate(gbm_final,
+                                      X, y,
+                                      cv=5,
+                                      scoring=["accuracy", "f1", "roc_auc"])
+
+gbm_final_test = gbm_final_cv_results['test_accuracy'].mean()
+# 0.8018179193319119 -> 0.8054588872342212
+gbm_final_f1 = gbm_final_cv_results['test_f1'].mean()
+# 0.582522324396216 -> 0.592108885371575
+gbm_final_auc = gbm_final_cv_results['test_roc_auc'].mean()
+# 0.8455268626584862 -> 0.8460296805268179
+
 
 # Logistic Regression
 log_model.get_params()
@@ -462,37 +498,11 @@ log_final_cv_results = cross_validate(log_final,
                                       scoring=["accuracy", "f1", "roc_auc"])
 
 log_final_test = log_final_cv_results['test_accuracy'].mean()
-# 0.8059382470763069 -> 0.8060804944433675
+# 0.8059382470763069 -> 0.8057445954539435
 log_final_f1 = log_final_cv_results['test_f1'].mean()
-# 0.5911821068005934 -> 0.5913529830558822
+# 0.5911821068005934 -> 0.5913753619751492
 log_final_auc = log_final_cv_results['test_roc_auc'].mean()
-# 0.8463000059038415 -> 0.8462493823359007
-
-
-# GBM
-gbm_params = {"learning_rate": [0.01, 0.1],
-              "max_depth": [3, 8, 10],
-              "n_estimators": [100, 500, 1000],
-              "subsample": [1, 0.5, 0.7]}  # kaç tane gözlemin oransal olarak göz önünde bulundurulacağını ifade eder
-
-gbm_best_grid = GridSearchCV(gbm_model, gbm_params, cv=5, n_jobs=-1, verbose=True).fit(X, y)
-
-gbm_best_grid.best_params_
-
-gbm_final = gbm_model.set_params(**gbm_best_grid.best_params_, random_state=17, ).fit(X, y)
-
-gbm_final_cv_results = cross_validate(gbm_final,
-                                      X, y,
-                                      cv=5,
-                                      scoring=["accuracy", "f1", "roc_auc"])
-
-gbm_final_test = gbm_final_cv_results['test_accuracy'].mean()
-# 0.8018179193319119 -> 0.8062215303353362
-gbm_final_f1 = gbm_final_cv_results['test_f1'].mean()
-# 0.582522324396216 -> 0.5933816034851358
-gbm_final_auc = gbm_final_cv_results['test_roc_auc'].mean()
-# 0.8455268626584862 -> 0.8481693627126301
-
+# 0.8463000059038415 -> 0.8458423917254893
 
 # LightGBM
 lgbm_params = {"learning_rate": [0.01, 0.1],
@@ -511,11 +521,11 @@ lgbm_final_cv_results = cross_validate(lgbm_final,
                                        scoring=["accuracy", "f1", "roc_auc"])
 
 lgbm_final_test = lgbm_final_cv_results['test_accuracy'].mean()
-# 0.7938640805711701 -> 0.8036655198035796
+# 0.7938640805711701 -> 0.804321918147527
 lgbm_final_f1 = lgbm_final_cv_results['test_f1'].mean()
-# 0.574774214849072 -> 0.5849187336912786
+# 0.574774214849072 -> 0.5878492992727085
 lgbm_final_auc = lgbm_final_cv_results['test_roc_auc'].mean()
-# 0.833585885238031 -> 0.8449685607274976
+# 0.833585885238031 -> 0.8452201168774376
 
 
 # RandomForest
@@ -538,16 +548,19 @@ rf_final_cv_results = cross_validate(rf_final,
                                      scoring=["accuracy", "f1", "roc_auc"])
 
 rf_final_test = rf_final_cv_results['test_accuracy'].mean()
-# 0.7910226666989727 -> 0.7998302925308522
+# 0.7910226666989727 -> 0.8030412861520482
 rf_final_f1 = rf_final_cv_results['test_f1'].mean()
-# 0.5533446100583161 -> 0.5736934680764468
+# 0.5533446100583161 -> 0.5768646484342799
 rf_final_auc = rf_final_cv_results['test_roc_auc'].mean()
-# 0.8244377769644089 -> 0.8385372233316151
+# 0.8244377769644089 -> 0.8465187815450934
 rf_model.predict(random_user)
 
 
+# Hiperparametre optimizasyonlarından elde edilen sonuçlar ve önceki sonuçların kıyaslanması
+
 top4_models["New_Accuracy"] = [log_final_test, gbm_final_test, lgbm_final_test, rf_final_test]
 top4_models["New_AUC"] = [log_final_auc, gbm_final_auc, lgbm_final_auc, rf_final_auc]
+top4_models["New_F1_Score"] = [log_final_f1, gbm_final_f1, lgbm_final_f1, rf_final_f1]
 
 top4_models.sort_values("New_Accuracy", ascending=False)
 
