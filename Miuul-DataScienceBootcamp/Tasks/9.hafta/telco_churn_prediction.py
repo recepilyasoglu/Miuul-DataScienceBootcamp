@@ -254,7 +254,7 @@ df[["New_Tenure", "PaymentMethod"]].head(20)
 df.groupby(["New_Tenure", "PaymentMethod"]).agg({"PaymentMethod": "count"})
 
 df["ContractLength"] = np.where(df["Contract"] == "Month-to-month", "Short", "Long")
-df[["New_Tenure", "tenure"]].head(20)
+df[["Contract", "ContractLength"]].head(20)
 
 # Adım 3: Encoding işlemlerini gerçekleştiriniz.
 new_variables = df[["New_Tenure", "ContractLength"]]
