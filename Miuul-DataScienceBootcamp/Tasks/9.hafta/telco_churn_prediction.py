@@ -440,10 +440,112 @@ best_model_results.sort_values("Accuracy", ascending=False)
 # Adım 2: Seçtiğiniz modeller ile hiperparametre optimizasyonu gerçekleştirin
 # ve bulduğunuz hiparparametreler ile modeli tekrar kurunuz.
 
+# Logistic Regression
+log_model.get_params()
+
+log_params = {"penalty": ['l1', 'l2'],
+              'C': np.logspace(-3, 3, 7),
+              "solver": ['newton-cg', 'lbfgs', 'liblinear']}
+
+log_best_grid = GridSearchCV(log_model, log_params, cv=5, n_jobs=-1, verbose=True).fit(X, y)
+
+log_best_grid.best_params_
+
+log_final = log_model.set_params(**log_best_grid.best_params_, random_state=17).fit(X, y)
+
+log_final_cv_results = cross_validate(log_final,
+                                      X, y,
+                                      cv=5,
+                                      scoring=["accuracy", "f1", "roc_auc"])
+
+log_final_test = log_final_cv_results['test_accuracy'].mean()
+# 0.8059382470763069 -> 0.8060804944433675
+log_final_f1 = log_final_cv_results['test_f1'].mean()
+# 0.5911821068005934 -> 0.5913529830558822
+log_final_auc = log_final_cv_results['test_roc_auc'].mean()
+# 0.8463000059038415 -> 0.8462493823359007
 
 
+# GBM
+gbm_params = {"learning_rate": [0.01, 0.1],
+              "max_depth": [3, 8, 10],
+              "n_estimators": [100, 500, 1000],
+              "subsample": [1, 0.5, 0.7]}  # kaç tane gözlemin oransal olarak göz önünde bulundurulacağını ifade eder
+
+gbm_best_grid = GridSearchCV(gbm_model, gbm_params, cv=5, n_jobs=-1, verbose=True).fit(X, y)
+
+gbm_best_grid.best_params_
+
+gbm_final = gbm_model.set_params(**gbm_best_grid.best_params_, random_state=17, ).fit(X, y)
+
+gbm_final_cv_results = cross_validate(gbm_final,
+                                      X, y,
+                                      cv=5,
+                                      scoring=["accuracy", "f1", "roc_auc"])
+
+gbm_final_test = gbm_final_cv_results['test_accuracy'].mean()
+# 0.8018179193319119 -> 0.8062215303353362
+gbm_final_f1 = gbm_final_cv_results['test_f1'].mean()
+# 0.582522324396216 -> 0.5933816034851358
+gbm_final_auc = gbm_final_cv_results['test_roc_auc'].mean()
+# 0.8455268626584862 -> 0.8481693627126301
 
 
+# LightGBM
+lgbm_params = {"learning_rate": [0.01, 0.1],
+               "n_estimators": [100, 300, 500, 1000],
+               "colsample_bytree": [0.5, 0.7, 1]}
+
+lgbm_best_grid = GridSearchCV(lgbm_model, lgbm_params, cv=5, n_jobs=-1, verbose=True).fit(X, y)
+
+lgbm_best_grid.best_params_
+
+lgbm_final = lgbm_model.set_params(**lgbm_best_grid.best_params_, random_state=17).fit(X, y)
+
+lgbm_final_cv_results = cross_validate(lgbm_final,
+                                       X, y,
+                                       cv=5,
+                                       scoring=["accuracy", "f1", "roc_auc"])
+
+lgbm_final_test = lgbm_final_cv_results['test_accuracy'].mean()
+# 0.7938640805711701 -> 0.8036655198035796
+lgbm_final_f1 = lgbm_final_cv_results['test_f1'].mean()
+# 0.574774214849072 -> 0.5849187336912786
+lgbm_final_auc = lgbm_final_cv_results['test_roc_auc'].mean()
+# 0.833585885238031 -> 0.8449685607274976
 
 
+# RandomForest
+rf_model.get_params()
 
+rf_params = {"max_depth": [5, 8, None],
+             "max_features": [3, 5, 7, "auto"],
+             "min_samples_split": [2, 5, 8, 15, 20],
+             "n_estimators": [100, 200, 500]}
+
+rf_best_grid = GridSearchCV(rf_model, rf_params, cv=5, n_jobs=-1, verbose=True).fit(X, y)
+
+rf_best_grid.best_params_
+
+rf_final = rf_model.set_params(**rf_best_grid.best_params_, random_state=17).fit(X, y)
+
+rf_final_cv_results = cross_validate(rf_final,
+                                     X, y,
+                                     cv=5,
+                                     scoring=["accuracy", "f1", "roc_auc"])
+
+rf_final_test = rf_final_cv_results['test_accuracy'].mean()
+# 0.7910226666989727 -> 0.7998302925308522
+rf_final_f1 = rf_final_cv_results['test_f1'].mean()
+# 0.5533446100583161 -> 0.5736934680764468
+rf_final_auc = rf_final_cv_results['test_roc_auc'].mean()
+# 0.8244377769644089 -> 0.8385372233316151
+rf_model.predict(random_user)
+
+top4_models = best_model_results.head(4).reset_index()
+# del top4_models["index"]
+
+top4_models["New_Accuracy"] = [log_final_test, gbm_final_test, lgbm_final_test, rf_final_test]
+top4_models["New_AUC"] = [log_final_auc, gbm_final_auc, lgbm_final_auc, rf_final_auc]
+
+top4_models.sort_values("New_Accuracy", ascending=False)
