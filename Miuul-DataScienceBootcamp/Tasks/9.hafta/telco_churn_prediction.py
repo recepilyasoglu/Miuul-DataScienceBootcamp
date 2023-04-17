@@ -426,7 +426,6 @@ dt_f1 = dt_cv_results['test_f1'].mean()
 # 0.50013672303396
 dt_auc = dt_cv_results['test_roc_auc'].mean()
 # 0.6606732044384354
-
 dt_model.predict(random_user)
 
 best_model_results = pd.DataFrame(
@@ -436,6 +435,10 @@ best_model_results = pd.DataFrame(
     index=range(1, 8))
 
 best_model_results.sort_values("Accuracy", ascending=False)
+
+top4_models = best_model_results.head(4).reset_index()
+# del top4_models["index"]
+
 
 # Adım 2: Seçtiğiniz modeller ile hiperparametre optimizasyonu gerçekleştirin
 # ve bulduğunuz hiparparametreler ile modeli tekrar kurunuz.
@@ -542,10 +545,27 @@ rf_final_auc = rf_final_cv_results['test_roc_auc'].mean()
 # 0.8244377769644089 -> 0.8385372233316151
 rf_model.predict(random_user)
 
-top4_models = best_model_results.head(4).reset_index()
-# del top4_models["index"]
 
 top4_models["New_Accuracy"] = [log_final_test, gbm_final_test, lgbm_final_test, rf_final_test]
 top4_models["New_AUC"] = [log_final_auc, gbm_final_auc, lgbm_final_auc, rf_final_auc]
 
 top4_models.sort_values("New_Accuracy", ascending=False)
+
+
+# Features Importing
+def plot_importance(model, features, num=len(X), save=False):
+    feature_imp = pd.DataFrame({'Value': model.feature_importances_, 'Feature': features.columns})
+    plt.figure(figsize=(10, 10))
+    sns.set(font_scale=1)
+    sns.barplot(x="Value", y="Feature", data=feature_imp.sort_values(by="Value",
+                                                                     ascending=False)[0:num])
+    plt.title('Features')
+    plt.tight_layout()
+    plt.show()
+    if save:
+        plt.savefig('importances.png')
+
+# plot_importance(log_final, X)
+plot_importance(gbm_final, X)
+plot_importance(lgbm_final, X)
+plot_importance(rf_final, X)
