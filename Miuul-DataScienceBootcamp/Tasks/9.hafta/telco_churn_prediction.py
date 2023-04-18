@@ -4,23 +4,15 @@
 
 ############ Telco Churn Prediction ############
 
-
 # İş Problemi
 
-# Her bir eve ait özelliklerin ve ev fiyatlarının bulunduğu veriseti kullanılarak,
-# farklı tipteki evlerin fiyatlarına ilişkin bir makine öğrenmesi projesi
-# gerçekleştirilmek istenmektedir.
-
+# Şirketi terk edecek müşterileri tahmin edebilecek bir makine öğrenmesi modeli geliştirilmesi beklenmektedir.
 
 
 # Veri Seti Hikayesi
 
-# Ames, Lowa’daki konut evlerinden oluşan bu veri seti içerisinde 79 açıklayıcı değişken bulunduruyor. Kaggle üzerinde bir yarışması
-# da bulunan projenin veri seti ve yarışma sayfasına aşağıdaki linkten ulaşabilirsiniz. Veri seti bir kaggle yarışmasına ait
-# olduğundan dolayı train ve test olmak üzere iki farklı csv dosyası vardır. Test veri setinde ev fiyatları boş bırakılmış olup, bu
-# değerleri sizin tahmin etmeniz beklenmektedir.
-# https://www.kaggle.com/competitions/house-prices-advanced-regression-techniques/overview/evaluation
-
+# Telco müşteri kaybı verileri, üçüncü çeyrekte Kaliforniya'daki 7043 müşteriye ev telefonu ve İnternet hizmetleri sağlayanhayalibir telekom şirketi hakkında bilgi içerir.
+# Hangi müşterilerin hizmetlerinden ayrıldığını, kaldığını veya hizmete kaydolduğunug österir
 
 # Importing Libraries
 import warnings
