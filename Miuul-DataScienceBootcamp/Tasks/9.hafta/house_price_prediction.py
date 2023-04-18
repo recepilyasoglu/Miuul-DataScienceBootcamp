@@ -163,15 +163,15 @@ def grab_col_names(dataframe, cat_th=2, car_th=20):
     print(f'num_cols: {len(num_cols)}')
     print(f'cat_but_car: {len(cat_but_car)}')
     print(f'num_but_cat: {len(num_but_cat)}')
-    return cat_cols, num_cols, cat_but_car
+    return cat_cols, num_cols, cat_but_car, num_but_cat
 
 
-cat_cols, num_cols, cat_but_car = grab_col_names(df)
+cat_cols, num_cols, cat_but_car, num_but_cat = grab_col_names(df)
 
 df[cat_cols].dtypes
 df[num_cols].dtypes
 df[cat_but_car].dtypes
-
+df[num_but_cat].dtypes
 
 def get_stats(dataframe, col):
     return print("############### İlk 5 Satır ############### \n", dataframe[col].head(), "\n", \
@@ -192,6 +192,7 @@ df["Neighborhood"] = df["Neighborhood"].astype("category")
 
 df["SalePrice"] = pd.to_numeric(df["SalePrice"], errors="coerce")
 
+df
 
 # Adım 4: Numerik ve kategorik değişkenlerin veri içindeki dağılımını gözlemleyiniz.
 
@@ -229,7 +230,7 @@ df.groupby("SalePrice")[cat_cols].count()
 
 # Adım 6: Aykırı gözlem var mı inceleyiniz.
 
-num_cols = num_cols[1:]
+num_cols = num_cols[1:]  # customerID'yi aykırı gözlem analizinde şaşırtabilir diye çıkardım
 
 
 def outlier_thresholds(dataframe, col_name, q1=0.25, q3=0.75):
@@ -253,7 +254,6 @@ def check_outlier(dataframe, col_name):
             return True
         else:
             return False
-
 
 for col in num_cols:
     print(col, check_outlier(df, col))
@@ -280,7 +280,6 @@ def missing_values_table(dataframe, na_name=False):
 
     if na_name:
         return na_columns
-
 
 missing_values_table(df)
 
@@ -330,13 +329,6 @@ na_values = ["FireplaceQu", "BsmtExposure", "BsmtCond", "BsmtQual", "BsmtFinType
 
 df[na_values].isnull().sum()
 
-# burada ki değişkenler mesela MasVnrType = Duvar kaplama tipi gibi değişkenleri en çok kullanılan değerler ile değiştirdim
-na_values2 = ["MasVnrType", "MSZoning", "Functional", "BsmtHalfBath", "BsmtFullBath", "Utilities", "KitchenQual", \
-              "TotalBsmtSF", "BsmtUnfSF", "GarageCars", "GarageArea", "BsmtFinSF2", "BsmtFinSF1", \
-              "Exterior2nd", "Exterior1st", "SaleType", "Electrical"]
-
-df[na_values2].isnull().sum()
-
 def fill_na_values_with_zero(dataframe, columns):
     for col in columns:
         # print(dataframe[col])
@@ -344,10 +336,18 @@ def fill_na_values_with_zero(dataframe, columns):
 
 fill_na_values_with_zero(df, na_values)
 
+
+# burada ki değişkenler mesela MasVnrType = Duvar kaplama tipi gibi değişkenleri en çok kullanılan değerler ile değiştirdim
+na_values2 = ["MasVnrType", "MSZoning", "Functional", "BsmtHalfBath", "BsmtFullBath", "Utilities", "KitchenQual", \
+              "TotalBsmtSF", "BsmtUnfSF", "GarageCars", "GarageArea", "BsmtFinSF2", "BsmtFinSF1", \
+              "Exterior2nd", "Exterior1st", "SaleType", "Electrical"]
+
+df[na_values2].isnull().sum()
+
 def fill_na_values_with_mode(dataframe, columns):
     for col in columns:
         # print(dataframe[col])
-        dataframe[col] = dataframe[col].fillna(dataframe.mode().iloc[0])
+        dataframe[col] = dataframe[col].fillna(dataframe[col].mode().iloc[0])
 
 fill_na_values_with_mode(df, na_values2)
 
@@ -357,10 +357,37 @@ df.dropna(inplace=True)
 
 # Adım 2: Rare Encoder uygulayınız.
 
+def rare_analyser(dataframe, target, cat_cols):
+    for col in cat_cols:
+        print(col, ":", len(dataframe[col].value_counts()))
+        print(pd.DataFrame({"COUNT": dataframe[col].value_counts(),
+                            "RATIO": dataframe[col].value_counts() / len(dataframe),
+                            "TARGET_MEAN": dataframe.groupby(col)[target].mean()}), end="\n\n\n")
+
+rare_analyser(df, "SalePrice", cat_cols)
 
 
+# 0.01 rare oranının altında kalan kategorik değişken sınıflarını bir araya getirecek
+def rare_encoder(dataframe, rare_perc):
+    temp_df = dataframe.copy()
+
+    rare_columns = [col for col in temp_df.columns if temp_df[col].dtypes == 'O'
+                    and (temp_df[col].value_counts() / len(temp_df) < rare_perc).any(axis=None)]
+
+    for var in rare_columns:
+        tmp = temp_df[var].value_counts() / len(temp_df)
+        rare_labels = tmp[tmp < rare_perc].index
+        temp_df[var] = np.where(temp_df[var].isin(rare_labels), 'Rare', temp_df[var])
+
+    return temp_df
+
+new_df = rare_encoder(df, 0.01)
+
+new_df
 
 # Adım 3: Yeni değişkenler oluşturunuz.
 
 
+
 # Adım 4: Encoding işlemlerini gerçekleştiriniz.
+
