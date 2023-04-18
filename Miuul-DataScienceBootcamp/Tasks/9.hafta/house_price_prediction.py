@@ -2,10 +2,27 @@
 ############# RECEP İLYASOĞLU #############
 ###########################################
 
+# İş Problemi
+
+# Her bir eve ait özelliklerin ve ev fiyatlarının bulunduğu veriseti kullanılarak,
+# farklı tipteki evlerin fiyatlarına ilişkin bir makine öğrenmesi projesi
+# gerçekleştirilmek istenmektedir.
+
+
+# Veri Seti Hikayesi
+
+# Ames, Lowa’daki konut evlerinden oluşan bu veri seti içerisinde 79 açıklayıcı değişken bulunduruyor. Kaggle üzerinde bir yarışması
+# da bulunan projenin veri seti ve yarışma sayfasına aşağıdaki linkten ulaşabilirsiniz. Veri seti bir kaggle yarışmasına ait
+# olduğundan dolayı train ve test olmak üzere iki farklı csv dosyası vardır. Test veri setinde ev fiyatları boş bırakılmış olup, bu
+# değerleri sizin tahmin etmeniz beklenmektedir.
+# https://www.kaggle.com/competitions/house-prices-advanced-regression-techniques/overview/evaluation
+
+
 ############ House Price Prediction Model ############
 
 import warnings
 import matplotlib
+
 matplotlib.use("Qt5Agg")
 import joblib
 import pydotplus
@@ -51,6 +68,7 @@ df.shape
 df.describe().T
 df.dtypes
 df.isnull().sum()
+
 
 # Adım 2: Numerik ve kategorik değişkenleri yakalayınız.
 
@@ -147,12 +165,13 @@ def grab_col_names(dataframe, cat_th=2, car_th=20):
     print(f'num_but_cat: {len(num_but_cat)}')
     return cat_cols, num_cols, cat_but_car
 
-cat_cols, num_cols, cat_but_car = grab_col_names(df)
 
+cat_cols, num_cols, cat_but_car = grab_col_names(df)
 
 df[cat_cols].dtypes
 df[num_cols].dtypes
 df[cat_but_car].dtypes
+
 
 def get_stats(dataframe, col):
     return print("############### İlk 5 Satır ############### \n", dataframe[col].head(), "\n", \
@@ -173,6 +192,7 @@ df["Neighborhood"] = df["Neighborhood"].astype("category")
 
 df["SalePrice"] = pd.to_numeric(df["SalePrice"], errors="coerce")
 
+
 # Adım 4: Numerik ve kategorik değişkenlerin veri içindeki dağılımını gözlemleyiniz.
 
 def cat_summary(dataframe, col_name, plot=False):
@@ -188,6 +208,7 @@ def cat_summary(dataframe, col_name, plot=False):
 for col in cat_cols:
     cat_summary(df, col)
 
+
 def num_summary(dataframe, numerical_col, plot=False):
     quantiles = [0.05, 0.10, 0.20, 0.30, 0.40, 0.50, 0.60, 0.70, 0.80, 0.90, 0.95, 0.99]
     print(dataframe[numerical_col].describe(quantiles).T)
@@ -197,6 +218,7 @@ def num_summary(dataframe, numerical_col, plot=False):
         plt.xlabel(numerical_col)
         plt.title(numerical_col)
         plt.show(block=True)
+
 
 for col in num_cols:
     num_summary(df, col, True)
@@ -208,39 +230,137 @@ df.groupby("SalePrice")[cat_cols].count()
 # Adım 6: Aykırı gözlem var mı inceleyiniz.
 
 num_cols = num_cols[1:]
+
+
 def outlier_thresholds(dataframe, col_name, q1=0.25, q3=0.75):
-    quartile1 = dataframe[col_name].quantile(q1)
-    quartile3 = dataframe[col_name].quantile(q3)
+    col = pd.to_numeric(dataframe[col_name], errors='coerce')  # numeric tipine dönüşüm için
+    quartile1 = col.quantile(q1)
+    quartile3 = col.quantile(q3)
     interquantile_range = quartile3 - quartile1
     up_limit = quartile3 + 1.5 * interquantile_range
     low_limit = quartile1 - 1.5 * interquantile_range
     return low_limit, up_limit
 
 
-outlier_thresholds(df, num_cols)
-
+# hata aldığım için check_outlier fonksşiyonunu yapılandırdım
+# dataframe[col_name] ifadesi kategorik bir sütunsa ve categorical tipindeyse hataya neden oluyordu.
+# onun için ilk olarak if = category dedim
 def check_outlier(dataframe, col_name):
-    low_limit, up_limit = outlier_thresholds(dataframe, col_name)
-    if dataframe[(dataframe[col_name] > up_limit) | (dataframe[col_name] < low_limit)].any(axis=None):
-        return True
-    else:
-        return False
+    if dataframe[col_name].dtype != 'category':
+        low_limit, up_limit = outlier_thresholds(dataframe, col_name)
+        col = pd.to_numeric(dataframe[col_name], errors='coerce')  # numeric tipine dönüşüm için
+        if col[(col > up_limit) | (col < low_limit)].any(axis=None):
+            return True
+        else:
+            return False
 
 
 for col in num_cols:
-    print(col, check_outlier(df, num_cols))
+    print(col, check_outlier(df, col))
 
 
-sns.set_style("whitegrid")
-sns.boxplot(data=df[num_cols], orient="h", palette="Set2")
+# sns.set_style("whitegrid")
+# sns.boxplot(data=df[num_cols], orient="h", palette="Set2")
 
-fig, ax = plt.subplots(figsize=(10,5))
-ax.boxplot(train['SalePrice'])
-ax.set_title('Boxplot of SalePrice')
-plt.show()
+# fig, ax = plt.subplots(figsize=(10,5))
+# ax.boxplot(train['SalePrice'])
+# ax.set_title('Boxplot of SalePrice')
+# plt.show()
 
 
 # Adım 7: Eksik gözlem var mı inceleyiniz.
 
+def missing_values_table(dataframe, na_name=False):
+    na_columns = [col for col in dataframe.columns if dataframe[col].isnull().sum() > 0]
+
+    n_miss = dataframe[na_columns].isnull().sum().sort_values(ascending=False)
+    ratio = (dataframe[na_columns].isnull().sum() / dataframe.shape[0] * 100).sort_values(ascending=False)
+    missing_df = pd.concat([n_miss, np.round(ratio, 2)], axis=1, keys=['n_miss', 'ratio'])
+    print(missing_df, end="\n")
+
+    if na_name:
+        return na_columns
 
 
+missing_values_table(df)
+
+df.isnull().sum().sum()
+
+
+## Görev 2: Feature Engineering
+
+# Adım 1: Eksik ve aykırı gözlemler için gerekli işlemleri yapınız.
+
+# Aykırı Değerler
+def replace_with_thresholds(dataframe, variable):
+    low_limit, up_limit = outlier_thresholds(dataframe, variable)
+    col = pd.to_numeric(dataframe[variable], errors='coerce')  # numeric tipine dönüşüm için
+    dataframe.loc[(col < low_limit), variable] = low_limit
+    dataframe.loc[(col > up_limit), variable] = up_limit
+
+for col in num_cols:
+    replace_with_thresholds(df, col)
+
+# df.groupby(cat_cols)["TotalCharges"].mean()
+
+
+# Eksik Değerler
+
+# PoolQC, MiscFeature, Alley, Fence gibi değişkenlerde
+# çok sayıda eksik değer olduğu için bu değişkenleri veri setinden çıkardım
+
+df.drop(columns=["PoolQC", "MiscFeature", "Alley", "Fence"], inplace=True)
+# df[num_cols].dtypes
+df[["SalePrice", "LotFrontage", "MasVnrArea"]].dtypes
+
+# missing_values_tables dan gelen null olan ve benim gözlemleyebildiğim kadarıyla
+# sayısal değişkenleri direkt median ile doldurum
+df[["SalePrice", "LotFrontage", "MasVnrArea"]] = df[["SalePrice", "LotFrontage", "MasVnrArea"]].apply(
+    lambda x: x.fillna(x.median()) if x.dtype != "O" else x, axis=0)
+
+df[["SalePrice", "LotFrontage", "MasVnrArea"]].isnull().sum()
+
+# BsmtExposure, BsmtCond, BsmtQual, BsmtFinType2 ve BsmtFinType1 gibi değişkenler ev satılırken None ve 0 olabilir
+# onun için None ile doldurdum yani yok
+df["FireplaceQu"]
+df["MasVnrType"]
+na_values = ["FireplaceQu", "BsmtExposure", "BsmtCond", "BsmtQual", "BsmtFinType2", \
+             "BsmtFinType1", "GarageCond", "GarageYrBlt", "GarageFinish", \
+             "GarageQual", "GarageType"]
+
+df[na_values].isnull().sum()
+
+# burada ki değişkenler mesela MasVnrType = Duvar kaplama tipi gibi değişkenleri en çok kullanılan değerler ile değiştirdim
+na_values2 = ["MasVnrType", "MSZoning", "Functional", "BsmtHalfBath", "BsmtFullBath", "Utilities", "KitchenQual", \
+              "TotalBsmtSF", "BsmtUnfSF", "GarageCars", "GarageArea", "BsmtFinSF2", "BsmtFinSF1", \
+              "Exterior2nd", "Exterior1st", "SaleType", "Electrical"]
+
+df[na_values2].isnull().sum()
+
+def fill_na_values_with_zero(dataframe, columns):
+    for col in columns:
+        # print(dataframe[col])
+        dataframe[col] = dataframe[col].replace(np.nan, 0)
+
+fill_na_values_with_zero(df, na_values)
+
+def fill_na_values_with_mode(dataframe, columns):
+    for col in columns:
+        # print(dataframe[col])
+        dataframe[col] = dataframe[col].fillna(dataframe.mode().iloc[0])
+
+fill_na_values_with_mode(df, na_values2)
+
+missing_values_table(df)
+
+df.dropna(inplace=True)
+
+# Adım 2: Rare Encoder uygulayınız.
+
+
+
+
+# Adım 3: Yeni değişkenler oluşturunuz.
+
+
+# Adım 4: Encoding işlemlerini gerçekleştiriniz.
