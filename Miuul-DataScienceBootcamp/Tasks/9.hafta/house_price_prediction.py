@@ -59,7 +59,7 @@ test.head()
 train = pd.read_csv("Tasks/9.hafta/train.csv")
 train.head()
 
-df = pd.concat([test.assign(ind="test"), train.assign(ind="train")])
+df = pd.concat([train, test])
 
 # test, train = df[df["ind"].eq("test")], df[df["ind"].eq("train")]
 
@@ -105,7 +105,7 @@ df.isnull().sum()
 # cat_cols, num_cols, cat_but_car, num_but_cols = get_col_types(df)
 
 
-def grab_col_names(dataframe, cat_th=2, car_th=20):
+def grab_col_names(dataframe, cat_th=10, car_th=20):
     """
 
     Veri setindeki kategorik, numerik ve kategorik fakat kardinal değişkenlerin isimlerini verir.
@@ -147,7 +147,7 @@ def grab_col_names(dataframe, cat_th=2, car_th=20):
     # cat_cols, cat_but_car
     cat_cols = [col for col in dataframe.columns if dataframe[col].dtypes == "O"]
     num_but_cat = [col for col in dataframe.columns if dataframe[col].nunique() < cat_th and
-                   dataframe[col].dtypes != "O"]
+                   (dataframe[col].dtypes != "O") and (dataframe[col].dtypes != "category")]
     cat_but_car = [col for col in dataframe.columns if dataframe[col].nunique() > car_th and
                    dataframe[col].dtypes == "O"]
     cat_cols = cat_cols + num_but_cat
@@ -163,10 +163,10 @@ def grab_col_names(dataframe, cat_th=2, car_th=20):
     print(f'num_cols: {len(num_cols)}')
     print(f'cat_but_car: {len(cat_but_car)}')
     print(f'num_but_cat: {len(num_but_cat)}')
-    return cat_cols, num_cols, cat_but_car, num_but_cat
+    return cat_cols, num_cols, cat_but_car
 
 
-cat_cols, num_cols, cat_but_car, num_but_cat = grab_col_names(df)
+cat_cols, num_cols, cat_but_car = grab_col_names(df)
 
 df[cat_cols].dtypes
 df[num_cols].dtypes
@@ -186,12 +186,16 @@ get_stats(df, num_cols)
 
 # Adım 3: Gerekli düzenlemeleri yapınız. (Tip hatası olan değişkenler gibi)
 
-df[cat_but_car] = df[cat_but_car].astype("category")
-df[cat_but_car].dtypes
-df[num_but_cat] = df[num_but_cat].astype(int)
-df[num_but_cat].dtypes
+df[cat_but_car]
 
-df
+df[num_cols].dtypes
+
+df["Neighborhood"]
+
+df[cat_cols].dtypes
+
+cat_cols.append(cat_but_car[0])
+df[cat_cols] = df[cat_cols].astype("category")
 
 # Adım 4: Numerik ve kategorik değişkenlerin veri içindeki dağılımını gözlemleyiniz.
 
@@ -303,23 +307,14 @@ for col in num_cols:
 
 
 # Eksik Değerler
+df[num_cols].dtypes
 
-# PoolQC, MiscFeature, Alley, Fence gibi değişkenlerde
-# çok sayıda eksik değer olduğu için bu değişkenleri veri setinden çıkardım
+for col in num_cols:
+    if df[col].dtype == "int64":
+        df[col] = df[col].fillna(df.groupby("OverallQual")[col].transform("mean").round())
+    else:
+        df[col] = df[col].fillna(df.groupby("OverallQual")[col].transform("mean"))
 
-df.drop(columns=["PoolQC", "MiscFeature", "Alley", "Fence"], inplace=True)
-# df[num_cols].dtypes
-df[["LotFrontage", "MasVnrArea"]].dtypes
-
-# missing_values_tables dan gelen null olan ve benim gözlemleyebildiğim kadarıyla
-# sayısal değişkenleri direkt median ile doldurum
-df[["LotFrontage", "MasVnrArea"]] = df[["LotFrontage", "MasVnrArea"]].apply(
-    lambda x: x.fillna(x.median()) if x.dtype != "O" else x, axis=0)
-
-df[["LotFrontage", "MasVnrArea"]].isnull().sum()
-
-# BsmtExposure, BsmtCond, BsmtQual, BsmtFinType2 ve BsmtFinType1 gibi değişkenler ev satılırken None ve 0 olabilir
-# onun için None ile doldurdum yani yok
 df["FireplaceQu"]
 df["MasVnrType"]
 # na_values = ["FireplaceQu", "BsmtExposure", "BsmtCond", "BsmtQual", "BsmtFinType2", \
@@ -330,20 +325,7 @@ df["MasVnrType"]
 
 df[num_cols].isnull().sum()
 
-def fill_na_values_with_zero(dataframe, columns):
-    for col in columns:
-        # print(dataframe[col])
-        dataframe[col] = dataframe[col].replace(np.nan, 0)
-
-fill_na_values_with_zero(df, num_cols)
-
-
 # burada ki değişkenler mesela MasVnrType = Duvar kaplama tipi gibi değişkenleri en çok kullanılan değerler ile değiştirdim
-na_values2 = ["MasVnrType", "MSZoning", "Functional", "BsmtHalfBath", "BsmtFullBath", "Utilities", "KitchenQual", \
-              "TotalBsmtSF", "BsmtUnfSF", "GarageCars", "GarageArea", "BsmtFinSF2", "BsmtFinSF1", \
-              "Exterior2nd", "Exterior1st", "SaleType", "Electrical"]
-
-df[na_values2].isnull().sum()
 
 df[cat_cols].isnull().sum()
 def fill_na_values_with_mode(dataframe, columns):
@@ -351,7 +333,7 @@ def fill_na_values_with_mode(dataframe, columns):
         # print(dataframe[col])
         dataframe[col] = dataframe[col].fillna(dataframe[col].mode().iloc[0])
 
-fill_na_values_with_mode(df, na_values2)
+fill_na_values_with_mode(df, cat_cols)
 
 missing_values_table(df)
 
