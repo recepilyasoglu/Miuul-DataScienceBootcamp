@@ -420,4 +420,3 @@ def one_hot_encoder(dataframe, categorical_cols, drop_first=True):
 
 
 new_df = one_hot_encoder(new_df, ohe_cols)
-
