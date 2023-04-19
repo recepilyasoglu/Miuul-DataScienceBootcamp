@@ -197,6 +197,10 @@ df[cat_cols].dtypes
 cat_cols.append(cat_but_car[0])
 df[cat_cols] = df[cat_cols].astype("category")
 
+# Id ve SalePrice değişkenlerini num_cols dan çıkardım
+num_cols = num_cols[1:]
+num_cols = num_cols[:-1]
+
 # Adım 4: Numerik ve kategorik değişkenlerin veri içindeki dağılımını gözlemleyiniz.
 
 def cat_summary(dataframe, col_name, plot=False):
@@ -232,9 +236,6 @@ for col in num_cols:
 df.groupby("SalePrice")[cat_cols].count()
 
 # Adım 6: Aykırı gözlem var mı inceleyiniz.
-
-num_cols = num_cols[1:]  # customerID'yi aykırı gözlem analizinden şaşırtabilir diye çıkardım
-
 
 def outlier_thresholds(dataframe, col_name, q1=0.01, q3=0.99):
     col = pd.to_numeric(dataframe[col_name], errors='coerce')  # numeric tipine dönüşüm için
@@ -337,7 +338,7 @@ fill_na_values_with_mode(df, cat_cols)
 
 missing_values_table(df)
 
-df.dropna(inplace=True)
+# df.dropna(inplace=True)
 
 # Adım 2: Rare Encoder uygulayınız.
 
@@ -371,7 +372,52 @@ new_df
 
 # Adım 3: Yeni değişkenler oluşturunuz.
 
+def set_type(dataframe, col, metric):
+    dataframe[col] = dataframe[col].astype(metric)
+
+# yapı yaşı
+new_df["Age_Building"] = new_df["YearRemodAdd"] - new_df["YearBuilt"]
+
+# ev kalitesi
+new_df['Total_Home_Quality'] = new_df['OverallQual'] + new_df['OverallCond'].astype(float)
+
+# toplam alan
+new_df['TotalArea'] = new_df['1stFlrSF'] + new_df['2ndFlrSF'] + new_df['TotalBsmtSF'] + + new_df['GarageArea']
+
+# yaşam alanı oranı
+new_df['LivingAreaRatio'] = new_df['GrLivArea'] / new_df['TotalArea']
+
+# toplam banyo sayısı
+set_type(new_df, ["BsmtFullBath", "BsmtHalfBath", "FullBath", "HalfBath"], int)
+new_df['TotalBathrooms'] = new_df['BsmtFullBath'] + new_df['BsmtHalfBath'] + new_df['FullBath'] + new_df['HalfBath']
+
+# garaj kapasitesi
+set_type(new_df, "GarageCars", float)
+new_df['GarageCapacity'] = new_df['GarageCars'] + new_df['GarageArea']
 
 
 # Adım 4: Encoding işlemlerini gerçekleştiriniz.
+
+# Label Encoding
+def label_encoder(dataframe, binary_col):
+    labelencoder = LabelEncoder()
+    dataframe[binary_col] = labelencoder.fit_transform(dataframe[binary_col])
+    return dataframe
+
+binary_cols = [col for col in new_df.columns if new_df[col].dtype not in ["int64", "float64"] and new_df[col].nunique() == 2]
+
+for col in binary_cols:
+    label_encoder(new_df, col)
+
+new_df[binary_cols]
+
+# One Hot Encoding
+ohe_cols = [col for col in new_df.columns if 10 >= new_df[col].nunique() > 2]
+
+def one_hot_encoder(dataframe, categorical_cols, drop_first=True):
+    dataframe = pd.get_dummies(dataframe, columns=categorical_cols, drop_first=drop_first)
+    return dataframe
+
+
+new_df = one_hot_encoder(new_df, ohe_cols)
 
