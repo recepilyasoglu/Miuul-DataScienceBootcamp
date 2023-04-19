@@ -38,7 +38,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier, VotingClassifier
 from sklearn.model_selection import train_test_split, GridSearchCV, cross_validate, RandomizedSearchCV, validation_curve
-
+from sklearn.metrics import mean_squared_error
 from xgboost import XGBClassifier
 from lightgbm import LGBMClassifier
 from catboost import CatBoostClassifier
@@ -171,7 +171,6 @@ cat_cols, num_cols, cat_but_car = grab_col_names(df)
 df[cat_cols].dtypes
 df[num_cols].dtypes
 
-
 def get_stats(dataframe, col):
     return print("############### İlk 5 Satır ############### \n", dataframe[col].head(), "\n", \
                  "############### Sahip olduğu Değer Sayısı ############### \n", dataframe[col].value_counts(), "\n", \
@@ -197,6 +196,7 @@ df[cat_cols].dtypes
 
 cat_cols.append(cat_but_car[0])
 df[cat_cols] = df[cat_cols].astype("category")
+# cat_cols.append(num_cols[2])
 
 # Id ve SalePrice değişkenlerini num_cols dan çıkardım
 num_cols = num_cols[1:]
@@ -314,13 +314,12 @@ for col in num_cols:
 
 
 # Eksik Değerler
-df[num_cols].dtypes
+df.drop(["PoolQC", "MiscFeature", "Alley", "Fence"], axis=1, inplace=True)
 
-for col in num_cols:
-    if df[col].dtype == "int64":
-        df[col] = df[col].fillna(df.groupby("OverallQual")[col].transform("mean").round())
-    else:
-        df[col] = df[col].fillna(df.groupby("OverallQual")[col].transform("mean"))
+df[num_cols].dtypes
+df[num_cols].isnull().sum()
+
+df[num_cols] = df[num_cols].apply(lambda x: x.fillna(x.median()))
 
 df["FireplaceQu"]
 df["MasVnrType"]
@@ -329,13 +328,9 @@ df["MasVnrType"]
 #              "GarageQual", "GarageType"]
 
 # df[na_values].isnull().sum()
+len(cat_cols)
 
-df[num_cols].isnull().sum()
-
-# burada ki değişkenler mesela MasVnrType = Duvar kaplama tipi gibi değişkenleri en çok kullanılan değerler ile değiştirdim
-
-df[cat_cols].isnull().sum()
-
+cat_cols = [x for i, x in enumerate(cat_cols) if i not in (2, 36, 38, 39)]
 
 def fill_na_values_with_mode(dataframe, columns):
     for col in columns:
@@ -413,6 +408,10 @@ df['GarageCapacity'] = df['GarageCars'] + df['GarageArea']
 # Adım 4: Encoding işlemlerini gerçekleştiriniz.
 
 # Label Encoding
+binary_cols = [col for col in df.columns if (df[col].dtype not in [int, float]) and (df[col].nunique() == 2)]
+
+
+
 
 # One Hot Encoding
 ohe_cols = [col for col in df.columns if 10 >= df[col].nunique() > 2]
@@ -447,9 +446,21 @@ X_train, X_val, y_train, y_val = train_test_split(X_train, y_train,
 
 # Adım 2: Train verisi ile model kurup, model başarısını değerlendiriniz.
 
+# LightGBM
 
-# Bonus: Hedef değişkene log dönüşümü yaparak model kurunuz ve rmse sonuçlarını gözlemleyiniz. Not: Log'un tersini (inverse)
-# almayı unutmayınız.
+from lightgbm import LGBMRegressor
+
+lgbm = LGBMRegressor()
+
+lgbm_model = lgbm.fit(X_train, y_train)
+
+y_pred = lgbm_model.predict(X_val)
+np.sqrt(mean_squared_error(y_val, y_pred))
+# 25449.070256247618
+
+
+# Random Forest Classifier
+gbm_model = GradientBoostingClassifier().fit(X_train, y_train)
 
 
 # Adım 3: Hiperparemetre optimizasyonu gerçekleştiriniz.
