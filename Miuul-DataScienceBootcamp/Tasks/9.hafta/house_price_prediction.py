@@ -171,6 +171,7 @@ cat_cols, num_cols, cat_but_car = grab_col_names(df)
 df[cat_cols].dtypes
 df[num_cols].dtypes
 
+
 def get_stats(dataframe, col):
     return print("############### İlk 5 Satır ############### \n", dataframe[col].head(), "\n", \
                  "############### Sahip olduğu Değer Sayısı ############### \n", dataframe[col].value_counts(), "\n", \
@@ -200,6 +201,7 @@ df[cat_cols] = df[cat_cols].astype("category")
 # Id ve SalePrice değişkenlerini num_cols dan çıkardım
 num_cols = num_cols[1:]
 num_cols = num_cols[:-1]
+
 
 # Adım 4: Numerik ve kategorik değişkenlerin veri içindeki dağılımını gözlemleyiniz.
 
@@ -235,6 +237,7 @@ for col in num_cols:
 
 df.groupby("SalePrice")[cat_cols].count()
 
+
 # Adım 6: Aykırı gözlem var mı inceleyiniz.
 
 def outlier_thresholds(dataframe, col_name, q1=0.01, q3=0.99):
@@ -258,6 +261,7 @@ def check_outlier(dataframe, col_name):
             return True
         else:
             return False
+
 
 for col in num_cols:
     print(col, check_outlier(df, col))
@@ -285,6 +289,7 @@ def missing_values_table(dataframe, na_name=False):
     if na_name:
         return na_columns
 
+
 missing_values_table(df)
 
 df.isnull().sum().sum()
@@ -300,6 +305,7 @@ def replace_with_thresholds(dataframe, variable):
     col = pd.to_numeric(dataframe[variable], errors='coerce')  # numeric tipine dönüşüm için
     dataframe.loc[(col < low_limit), variable] = low_limit
     dataframe.loc[(col > up_limit), variable] = up_limit
+
 
 for col in num_cols:
     replace_with_thresholds(df, col)
@@ -329,14 +335,18 @@ df[num_cols].isnull().sum()
 # burada ki değişkenler mesela MasVnrType = Duvar kaplama tipi gibi değişkenleri en çok kullanılan değerler ile değiştirdim
 
 df[cat_cols].isnull().sum()
+
+
 def fill_na_values_with_mode(dataframe, columns):
     for col in columns:
         # print(dataframe[col])
         dataframe[col] = dataframe[col].fillna(dataframe[col].mode().iloc[0])
 
+
 fill_na_values_with_mode(df, cat_cols)
 
 missing_values_table(df)
+
 
 # df.dropna(inplace=True)
 
@@ -348,6 +358,7 @@ def rare_analyser(dataframe, target, cat_cols):
         print(pd.DataFrame({"COUNT": dataframe[col].value_counts(),
                             "RATIO": dataframe[col].value_counts() / len(dataframe),
                             "TARGET_MEAN": dataframe.groupby(col)[target].mean()}), end="\n\n\n")
+
 
 rare_analyser(df, "SalePrice", cat_cols)
 
@@ -366,57 +377,83 @@ def rare_encoder(dataframe, rare_perc):
 
     return temp_df
 
-new_df = rare_encoder(df, 0.01)
 
-new_df
+df = rare_encoder(df, 0.01)
+
+df
+
 
 # Adım 3: Yeni değişkenler oluşturunuz.
 
-def set_type(dataframe, col, metric):
-    dataframe[col] = dataframe[col].astype(metric)
+def set_type(dataframe, col, type):
+    dataframe[col] = dataframe[col].astype(type)
+
 
 # yapı yaşı
-new_df["Age_Building"] = new_df["YearRemodAdd"] - new_df["YearBuilt"]
+df["Age_Building"] = df["YearRemodAdd"] - df["YearBuilt"]
 
 # ev kalitesi
-new_df['Total_Home_Quality'] = new_df['OverallQual'] + new_df['OverallCond'].astype(float)
+set_type(df, "OverallCond", float)
+df['Total_Home_Quality'] = df['OverallQual'] + df['OverallCond']
 
 # toplam alan
-new_df['TotalArea'] = new_df['1stFlrSF'] + new_df['2ndFlrSF'] + new_df['TotalBsmtSF'] + + new_df['GarageArea']
+df['TotalArea'] = df['1stFlrSF'] + df['2ndFlrSF'] + df['TotalBsmtSF'] + + df['GarageArea']
 
 # yaşam alanı oranı
-new_df['LivingAreaRatio'] = new_df['GrLivArea'] / new_df['TotalArea']
+df['LivingAreaRatio'] = df['GrLivArea'] / df['TotalArea']
 
 # toplam banyo sayısı
-set_type(new_df, ["BsmtFullBath", "BsmtHalfBath", "FullBath", "HalfBath"], int)
-new_df['TotalBathrooms'] = new_df['BsmtFullBath'] + new_df['BsmtHalfBath'] + new_df['FullBath'] + new_df['HalfBath']
+set_type(df, ["BsmtFullBath", "BsmtHalfBath", "FullBath", "HalfBath"], int)
+df['TotalBathrooms'] = df['BsmtFullBath'] + df['BsmtHalfBath'] + df['FullBath'] + df['HalfBath']
 
 # garaj kapasitesi
-set_type(new_df, "GarageCars", float)
-new_df['GarageCapacity'] = new_df['GarageCars'] + new_df['GarageArea']
-
+set_type(df, "GarageCars", float)
+df['GarageCapacity'] = df['GarageCars'] + df['GarageArea']
 
 # Adım 4: Encoding işlemlerini gerçekleştiriniz.
 
 # Label Encoding
-def label_encoder(dataframe, binary_col):
-    labelencoder = LabelEncoder()
-    dataframe[binary_col] = labelencoder.fit_transform(dataframe[binary_col])
-    return dataframe
-
-binary_cols = [col for col in new_df.columns if new_df[col].dtype not in ["int64", "float64"] and new_df[col].nunique() == 2]
-
-for col in binary_cols:
-    label_encoder(new_df, col)
-
-new_df[binary_cols]
 
 # One Hot Encoding
-ohe_cols = [col for col in new_df.columns if 10 >= new_df[col].nunique() > 2]
+ohe_cols = [col for col in df.columns if 10 >= df[col].nunique() > 2]
+
 
 def one_hot_encoder(dataframe, categorical_cols, drop_first=True):
     dataframe = pd.get_dummies(dataframe, columns=categorical_cols, drop_first=drop_first)
     return dataframe
 
 
-new_df = one_hot_encoder(new_df, ohe_cols)
+df = one_hot_encoder(df, ohe_cols)
+
+# Standartlaştırma
+# scaler = StandardScaler()
+# df[num_cols] = scaler.fit_transform(df[num_cols])
+
+# Görev 3: Model Kurma
+
+# Adım 1: Train ve Test verisini ayırınız. (SalePrice değişkeni boş olan değerler test verisidir.)
+
+df.reset_index(inplace=True, drop=True)
+variables = [col for col in df.columns if col not in "SalePrice"]
+
+X_train = df.loc[:1459, variables]
+X_test = df.loc[1460:, variables]
+y_train = df.loc[:1459, "SalePrice"]
+y_test = df.loc[1460:, "SalePrice"]
+
+X_train, X_val, y_train, y_val = train_test_split(X_train, y_train,
+                                                  test_size=0.25,
+                                                  random_state=1)
+
+# Adım 2: Train verisi ile model kurup, model başarısını değerlendiriniz.
+
+
+# Bonus: Hedef değişkene log dönüşümü yaparak model kurunuz ve rmse sonuçlarını gözlemleyiniz. Not: Log'un tersini (inverse)
+# almayı unutmayınız.
+
+
+# Adım 3: Hiperparemetre optimizasyonu gerçekleştiriniz.
+
+# Adım 4: Değişken önem düzeyini inceleyeniz.
+# Bonus: Test verisinde boş olan salePrice değişkenlerini tahminleyiniz ve Kaggle sayfasına submit etmeye uygun halde bir
+# dataframe oluşturup sonucunuzu yükleyiniz.
