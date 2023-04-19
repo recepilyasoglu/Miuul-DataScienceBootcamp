@@ -170,8 +170,6 @@ cat_cols, num_cols, cat_but_car, num_but_cat = grab_col_names(df)
 
 df[cat_cols].dtypes
 df[num_cols].dtypes
-df[cat_but_car].dtypes
-df[num_but_cat].dtypes
 
 def get_stats(dataframe, col):
     return print("############### İlk 5 Satır ############### \n", dataframe[col].head(), "\n", \
@@ -188,9 +186,10 @@ get_stats(df, num_cols)
 
 # Adım 3: Gerekli düzenlemeleri yapınız. (Tip hatası olan değişkenler gibi)
 
-df["Neighborhood"] = df["Neighborhood"].astype("category")
-
-df["SalePrice"] = pd.to_numeric(df["SalePrice"], errors="coerce")
+df[cat_but_car] = df[cat_but_car].astype("category")
+df[cat_but_car].dtypes
+df[num_but_cat] = df[num_but_cat].astype(int)
+df[num_but_cat].dtypes
 
 df
 
@@ -230,10 +229,10 @@ df.groupby("SalePrice")[cat_cols].count()
 
 # Adım 6: Aykırı gözlem var mı inceleyiniz.
 
-num_cols = num_cols[1:]  # customerID'yi aykırı gözlem analizinde şaşırtabilir diye çıkardım
+num_cols = num_cols[1:]  # customerID'yi aykırı gözlem analizinden şaşırtabilir diye çıkardım
 
 
-def outlier_thresholds(dataframe, col_name, q1=0.25, q3=0.75):
+def outlier_thresholds(dataframe, col_name, q1=0.01, q3=0.99):
     col = pd.to_numeric(dataframe[col_name], errors='coerce')  # numeric tipine dönüşüm için
     quartile1 = col.quantile(q1)
     quartile3 = col.quantile(q3)
@@ -310,31 +309,33 @@ for col in num_cols:
 
 df.drop(columns=["PoolQC", "MiscFeature", "Alley", "Fence"], inplace=True)
 # df[num_cols].dtypes
-df[["SalePrice", "LotFrontage", "MasVnrArea"]].dtypes
+df[["LotFrontage", "MasVnrArea"]].dtypes
 
 # missing_values_tables dan gelen null olan ve benim gözlemleyebildiğim kadarıyla
 # sayısal değişkenleri direkt median ile doldurum
-df[["SalePrice", "LotFrontage", "MasVnrArea"]] = df[["SalePrice", "LotFrontage", "MasVnrArea"]].apply(
+df[["LotFrontage", "MasVnrArea"]] = df[["LotFrontage", "MasVnrArea"]].apply(
     lambda x: x.fillna(x.median()) if x.dtype != "O" else x, axis=0)
 
-df[["SalePrice", "LotFrontage", "MasVnrArea"]].isnull().sum()
+df[["LotFrontage", "MasVnrArea"]].isnull().sum()
 
 # BsmtExposure, BsmtCond, BsmtQual, BsmtFinType2 ve BsmtFinType1 gibi değişkenler ev satılırken None ve 0 olabilir
 # onun için None ile doldurdum yani yok
 df["FireplaceQu"]
 df["MasVnrType"]
-na_values = ["FireplaceQu", "BsmtExposure", "BsmtCond", "BsmtQual", "BsmtFinType2", \
-             "BsmtFinType1", "GarageCond", "GarageYrBlt", "GarageFinish", \
-             "GarageQual", "GarageType"]
+# na_values = ["FireplaceQu", "BsmtExposure", "BsmtCond", "BsmtQual", "BsmtFinType2", \
+#              "BsmtFinType1", "GarageCond", "GarageYrBlt", "GarageFinish", \
+#              "GarageQual", "GarageType"]
 
-df[na_values].isnull().sum()
+# df[na_values].isnull().sum()
+
+df[num_cols].isnull().sum()
 
 def fill_na_values_with_zero(dataframe, columns):
     for col in columns:
         # print(dataframe[col])
         dataframe[col] = dataframe[col].replace(np.nan, 0)
 
-fill_na_values_with_zero(df, na_values)
+fill_na_values_with_zero(df, num_cols)
 
 
 # burada ki değişkenler mesela MasVnrType = Duvar kaplama tipi gibi değişkenleri en çok kullanılan değerler ile değiştirdim
@@ -344,6 +345,7 @@ na_values2 = ["MasVnrType", "MSZoning", "Functional", "BsmtHalfBath", "BsmtFullB
 
 df[na_values2].isnull().sum()
 
+df[cat_cols].isnull().sum()
 def fill_na_values_with_mode(dataframe, columns):
     for col in columns:
         # print(dataframe[col])
