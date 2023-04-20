@@ -145,17 +145,17 @@ def grab_col_names(dataframe, cat_th=10, car_th=20):
     """
 
     # cat_cols, cat_but_car
-    cat_cols = [col for col in dataframe.columns if dataframe[col].dtypes == "O"]
-    num_but_cat = [col for col in dataframe.columns if dataframe[col].nunique() < cat_th and
-                   (dataframe[col].dtypes != "O") and (dataframe[col].dtypes != "category")]
-    cat_but_car = [col for col in dataframe.columns if dataframe[col].nunique() > car_th and
-                   dataframe[col].dtypes == "O"]
+    cat_cols = [col for col in dataframe.columns if str(dataframe[col].dtypes) in ["category", "object", "bool"]]
+    num_but_cat = [col for col in dataframe.columns if
+                   (dataframe[col].nunique() < cat_th) and dataframe[col].dtypes in ["int64", "float64"]]
+
+    cat_but_car = [col for col in dataframe.columns if
+                   (dataframe[col].nunique() > car_th) and str(dataframe[col].dtypes) in ["category", "object"]]
     cat_cols = cat_cols + num_but_cat
     cat_cols = [col for col in cat_cols if col not in cat_but_car]
 
-    # num_cols
-    num_cols = [col for col in dataframe.columns if dataframe[col].dtypes != "O"]
-    num_cols = [col for col in num_cols if col not in num_but_cat]
+    num_cols = [col for col in dataframe.columns if dataframe[col].dtypes in ["int64", "float64"]]
+    num_cols = [col for col in num_cols if col not in cat_cols]
 
     print(f"Observations: {dataframe.shape[0]}")
     print(f"Variables: {dataframe.shape[1]}")
@@ -170,6 +170,10 @@ cat_cols, num_cols, cat_but_car = grab_col_names(df)
 
 df[cat_cols].dtypes
 df[num_cols].dtypes
+
+num_cols = [col for col in num_cols if col != "Id"]
+num_cols = [col for col in num_cols if col != "SalePrice"]
+
 
 def get_stats(dataframe, col):
     return print("############### İlk 5 Satır ############### \n", dataframe[col].head(), "\n", \
@@ -195,12 +199,20 @@ df["Neighborhood"]
 df[cat_cols].dtypes
 
 cat_cols.append(cat_but_car[0])
-df[cat_cols] = df[cat_cols].astype("category")
-# cat_cols.append(num_cols[2])
+# df[cat_cols] = df[cat_cols].astype("object")
 
-# Id ve SalePrice değişkenlerini num_cols dan çıkardım
-num_cols = num_cols[1:]
-num_cols = num_cols[:-1]
+# kategorik değikenin içerisinde olup numerik tipte olan değişkenleri num_cols'a attım
+[num_cols.append(x) for i, x in enumerate(cat_cols) if i in (range(38, 49))]
+
+cat_cols = [x for i, x in enumerate(cat_cols) if i not in (range(38, 49))]
+
+
+# num_cols.append(list(cat_cols[42:52]))
+# len(num_cols)
+len(cat_cols)
+# del num_cols[-10]
+
+# cat_cols.append(num_cols[2])
 
 
 # Adım 4: Numerik ve kategorik değişkenlerin veri içindeki dağılımını gözlemleyiniz.
@@ -314,12 +326,16 @@ for col in num_cols:
 
 
 # Eksik Değerler
-df.drop(["PoolQC", "MiscFeature", "Alley", "Fence"], axis=1, inplace=True)
+
+df = df.drop(["PoolQC", "MiscFeature", "Alley", "Fence"], axis=1)
 
 df[num_cols].dtypes
+
 df[num_cols].isnull().sum()
 
 df[num_cols] = df[num_cols].apply(lambda x: x.fillna(x.median()))
+
+df["GarageYrBlt"]
 
 df["FireplaceQu"]
 df["MasVnrType"]
@@ -330,7 +346,8 @@ df["MasVnrType"]
 # df[na_values].isnull().sum()
 len(cat_cols)
 
-cat_cols = [x for i, x in enumerate(cat_cols) if i not in (2, 36, 38, 39)]
+df[cat_cols].isnull().sum() / df.shape[0]
+
 
 def fill_na_values_with_mode(dataframe, columns):
     for col in columns:
@@ -340,8 +357,27 @@ def fill_na_values_with_mode(dataframe, columns):
 
 fill_na_values_with_mode(df, cat_cols)
 
+liste = []
+
+for col in cat_cols:
+    if df[col].isnull().sum() / df.shape[0] > 0.8:
+        liste.append(col)
+        df = df.drop(col, axis=1)
+    else:
+        df[col] = df[col].fillna(df[col].mode()[0])
+
+cat_cols = list(set(cat_cols).difference(set(liste)))
+
+for col in cat_cols:
+    print(col, df[col].isnull().sum())
+
 missing_values_table(df)
 
+df[cat_cols].dtypes
+df[cat_cols] = df[cat_cols].astype("object")
+
+
+# num_cols.append(cat_cols[48])
 
 # df.dropna(inplace=True)
 
@@ -388,7 +424,7 @@ def set_type(dataframe, col, type):
 df["Age_Building"] = df["YearRemodAdd"] - df["YearBuilt"]
 
 # ev kalitesi
-set_type(df, "OverallCond", float)
+set_type(df, 'OverallCond', float)
 df['Total_Home_Quality'] = df['OverallQual'] + df['OverallCond']
 
 # toplam alan
@@ -402,7 +438,6 @@ set_type(df, ["BsmtFullBath", "BsmtHalfBath", "FullBath", "HalfBath"], int)
 df['TotalBathrooms'] = df['BsmtFullBath'] + df['BsmtHalfBath'] + df['FullBath'] + df['HalfBath']
 
 # garaj kapasitesi
-set_type(df, "GarageCars", float)
 df['GarageCapacity'] = df['GarageCars'] + df['GarageArea']
 
 # Adım 4: Encoding işlemlerini gerçekleştiriniz.
@@ -411,10 +446,22 @@ df['GarageCapacity'] = df['GarageCars'] + df['GarageArea']
 binary_cols = [col for col in df.columns if (df[col].dtype not in [int, float]) and (df[col].nunique() == 2)]
 
 
+def label_encoder(dataframe, binary_col):
+    labelencoder = LabelEncoder()
+    dataframe[binary_col] = labelencoder.fit_transform(dataframe[binary_col])
+    return dataframe
 
+
+for col in binary_cols:
+    label_encoder(df, col)
 
 # One Hot Encoding
-ohe_cols = [col for col in df.columns if 10 >= df[col].nunique() > 2]
+ohe_cols = [col for col in df.columns if 25 >= df[col].nunique() > 2]
+
+ohe_cols = [col for col in ohe_cols if col not in ['OverallQual', 'OverallCond', 'BsmtFullBath',
+                                                   'BsmtHalfBath', 'FullBath', 'HalfBath',
+                                                   'BedroomAbvGr', 'KitchenAbvGr', 'Fireplaces',
+                                                   'GarageCars', 'YrSold']]
 
 
 def one_hot_encoder(dataframe, categorical_cols, drop_first=True):
@@ -424,9 +471,23 @@ def one_hot_encoder(dataframe, categorical_cols, drop_first=True):
 
 df = one_hot_encoder(df, ohe_cols)
 
+scaler = StandardScaler()
+num_cols = [col for col in df.columns if df[col].dtype != 'O' and col != 'SalePrice']
+num_cols = [col for col in df.columns if col != 'Id']
+
+df[num_cols] = scaler.fit_transform(df[num_cols])
+
 # Standartlaştırma
-# scaler = StandardScaler()
+
 # df[num_cols] = scaler.fit_transform(df[num_cols])
+
+cat_cols, num_cols, cat_but_car = grab_col_names(df)
+
+num_cols = [col for col in num_cols if col not in "SalePrice"]
+num_cols = [col for col in num_cols if col not in "Id"]
+
+rs = RobustScaler()
+df[num_cols] = rs.fit_transform(df[num_cols])
 
 # Görev 3: Model Kurma
 
@@ -456,11 +517,16 @@ lgbm_model = lgbm.fit(X_train, y_train)
 
 y_pred = lgbm_model.predict(X_val)
 np.sqrt(mean_squared_error(y_val, y_pred))
-# 25449.070256247618
+# 28462.53252809921
 
 
-# Random Forest Classifier
-gbm_model = GradientBoostingClassifier().fit(X_train, y_train)
+# GBM
+gbm = GradientBoostingClassifier()
+gbm_model = gbm.fit(X_train, y_train)
+
+y_pred = lgbm_model.predict(X_val)
+np.sqrt(mean_squared_error(y_val, y_pred))
+
 
 
 # Adım 3: Hiperparemetre optimizasyonu gerçekleştiriniz.
