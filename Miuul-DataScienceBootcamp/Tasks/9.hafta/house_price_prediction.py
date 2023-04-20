@@ -171,8 +171,8 @@ cat_cols, num_cols, cat_but_car = grab_col_names(df)
 df[cat_cols].dtypes
 df[num_cols].dtypes
 
-num_cols = [col for col in num_cols if col != "Id"]
-num_cols = [col for col in num_cols if col != "SalePrice"]
+# SalePrice ve Id değişkenlerini num_cols'dan çıkardım
+num_cols = num_cols[1:-1]
 
 
 def get_stats(dataframe, col):
@@ -202,14 +202,20 @@ cat_cols.append(cat_but_car[0])
 # df[cat_cols] = df[cat_cols].astype("object")
 
 # kategorik değikenin içerisinde olup numerik tipte olan değişkenleri num_cols'a attım
-[num_cols.append(x) for i, x in enumerate(cat_cols) if i in (range(38, 49))]
+len(cat_cols)
 
-cat_cols = [x for i, x in enumerate(cat_cols) if i not in (range(38, 49))]
+[num_cols.append(x) for i, x in enumerate(cat_cols) if i in (range(42, 52))]
+df[num_cols].dtypes
 
+# ketegorik değişkenlerin içerisinde object olmayanların düşürülmesi
+cat_cols = [x for i, x in enumerate(cat_cols) if i not in (range(42, 52))]
+df[cat_cols].dtypes
 
 # num_cols.append(list(cat_cols[42:52]))
 # len(num_cols)
 len(cat_cols)
+
+
 # del num_cols[-10]
 
 # cat_cols.append(num_cols[2])
@@ -326,13 +332,32 @@ for col in num_cols:
 
 
 # Eksik Değerler
-
+# bu değişkenlerin %80'ninden fazlası null değerler olduğu için düşürdüm
 df = df.drop(["PoolQC", "MiscFeature", "Alley", "Fence"], axis=1)
+
+# çıkardıktan sonra değişkenleri tekrar yakaladım
+cat_cols, num_cols, cat_but_car = grab_col_names(df)
+
+# Id ve SalePrice yeniden düşürdüm
+num_cols = num_cols[1:-1]
+
+# yukarıda değişkenleri düşürdüğüm için index'ler de değişiklik oldu
+len(cat_cols)
+
+[num_cols.append(x) for i, x in enumerate(cat_cols) if i in (range(38, 49))]
+df[num_cols].dtypes
+
+# ketegorik değişkenlerin içerisinde object olmayanların düşürülmesi
+cat_cols = [x for i, x in enumerate(cat_cols) if i not in (range(38, 49))]
+df[cat_cols].dtypes
+
+len(cat_cols)
 
 df[num_cols].dtypes
 
 df[num_cols].isnull().sum()
 
+# numeric değişkenleri en çok tekrar median ile doldurma
 df[num_cols] = df[num_cols].apply(lambda x: x.fillna(x.median()))
 
 df["GarageYrBlt"]
@@ -355,31 +380,15 @@ def fill_na_values_with_mode(dataframe, columns):
         dataframe[col] = dataframe[col].fillna(dataframe[col].mode().iloc[0])
 
 
+# kategorik değişkenleri en çok tekrar eden değeriyle doldurma
 fill_na_values_with_mode(df, cat_cols)
-
-liste = []
-
-for col in cat_cols:
-    if df[col].isnull().sum() / df.shape[0] > 0.8:
-        liste.append(col)
-        df = df.drop(col, axis=1)
-    else:
-        df[col] = df[col].fillna(df[col].mode()[0])
-
-cat_cols = list(set(cat_cols).difference(set(liste)))
-
-for col in cat_cols:
-    print(col, df[col].isnull().sum())
 
 missing_values_table(df)
 
-df[cat_cols].dtypes
-df[cat_cols] = df[cat_cols].astype("object")
 
+# df[cat_cols].dtypes
+# df[cat_cols] = df[cat_cols].astype("object")
 
-# num_cols.append(cat_cols[48])
-
-# df.dropna(inplace=True)
 
 # Adım 2: Rare Encoder uygulayınız.
 
@@ -434,7 +443,7 @@ df['TotalArea'] = df['1stFlrSF'] + df['2ndFlrSF'] + df['TotalBsmtSF'] + + df['Ga
 df['LivingAreaRatio'] = df['GrLivArea'] / df['TotalArea']
 
 # toplam banyo sayısı
-set_type(df, ["BsmtFullBath", "BsmtHalfBath", "FullBath", "HalfBath"], int)
+# set_type(df, ["BsmtFullBath", "BsmtHalfBath", "FullBath", "HalfBath"], int)
 df['TotalBathrooms'] = df['BsmtFullBath'] + df['BsmtHalfBath'] + df['FullBath'] + df['HalfBath']
 
 # garaj kapasitesi
@@ -458,11 +467,6 @@ for col in binary_cols:
 # One Hot Encoding
 ohe_cols = [col for col in df.columns if 25 >= df[col].nunique() > 2]
 
-ohe_cols = [col for col in ohe_cols if col not in ['OverallQual', 'OverallCond', 'BsmtFullBath',
-                                                   'BsmtHalfBath', 'FullBath', 'HalfBath',
-                                                   'BedroomAbvGr', 'KitchenAbvGr', 'Fireplaces',
-                                                   'GarageCars', 'YrSold']]
-
 
 def one_hot_encoder(dataframe, categorical_cols, drop_first=True):
     dataframe = pd.get_dummies(dataframe, columns=categorical_cols, drop_first=drop_first)
@@ -471,11 +475,8 @@ def one_hot_encoder(dataframe, categorical_cols, drop_first=True):
 
 df = one_hot_encoder(df, ohe_cols)
 
-scaler = StandardScaler()
-num_cols = [col for col in df.columns if df[col].dtype != 'O' and col != 'SalePrice']
-num_cols = [col for col in df.columns if col != 'Id']
-
-df[num_cols] = scaler.fit_transform(df[num_cols])
+# scaler = StandardScaler()
+# df[num_cols] = scaler.fit_transform(df[num_cols])
 
 # Standartlaştırma
 
@@ -485,6 +486,10 @@ cat_cols, num_cols, cat_but_car = grab_col_names(df)
 
 num_cols = [col for col in num_cols if col not in "SalePrice"]
 num_cols = [col for col in num_cols if col not in "Id"]
+num_cols.append(cat_cols[0])
+df[num_cols].dtypes
+
+df[cat_cols].dtypes
 
 rs = RobustScaler()
 df[num_cols] = rs.fit_transform(df[num_cols])
@@ -547,18 +552,132 @@ cart_model = DecisionTreeRegressor().fit(X_train, y_train)
 
 y_pred = cart_model.predict(X_val)
 np.sqrt(mean_squared_error(y_val, y_pred))
-# 48300.41570512278
+# 40119.669753759
 
 
 # Adım 3: Hiperparemetre optimizasyonu gerçekleştiriniz.
+
+# RandomForest
+rf_params = {'max_depth': list(range(1, 7)),
+             'max_features': [3, 5, 7],
+             'n_estimators': [100, 200, 500, 1000]}
+
+rf_best_grid = GridSearchCV(rf_model, rf_params, cv=5, n_jobs=-1, verbose=True).fit(X_train, y_train)
+
+rf_best_grid.best_params_
+
+rf_final = rf_model.set_params(**rf_best_grid.best_params_).fit(X_train, y_train)
+
+y_pred = rf_final.predict(X_val)
+np.sqrt(mean_squared_error(y_val, y_pred))
+# 40017.47684707109
+
+
+# XGBoost
+xgb_params = {'colsample_bytree': [0.5, 0.6, 0.7, 0.8, 0.9, 1],
+              'n_estimators': [100, 200, 500],
+              'max_depth': [3, 4, 5, 6, 7],
+              'learning_rate': [0.3, 0.5]}
+
+xgb_best_grid = GridSearchCV(xgb_model, xgb_params, cv=5, n_jobs=-1, verbose=True).fit(X_train, y_train)
+
+xgb_best_grid.best_params_
+
+xgb_final = xgb_model.set_params(**xgb_best_grid.best_params_).fit(X_train, y_train)
+
+y_pred = xgb_final.predict(X_val)
+np.sqrt(mean_squared_error(y_val, y_pred))
+# 29908.65106567284
+
+
+# LightGBM
+lgbm_params = {'colsample_bytree': [0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1],
+               'learning_rate': [0.1, 0.2, 0.3, 0.4, 0.5],
+               'n_estimators': [100, 200, 500, 100],
+               'max_depth': list(range(1, 7))}
+
+lgbm_best_grid = GridSearchCV(lgbm_model, lgbm_params, cv=5, n_jobs=-1, verbose=True).fit(X_train, y_train)
+
+lgbm_best_grid.best_params_
+
+lgbm_final = lgbm_model.set_params(**lgbm_best_grid.best_params_).fit(X_train, y_train)
+
+y_pred = lgbm_final.predict(X_val)
+np.sqrt(mean_squared_error(y_val, y_pred))
+# 27961.611470086133
+
+
+# CatBoost
+catb_params = {'iterations': [200, 500, 1000],
+               'learning_rate': [0.1, 0.3, 0.5, 0.7, 0.9, 1],
+               'depth': list(range(1, 8))}
+
+catb_best_grid = GridSearchCV(catb_model, catb_params, cv=5, n_jobs=-1, verbose=True).fit(X_train, y_train)
+
+catb_best_grid.best_params_
+
+catb_model = CatBoostRegressor()
+
+catb_final = catb_model.set_params(**catb_best_grid.best_params_).fit(X_train, y_train)
+
+y_pred = catb_final.predict(X_val)
+np.sqrt(mean_squared_error(y_val, y_pred))
+
+
+# 24478.61100087933
 
 # Adım 4: Değişken önem düzeyini inceleyeniz.
 # Bonus: Test verisinde boş olan salePrice değişkenlerini tahminleyiniz ve Kaggle sayfasına submit etmeye uygun halde bir
 # dataframe oluşturup sonucunuzu yükleyiniz.
 
+def plot_importance(model, features, num=len(X_train), save=False):
+    feature_imp = pd.DataFrame({'Value': model.feature_importances_, 'Feature': features.columns})
+    plt.figure(figsize=(10, 10))
+    sns.set(font_scale=1)
+    sns.barplot(x="Value", y="Feature", data=feature_imp.sort_values(by="Value",
+                                                                     ascending=False)[0:num])
+    plt.title('Features')
+    plt.tight_layout()
+    plt.show()
+    if save:
+        plt.savefig('importances.png')
 
 
+plot_importance(rf_final, X_train)
+plot_importance(xgb_final, X_train)
+plot_importance(lgbm_final, X_train)
+plot_importance(catb_final, X_train)
 
 
+# Prediction
 
+# RandomForest
+rf_pred = rf_final.predict(X_train)
+rf_pred_score = np.sqrt(mean_squared_error(y_train, rf_pred))
+# 33116.99886321384
+
+# XGBoost
+xgb_pred = xgb_final.predict(X_train)
+xgb_pred_score = np.sqrt(mean_squared_error(y_train, xgb_pred))
+# 4770.08918830866
+
+# LightGBM
+lgbm_pred = lgbm_final.predict(X_train)
+lgbm_pred_score = np.sqrt(mean_squared_error(y_train, lgbm_pred))
+# 15604.81879637132
+
+# CatBoost
+catb_pred = catb_final.predict(X_train)
+catb_pred_score = np.sqrt(mean_squared_error(y_train, catb_pred))
+# 6122.062142230834
+
+# tahmin edilen değerlerin kolay kıyaslanabilmesi açısından bir DataFrame oluşturdum
+all_pred_score = pd.DataFrame(
+    {"Model": ["Random Forest", "XGBoost", "LightGBM", "CatBoost"],
+     "RMSE": [rf_pred_score, xgb_pred_score, lgbm_pred_score, catb_pred_score]},
+    index=range(1, 5))
+
+all_pred_score = all_pred_score.sort_values("RMSE", ascending=True).reset_index()
+# del all_pred_score["index"]
+all_pred_score
 
