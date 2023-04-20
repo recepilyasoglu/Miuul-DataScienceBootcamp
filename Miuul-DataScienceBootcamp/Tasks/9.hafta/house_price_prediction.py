@@ -30,8 +30,8 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 from matplotlib import pyplot as plt
-from sklearn.tree import DecisionTreeClassifier, export_graphviz, export_text
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.tree import DecisionTreeClassifier, export_graphviz, export_text, DecisionTreeRegressor
+from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.metrics import classification_report, roc_auc_score
 from sklearn.preprocessing import MinMaxScaler, LabelEncoder, StandardScaler, RobustScaler
 from sklearn.linear_model import LogisticRegression
@@ -39,9 +39,9 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier, VotingClassifier
 from sklearn.model_selection import train_test_split, GridSearchCV, cross_validate, RandomizedSearchCV, validation_curve
 from sklearn.metrics import mean_squared_error
-from xgboost import XGBClassifier
-from lightgbm import LGBMClassifier
-from catboost import CatBoostClassifier
+from xgboost import XGBClassifier, XGBRegressor
+from lightgbm import LGBMClassifier, LGBMRegressor
+from catboost import CatBoostClassifier, CatBoostRegressor
 from skompiler import skompile
 import graphviz
 
@@ -507,26 +507,47 @@ X_train, X_val, y_train, y_val = train_test_split(X_train, y_train,
 
 # Adım 2: Train verisi ile model kurup, model başarısını değerlendiriniz.
 
+# Random Forest
+rf_model = RandomForestRegressor(random_state=17).fit(X_train, y_train)
+
+y_pred = rf_model.predict(X_val)
+np.sqrt(mean_squared_error(y_val, y_pred))
+# 29513.102537211216
+
+# GBM
+gbm_model = GradientBoostingClassifier().fit(X_train, y_train)
+
+y_pred = gbm_model.predict(X_val)
+np.sqrt(mean_squared_error(y_val, y_pred))
+# 28462.53252809921
+
 # LightGBM
-
-from lightgbm import LGBMRegressor
-
-lgbm = LGBMRegressor()
-
-lgbm_model = lgbm.fit(X_train, y_train)
+lgbm_model = LGBMRegressor().fit(X_train, y_train)
 
 y_pred = lgbm_model.predict(X_val)
 np.sqrt(mean_squared_error(y_val, y_pred))
 # 28462.53252809921
 
+# XGBoost
+xgb_model = XGBRegressor().fit(X_train, y_train)
 
-# GBM
-gbm = GradientBoostingClassifier()
-gbm_model = gbm.fit(X_train, y_train)
-
-y_pred = lgbm_model.predict(X_val)
+y_pred = xgb_model.predict(X_val)
 np.sqrt(mean_squared_error(y_val, y_pred))
+# 31739.217551795515
 
+# CatBoost
+catb_model = CatBoostRegressor().fit(X_train, y_train)
+
+y_pred = catb_model.predict(X_val)
+np.sqrt(mean_squared_error(y_val, y_pred))
+# 24205.191153001928
+
+# Decision Tree
+cart_model = DecisionTreeRegressor().fit(X_train, y_train)
+
+y_pred = cart_model.predict(X_val)
+np.sqrt(mean_squared_error(y_val, y_pred))
+# 48300.41570512278
 
 
 # Adım 3: Hiperparemetre optimizasyonu gerçekleştiriniz.
@@ -534,3 +555,10 @@ np.sqrt(mean_squared_error(y_val, y_pred))
 # Adım 4: Değişken önem düzeyini inceleyeniz.
 # Bonus: Test verisinde boş olan salePrice değişkenlerini tahminleyiniz ve Kaggle sayfasına submit etmeye uygun halde bir
 # dataframe oluşturup sonucunuzu yükleyiniz.
+
+
+
+
+
+
+
