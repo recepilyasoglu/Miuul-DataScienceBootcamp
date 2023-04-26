@@ -379,6 +379,7 @@ pca_df = create_pca_df(X, y)
 
 plot_pca(pca_df, "species")
 
+
 ################################
 # Diabetes
 ################################
