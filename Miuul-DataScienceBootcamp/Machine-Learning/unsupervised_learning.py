@@ -105,13 +105,37 @@ df.groupby("cluster").agg(["count", "mean", "median"])
 df.to_csv("cluster.csv")
 
 
+################################
+# Hierarchical Clustering
+################################
 
+df = pd.read_csv("Machine-Learning/Datasets/USArrests.csv", index_col=0)
 
+sc = MinMaxScaler((0, 1))
+df = sc.fit_transform(df)
 
+hc_average = linkage(df, "average")  # öklid uzaklığına göre gözlem birimlerini kümelere ayırıyor
+hc_average
 
+plt.figure(figsize=(10, 5))
+plt.title("Hiyerarşik Kümeleme Dendogramı")
+plt.xlabel("Gözlem Birimleri")
+plt.ylabel("Uzaklıklar")
+dendrogram(hc_average,
+           leaf_font_size=10)
+plt.show()
 
-
-
+# daha yalın ve sade hali
+plt.figure(figsize=(7, 5))
+plt.title("Hiyerarşik Kümeleme Dendogramı")
+plt.xlabel("Gözlem Birimleri")
+plt.ylabel("Uzaklıklar")
+dendrogram(hc_average,
+           truncate_mode="lastp",
+           p=10,
+           show_contracted=True,
+           leaf_font_size=10)
+plt.show()
 
 
 
