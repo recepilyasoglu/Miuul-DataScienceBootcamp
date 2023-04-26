@@ -17,6 +17,9 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
 from sklearn.model_selection import cross_val_score, GridSearchCV
 from sklearn.preprocessing import LabelEncoder
+from sklearn.tree import DecisionTreeRegressor
+from sklearn.linear_model import LinearRegression
+
 
 ################################
 # K-Means
@@ -220,10 +223,88 @@ pca.explained_variance_ratio_  # değişkenlerin tek başlarına bilginin ne kad
 np.cumsum(pca.explained_variance_ratio_)  # bir ara da ne kadarını oluşturdukları bilgisini
 
 
+#########################################
+# BONUS: Principal Component Regression
+#########################################
+
+# bileşenleri indirgeyip üzerlerine regresyon modeli kurmak
+
+df = pd.read_csv("Machine-Learning/Datasets/hitters.csv")
+df.shape
+
+len(pca_fit)
+
+num_cols = [col for col in df.columns if df[col].dtypes in ["int64", "float64"] and "Salary" not in col]
+len(num_cols)
+
+others = [col for col in df.columns if col not in num_cols]
+len(others)
+
+# çevirdiğimiz 3 bileşeni, dataframe'e çevirip, isimlendirdik
+pd.DataFrame(pca_fit, columns=["PC1", "PC2", "PC3"]).head()
+
+df[others].head()
+
+final_df = pd.concat([pd.DataFrame(pca_fit, columns=["PC1", "PC2", "PC3"]),
+                      df[others]], axis=1)
+final_df.head()  # 16 değişken vardı, şuan da 3 değişken var, bu 3 değişken o 16 değişkenin %82'sini temsil ediyor
 
 
+# one hot encode da kullanılabilirdi
+def label_encoder(dataframe, binary_col):
+    labelencoder = LabelEncoder()
+    dataframe[binary_col] = labelencoder.fit_transform(dataframe[binary_col])
+    return dataframe
 
+for col in ["NewLeague", "Division", "League"]:
+    label_encoder(final_df, col)
 
+final_df.dropna(inplace=True)
 
+y = final_df["Salary"]  # bağımlı değişken
+X = final_df.drop(["Salary"], axis=1)  # bağımsız değişken
 
+lm = LinearRegression()
 
+lm_rmse = np.mean(np.sqrt(-cross_val_score(lm, X, y, cv=5, scoring="neg_mean_squared_error")))
+lm_rmse
+# 345.6021106351967
+y.mean()
+# 535.9258821292775
+# -> kötü değil çok iyi de değil ama şimdilik gayet iyi
+
+cart = DecisionTreeRegressor()
+
+cart_rmse = np.mean(np.sqrt(-cross_val_score(cart, X, y, cv=5, scoring="neg_mean_squared_error")))
+cart_rmse
+# 381.1688506781601
+
+# hiperparametre optimizasyonu yapıyoruz
+
+cart_params = {'max_depth': range(1, 11),
+               "min_samples_split": range(2, 20)}
+
+# GridSearchCV
+cart_best_grid = GridSearchCV(cart,
+                              cart_params,
+                              cv=5,
+                              n_jobs=-1,
+                              verbose=True).fit(X, y)
+
+cart_best_grid.best_params_
+
+cart_final = DecisionTreeRegressor(**cart_best_grid.best_params_, random_state=17).fit(X, y)
+
+rmse = np.mean(np.sqrt(-cross_val_score(cart_final, X, y, cv=5, scoring="neg_mean_squared_error")))
+rmse
+# 330.1964109339104
+
+# Mülakat Sorusu :
+# Elimde bir veri seti var ama veri setinde label yok ama sınıflandırma problemi çözmek/sınıflandırma modeli kurmak istiyorum ne ypabilirim ?
+# Cevap:
+# örneğin 1000 tane müşteri cluster'ladık ama yeni bir müşteri geldi napıcaz ?
+# önce unsupervised şeklinde çeşitli cluster'lar çıkarırım sonra bu cluster'lar = sınıflar diye düşünürüm (4 cluster = 4 sınıf gibi),
+# sorna bunu sınıflandırıcıya sokarım, yeni bir müşteri geldiğinde elimdeki sınıfalardan hangi birine ait  olduğunu öğrenebilirim
+
+# Kısaca : önce unsupervised bir yöntem kullanırım, burdan çıkaracağım cluster'lara label muamelesi yaparım,
+# daha sonra bunu bir sınıflandırıcıya sokup eni bir gözlem birimi vs. gediğinde bunu sınıflandırabilirim.
