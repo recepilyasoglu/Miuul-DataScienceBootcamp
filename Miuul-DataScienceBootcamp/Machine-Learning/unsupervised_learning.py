@@ -18,7 +18,6 @@ from sklearn.decomposition import PCA
 from sklearn.model_selection import cross_val_score, GridSearchCV
 from sklearn.preprocessing import LabelEncoder
 
-
 ################################
 # K-Means
 ################################
@@ -42,7 +41,6 @@ kmeans.n_clusters  # küme sayısı
 kmeans.cluster_centers_  # küme merkezleri
 kmeans.labels_  # küme etiketleri
 kmeans.inertia_  # SSD, SSE veya SSR değeri (kütüphane de SSD olarak ifade edilmiş)
-
 
 ######################################
 # Optimum Küme Sayısının Belirlenmesi
@@ -72,7 +70,6 @@ elbow.show()
 
 elbow.elbow_value_  # optimum küme sayımızı görmek istersek
 
-
 ####################################
 # Final Cluster'ların Oluşturulması
 ####################################
@@ -85,12 +82,11 @@ kmeans.labels_
 kmeans.inertia_
 df[0:5]
 
-
-clusters = kmeans.labels_
+clusters_kmeans = kmeans.labels_
 
 df = pd.read_csv("Machine-Learning/Datasets/USArrests.csv", index_col=0)
 
-df["cluster"] = clusters  # eyaletlerin yanına hangi cluster'dan olduğu bilgisini gir
+df["cluster"] = clusters_kmeans  # eyaletlerin yanına hangi cluster'dan olduğu bilgisini gir
 df.head()
 
 df["cluster"] = df["cluster"] + 1
@@ -103,7 +99,6 @@ df[df["cluster"] == 5]
 df.groupby("cluster").agg(["count", "mean", "median"])
 
 df.to_csv("cluster.csv")
-
 
 ################################
 # Hierarchical Clustering
@@ -136,6 +131,55 @@ dendrogram(hc_average,
            show_contracted=True,
            leaf_font_size=10)
 plt.show()
+
+################################
+# Kume Sayısını Belirlemek
+################################
+
+# iki aday noktamıza göre çizgi çekiyoruz
+plt.figure(figsize=(7, 5))
+plt.title("Dendrograms")
+dend = dendrogram(hc_average)
+plt.axhline(y=0.5, color='r', linestyle='--')
+plt.axhline(y=0.6, color='b', linestyle='--')
+plt.show()
+
+################################
+# Final Modeli Oluşturmak
+################################
+
+from sklearn.cluster import AgglomerativeClustering
+
+cluster = AgglomerativeClustering(n_clusters=6, linkage="average")
+clusters = cluster.fit_predict(df)
+
+df = pd.read_csv("Machine-Learning/Datasets/USArrests.csv", index_col=0)
+
+df["hi_cluster_no"] = clusters
+
+df["hi_cluster_no"] = df["hi_cluster_no"] + 1
+
+df["kmeans_cluster_no"] = df["kmeans_cluster_no"] + 1
+df["kmeans_cluster_no"] = clusters_kmeans
+
+
+def get_same_cluster(dataframe, cluster_min, cluster_max, hi_cluster_no, kmeans_cluster_no,):
+    for i in range(cluster_min, cluster_max):
+        print("########## hi_cluster_no ve kmeans_cluster_no", i, "olan gözlemler ##########", "\n", \
+              dataframe[(dataframe[hi_cluster_no] == i) & (dataframe[kmeans_cluster_no] == i)])
+
+get_same_cluster(df, 1, 7, "hi_cluster_no", "kmeans_cluster_no")
+
+
+
+
+
+
+
+
+
+
+
 
 
 
