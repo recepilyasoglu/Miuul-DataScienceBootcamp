@@ -171,13 +171,53 @@ def get_same_cluster(dataframe, cluster_min, cluster_max, hi_cluster_no, kmeans_
 get_same_cluster(df, 1, 7, "hi_cluster_no", "kmeans_cluster_no")
 
 
+################################
+# Principal Component Analysis
+################################
+
+df = pd.read_csv("Machine-Learning/Datasets/hitters.csv")
+df.head()
+
+num_cols = [col for col in df.columns if df[col].dtypes in ["int64", "float64"] and "Salary" not in col]
+df[num_cols].head()
+df[num_cols].dtypes
+
+df = df[num_cols]
+df.dropna(inplace=True)
+df.shape
+
+df = StandardScaler().fit_transform(df)
+pca = PCA()
+pca_fit = pca.fit_transform(df)
+
+pca.explained_variance_ratio_  # bileşenlerin açıkladıkları varyans oranları (bilgi oranı)
+
+# peş peşe iki değişkenin, 3 değişkenin, ... açıklayacak olduğu varyans nedir ?
+np.cumsum(pca.explained_variance_ratio_)
+# -> pca'in oluşturduğu 16 adet yeni bileşenin, hepsinin açıkladığı varyans oranı
+# -> mesela 5. değişkene geldiğimizde verinin içince bulunan bilginin/varyansın %91'nin açıklandğını görüyoruz
 
 
+################################
+# Optimum Bileşen Sayısı
+################################
+
+pca = PCA().fit(df)
+plt.plot(np.cumsum(pca.explained_variance_ratio_))
+plt.xlabel("Bileşen Sayısını")
+plt.ylabel("Kümülatif Varyans Oranı")
+plt.show()
 
 
+################################
+# Final PCA'in Oluşturulması
+################################
 
+pca = PCA(n_components=3)
+pca_fit = pca.fit_transform(df)
 
-
+pca.explained_variance_ratio_  # değişkenlerin tek başlarına bilginin ne kadarını oluşturduklarını
+np.cumsum(pca.explained_variance_ratio_)  # bir ara da ne kadarını oluşturdukları bilgisini
 
 
 
