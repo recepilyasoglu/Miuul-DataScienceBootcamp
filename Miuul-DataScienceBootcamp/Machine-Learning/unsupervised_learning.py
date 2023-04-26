@@ -73,6 +73,46 @@ elbow.show()
 elbow.elbow_value_  # optimum küme sayımızı görmek istersek
 
 
+####################################
+# Final Cluster'ların Oluşturulması
+####################################
+
+kmeans = KMeans(n_clusters=elbow.elbow_value_).fit(df)
+
+kmeans.n_clusters
+kmeans.cluster_centers_
+kmeans.labels_
+kmeans.inertia_
+df[0:5]
+
+
+clusters = kmeans.labels_
+
+df = pd.read_csv("Machine-Learning/Datasets/USArrests.csv", index_col=0)
+
+df["cluster"] = clusters  # eyaletlerin yanına hangi cluster'dan olduğu bilgisini gir
+df.head()
+
+df["cluster"] = df["cluster"] + 1
+df.head()
+
+df[df["cluster"] == 1]
+
+df[df["cluster"] == 5]
+
+df.groupby("cluster").agg(["count", "mean", "median"])
+
+df.to_csv("cluster.csv")
+
+
+
+
+
+
+
+
+
+
 
 
 
