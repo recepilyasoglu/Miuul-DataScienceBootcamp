@@ -451,7 +451,7 @@ best_model_results = pd.DataFrame(
     {"Model": ["Logistic Regression", "Random Forest", "GBM", "LightGBM", "XGBoost", "KNN", "Decision Tree"],
      "Accuracy": [log_test, rf_test, gbm_test, lgbm_test, xg_test, knn_test, dt_test],
      "AUC": [log_auc, rf_auc, gbm_auc, lgbm_auc, xg_auc, knn_auc, dt_auc],
-     "F1_Score": [log_f1, rf_auc, gbm_auc, lgbm_auc, xg_auc, knn_auc, dt_auc]},
+     "F1_Score": [log_f1, rf_f1, gbm_f1, lgbm_f1, xg_f1, knn_f1, dt_f1]},
     index=range(1, 8))
 
 best_model_results = best_model_results.sort_values("Accuracy", ascending=False)
