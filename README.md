@@ -30,7 +30,7 @@
   - Missing Values
   - Encoding Scaling
   - Feature Extraction
-- Machine Learnig
+- Machine Learning
   - Linear Regression
   - Logistic Regression
   - KNN
