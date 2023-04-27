@@ -3,21 +3,42 @@
 ## In this program I included the trainings I received and the projects I did.
 
 ## What I learned during this program:
-- Python Programm,ng for Data Science
+- Python Programming for Data Science
   - Pyhton Exercises
   - List Comprehension
-- Pandas Exercises
-- Rule Based Classification
-- RFM Analysis
-- CLTV Prediction
-- Rating Product & Sorting Reviews in Amazon
-- AB Testing
-- Association Rule Learning
-- Hybrid Recommender System
+  - Pandas Exercises
+  - Rule Based Classification
+- CRM Analytics
+  - CRM Analysis 
+  - RFM Analysis
+  - CLTV
+  - CLTV Prediction
+- Measurement Problems
+  - Rating Products
+  - Sorting Products
+  - Sorting Reviews
+  - AB Testing
+- Recommendation Systems
+  - Association Rule Learning
+  - Content Based Recommendation
+  - Item Based Collaborative Filtering
+  - User Based Collaborative Filtering
+  - Model Based Matrix Factorization
+  - Hybrid Recommender System
 - Feature Engineering
-- Linear Regression
-- Confusion Matrix
-- Telco Customer Churn Prediction Model
-- House Prices Prediction Model
+  - Outliers
+  - Missing Values
+  - Encoding Scaling
+  - Feature Extraction
+- Machine Learnig
+  - Linear Regression
+  - Logistic Regression
+  - KNN
+  - CART
+  - Advanced Tree Methods
+  - Unsupervised Learning
+  - Confusion Matrix
+  - Telco Customer Churn Prediction Model
+  - House Prices Prediction Model
 
-#### To be continued...
+#### To be continue...
