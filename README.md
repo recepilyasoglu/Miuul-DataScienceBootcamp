@@ -3,8 +3,9 @@
 ## In this program I included the trainings I received and the projects I did.
 
 ## What I learned during this program:
-- Pyhton Exercises
-- List Comprehension
+- Python Programm,ng for Data Science
+  - Pyhton Exercises
+  - List Comprehension
 - Pandas Exercises
 - Rule Based Classification
 - RFM Analysis
