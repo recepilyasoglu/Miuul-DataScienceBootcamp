@@ -388,9 +388,44 @@ def hyperparameter_optimization(X, y, cv=3, scoring="roc_auc"):
 best_models = hyperparameter_optimization(X, y)
 
 
+######################################################
+# 5. Stacking & Ensemble Learning
+######################################################
+
+# Temeli; birden fazla modeli, bir ara da kullanmaya dayanır.
+
+def voting_classifier(best_models, X, y):
+    print("Voting Classifier...")
+
+    voting_clf = VotingClassifier(estimators=[('KNN', best_models["KNN"]),
+                                              ('RF', best_models["RF"]),
+                                              ('LightGBM', best_models["LightGBM"])],
+                                  voting='soft').fit(X, y)
+    # voting=hard: ön tanımlı değerdir, en fazla oyu alan sınıf tahmin edilir,
+    # voting=soft: sınıf gerçekleşme oranı üzerinden oylama yapılır,
+
+    cv_results = cross_validate(voting_clf, X, y, cv=3, scoring=["accuracy", "f1", "roc_auc"])
+    print(f"Accuracy: {cv_results['test_accuracy'].mean()}")
+    print(f"F1Score: {cv_results['test_f1'].mean()}")
+    print(f"ROC_AUC: {cv_results['test_roc_auc'].mean()}")
+    return voting_clf
+
+voting_clf = voting_classifier(best_models, X, y)
+# topluluğun gücü, belirlemiş olduğum en iyi 3 modelin bir araya geldiği so versiyondur
 
 
+######################################################
+# 6. Prediction for a New Observation
+######################################################
 
+X.columns
+random_user = X.sample(1, random_state=45)
+voting_clf.predict(random_user)
 
+# modelin kaydedilmesi
+joblib.dump(voting_clf, "voting_clf2.pkl")
 
+# kaydedilen modelin yüklenip test edilmesi
+new_model = joblib.load("voting_clf2.pkl")
+new_model.predict(random_user)
 
