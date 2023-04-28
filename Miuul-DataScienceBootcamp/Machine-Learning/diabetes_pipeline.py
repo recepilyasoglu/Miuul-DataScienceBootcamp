@@ -231,7 +231,7 @@ def main():
     base_models(X, y)
     best_models = hyperparameter_optimization(X, y)
     voting_clf = voting_classifier(best_models, X, y)
-    joblib.dump(voting_clf, "Machine-Learning/voting_clf2.pkl")
+    joblib.dump(voting_clf, "voting_clf2.pkl")
     return voting_clf
 
 # __->double underscore
