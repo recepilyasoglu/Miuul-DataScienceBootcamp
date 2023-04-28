@@ -8,18 +8,17 @@ import joblib
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
 
-
 df = pd.read_csv("Machine-Learning/Datasets/diabetes.csv")
 
 random_user = df.sample(1, random_state=45)
 
-new_model = joblib.load("Machine-Learning/voting_clf2.pkl")
+new_model = joblib.load("Machine-Learning/voting_clf.pkl")
 
 new_model.predict(random_user)  # burda hata verdi
 # problem: yeni random_user ile birlikte değerler değişmiş oldu
 
 # from diabetes_pipeline import diabetes_data_prep
-# burası normalde çalışıyor , ama dosya dizinim de alt dosyalar olduğu için hata verdi
+# burası normalde çalışıyor, ama dosya dizinim de alt dosyalar olduğu için hata verdi
 # aşağıdakileri tekrar çağırdım
 
 def grab_col_names(dataframe, cat_th=10, car_th=20):
@@ -140,7 +139,6 @@ X, y = diabetes_data_prep(df)  # prediction yerine scoring olarak da gelebilir!!
 
 random_user = X.sample(1, random_state=50)
 
-new_model = joblib.load("Machine-Learning/voting_clf2.pkl")
+new_model = joblib.load("Machine-Learning/voting_clf.pkl")
 
 new_model.predict(random_user)
-
