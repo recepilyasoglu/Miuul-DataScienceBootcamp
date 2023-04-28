@@ -226,12 +226,12 @@ def voting_classifier(best_models, X, y):
 ################################################
 
 def main():
-    df = pd.read_csv("Machine-Learning/Datasets/diabetes.csv")
+    df = pd.read_csv(r"C:\Users\reco1\PycharmProjects\Miuul-DataScienceBootcamp\Machine-Learning\Datasets\diabetes.csv")
     X, y = diabetes_data_prep(df)
     base_models(X, y)
     best_models = hyperparameter_optimization(X, y)
     voting_clf = voting_classifier(best_models, X, y)
-    joblib.dump(voting_clf, "voting_clf.pkl")
+    #joblib.dump(voting_clf, "voting_clf.pkl")
     return voting_clf
 
 # __->double underscore
@@ -240,11 +240,13 @@ if __name__ == "__main__":  # eğer çalıştırılabilir nesne varsa, main fonk
     main()
 # yukarıdaki bloğun temel amacı: bir scripti python doysaını tetikleyici bölümdür, çalıştıran kısımdır, terminalden de ulaşılabilir olur
 
+# dosya dizinine gidip, terminal de açtık,
+# "python diabetes_pipeline.py" diyerek terminalden bu dosyayı çalıştırdık
 
 # git github
-# makefile
+# makefile:  kod otomasyon aracı make git diyip add, commit, push işlemlerini yaptrabiliriz.
 # veri tabanlarından
 # log
 # class
-# docker
+# docker: docker barındırılan her ortamlarda projeler ilk halindeki gibi çalışabilir
 # requirement.txt
