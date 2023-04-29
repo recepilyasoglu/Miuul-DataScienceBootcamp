@@ -21,6 +21,10 @@
 import joblib
 import warnings
 import pandas as pd
+import seaborn as sns
+import matplotlib
+matplotlib.use("Qt5Agg")
+import matplotlib.pyplot as plt
 from lightgbm import LGBMClassifier
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier, VotingClassifier, AdaBoostClassifier
 from sklearn.linear_model import LogisticRegression
@@ -32,7 +36,7 @@ from sklearn.tree import DecisionTreeClassifier
 from xgboost import XGBClassifier
 from sklearn.preprocessing import MinMaxScaler, LabelEncoder, StandardScaler, RobustScaler
 from sklearn.model_selection import train_test_split
-
+from sklearn.metrics import classification_report, roc_auc_score
 
 pd.set_option('display.max_columns', None)
 pd.set_option('display.width', 500)
@@ -70,6 +74,8 @@ df = df[(df["position_id"] != 1)]
 df = df[(df["potential_label"] != "below_average")]
 df["potential_label"].value_counts()
 
+df.groupby("potential_label").mean()
+
 # Adım 5: Oluşturduğunuz veri setinden “pivot_table” fonksiyonunu kullanarak bir tablo oluşturunuz. Bu pivot table'da her satırda bir oyuncu
 # olacak şekilde manipülasyon yapınız.
 
@@ -87,25 +93,25 @@ pivot_scoutium.columns.name
 
 pivot_scoutium = pivot_scoutium.reset_index()
 pivot_scoutium.columns = pivot_scoutium.columns.map(str)
-
+pivot_scoutium.dtypes
 
 # Adım 6: Label Encoder fonksiyonunu kullanarak “potential_label” kategorilerini (average, highlighted) sayısal olarak ifade ediniz.
-
 binary_cols = [col for col in pivot_scoutium.columns if pivot_scoutium[col].dtype not in ["int64", "float64"]
                and pivot_scoutium[col].nunique() == 2]
 
-df[binary_cols].value_counts()
+pivot_scoutium[binary_cols].value_counts()
+
 
 def label_encoder(dataframe, binary_col):
     labelencoder = LabelEncoder()
     dataframe[binary_col] = labelencoder.fit_transform(dataframe[binary_col])
     return dataframe
 
+
 for col in binary_cols:
     label_encoder(pivot_scoutium, col)
 
-df[binary_cols].value_counts()
-
+pivot_scoutium[binary_cols].value_counts()
 
 # Adım 7: Sayısal değişken kolonlarını “num_cols” adıyla bir listeye atayınız.
 pivot_scoutium.dtypes
@@ -113,13 +119,12 @@ pivot_scoutium["potential_label"] = pivot_scoutium["potential_label"].astype("in
 
 num_cols = [col for col in pivot_scoutium.columns if pivot_scoutium[col].dtypes in ["int64", "float64"]]
 
-
+num_cols = [col for col in num_cols if col != "potential_label"]
 # Adım 8: Kaydettiğiniz bütün “num_cols” değişkenlerindeki veriyi ölçeklendirmek için StandardScaler uygulayınız.
 
 scaler = StandardScaler()
 
 pivot_scoutium[num_cols] = scaler.fit_transform(pivot_scoutium[num_cols])
-
 
 # Adım 9: Elimizdeki veri seti üzerinden minimum hata ile futbolcuların potansiyel etiketlerini tahmin eden bir makine öğrenmesi modeli
 # geliştiriniz. (Roc_auc, f1, precision, recall, accuracy metriklerini yazdırınız.)
@@ -129,18 +134,98 @@ X = pivot_scoutium.drop(["potential_label"], axis=1)
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
+random_user = X.sample(1)
 
-rf_model = RandomForestClassifier(n_estimators=100, random_state=42)
+# Random Forest
+rf_model = RandomForestClassifier(random_state=42)
 
 rf_model.get_params()
-# n_estimators = fit edilecek bağımsız ağaç sayısını ifade etmektedir.
-
 rf_model.fit(X_train, y_train)
 
-cv_results = cross_validate(rf_model, X, y, cv=5, scoring=["accuracy", "f1", "roc_auc", "precision", "recall"])
+y_pred = rf_model.predict(X_train)
+y_prob = rf_model.predict_proba(X_train)[:, 1]
+print(classification_report(y_train, y_pred))
+roc_auc_score(y_train, y_prob)
+
+# görmediği test verisi üzerinde tahminleme
+y_pred = rf_model.predict(X_test)  # yukarda train üzerinde kurduğumuz modele daha önce hiç görmediğimiz test setini verdik
+y_prob = rf_model.predict_proba(X_test)[:, 1]  # sadece 1’lerin olasılığını aldım
+print(classification_report(y_test, y_pred))
+roc_auc_score(y_test, y_prob)
+# 0.7902892561983471
+
+rf_model.predict(random_user)  # average
+
+# CV ile Başarı Değerlendirme
+cv_results = cross_validate(rf_model, X, y, cv=5, scoring=["accuracy", "f1", "roc_auc"])
 cv_results['test_accuracy'].mean()
+# 0.8561616161616161
 cv_results['test_f1'].mean()
+# 0.5740549983434233
 cv_results['test_roc_auc'].mean()
+# 0.9078576462297393
+
+# Decision Tree Classifier
+
+dt_model = DecisionTreeClassifier(random_state=42)
+dt_model.fit(X_train, y_train)
+
+y_pred = dt_model.predict(X_train)
+y_prob = dt_model.predict_proba(X_train)[:, 1]
+print(classification_report(y_train, y_pred))
+roc_auc_score(y_train, y_prob)
+
+y_pred = dt_model.predict(X_test)  # yukarda train üzerinde kurduğumuz modele daha önce hiç görmediğimiz test setini verdik
+y_prob = dt_model.predict_proba(X_test)[:, 1]
+print(classification_report(y_test, y_pred))
+roc_auc_score(y_test, y_prob)
+# 0.6818181818181819
+
+dt_model.predict(random_user)  # highlighted
+
+# CV ile Başarı Değerlendirme
+cv_results = cross_validate(dt_model, X, y, cv=5, scoring=["accuracy", "f1", "roc_auc"])
+
+cv_results['test_accuracy'].mean()
+# 0.7453198653198653
+cv_results['test_f1'].mean()
+# 0.49287878787878797
+cv_results['test_roc_auc'].mean()
+# 0.6989781536293165
+
+
+# Logistic Regression
+log_model = LogisticRegression(random_state=42)
+
+log_model.fit(X_train, y_train)
+
+y_pred = log_model.predict(X_train)
+y_prob = log_model.predict_proba(X_train)[:, 1]
+print(classification_report(y_train, y_pred))
+# precision: 0.86
+# recall: 0.67
+roc_auc_score(y_train, y_prob)
+# 0.9425601039636128
+
+y_pred = log_model.predict(X_test)  # yukarda train üzerinde kurduğumuz modele daha önce hiç görmediğimiz test setini verdik
+y_prob = log_model.predict_proba(X_test)[:, 1]  # sadece 1’lerin olasılığını aldım
+print(classification_report(y_test, y_pred))
+# precision: 0.75
+# recall: 0.55
+roc_auc_score(y_test, y_prob)
+# 0.7727272727272727
+
+log_model.predict(random_user)  # highlighted
+
+# CV ile Başarı Değerlendirme
+cv_results = cross_validate(log_model, X, y, cv=5, scoring=["accuracy", "f1", "roc_auc"])
+
+cv_results['test_accuracy'].mean()
+# 0.8524579124579125
+cv_results['test_f1'].mean()
+# 0.5938579067990833
+cv_results['test_roc_auc'].mean()
+# 0.8355179704016914
 
 
 
