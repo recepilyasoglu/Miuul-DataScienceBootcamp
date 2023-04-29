@@ -120,6 +120,7 @@ pivot_scoutium["potential_label"] = pivot_scoutium["potential_label"].astype("in
 num_cols = [col for col in pivot_scoutium.columns if pivot_scoutium[col].dtypes in ["int64", "float64"]]
 
 num_cols = [col for col in num_cols if col != "potential_label"]
+
 # Adım 8: Kaydettiğiniz bütün “num_cols” değişkenlerindeki veriyi ölçeklendirmek için StandardScaler uygulayınız.
 
 scaler = StandardScaler()
@@ -181,7 +182,7 @@ print(classification_report(y_test, y_pred))
 roc_auc_score(y_test, y_prob)
 # 0.6818181818181819
 
-dt_model.predict(random_user)  # highlighted
+dt_model.predict(random_user)  # average
 
 # CV ile Başarı Değerlendirme
 cv_results = cross_validate(dt_model, X, y, cv=5, scoring=["accuracy", "f1", "roc_auc"])
@@ -215,7 +216,7 @@ print(classification_report(y_test, y_pred))
 roc_auc_score(y_test, y_prob)
 # 0.7727272727272727
 
-log_model.predict(random_user)  # highlighted
+log_model.predict(random_user)  # average
 
 # CV ile Başarı Değerlendirme
 cv_results = cross_validate(log_model, X, y, cv=5, scoring=["accuracy", "f1", "roc_auc"])
@@ -228,5 +229,19 @@ cv_results['test_roc_auc'].mean()
 # 0.8355179704016914
 
 
+# Adım 10: Değişkenlerin önem düzeyini belirten feature_importance fonksiyonunu kullanarak özelliklerin sıralamasını çizdiriniz.
+def plot_importance(model, features, num=len(X_train), save=False):
+    feature_imp = pd.DataFrame({'Value': model.feature_importances_, 'Feature': features.columns})
+    plt.figure(figsize=(10, 10))
+    sns.set(font_scale=1)
+    sns.barplot(x="Value", y="Feature", data=feature_imp.sort_values(by="Value",
+                                                                     ascending=False)[0:num])
+    plt.title('Features')
+    plt.tight_layout()
+    plt.show()
+    if save:
+        plt.savefig('importances.png')
 
-
+plot_importance(rf_model, X_train)
+plot_importance(dt_model, X_train)
+# plot_importance(log_model, X_train)
