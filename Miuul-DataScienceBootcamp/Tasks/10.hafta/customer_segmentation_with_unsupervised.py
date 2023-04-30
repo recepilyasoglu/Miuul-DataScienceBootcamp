@@ -26,6 +26,7 @@ import pandas as pd
 import seaborn as sns
 import matplotlib
 matplotlib.use("Qt5Agg")
+import datetime as dt
 import matplotlib.pyplot as plt
 from lightgbm import LGBMClassifier
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier, VotingClassifier, AdaBoostClassifier
@@ -45,17 +46,20 @@ pd.set_option('display.width', 500)
 
 warnings.simplefilter(action='ignore', category=Warning)
 
+
 # Task 1: Preparing the Data
 
 # Adım 1: flo_data_20K.csv verisini okutunuz.
 
 data = pd.read_csv("Tasks/10.hafta/flo_data_20k.csv")
+
 df = data.copy()
 df.head()
 df.isnull().sum()
 df.describe().T
 
 df["order_channel"].value_counts()
+
 
 # Adım 2: Müşterileri segmentlerken kullanacağınız değişkenleri seçiniz.
 # Not: Tenure (Müşterinin yaşı), Recency (en son kaç gün önce alışveriş yaptığı) gibi yeni değişkenler oluşturabilirsiniz.
@@ -69,11 +73,12 @@ def outlier_thresholds(dataframe, variable):
     low_limit = round(quartile1 - 1.5 * interquantile_range)
     return low_limit, up_limit
 
-# sütunlar da kontrol ettim, olanları liste içerisine alıp baskılayabilmek adına
+# sütunlar da kontrol ettim, gözüme çarpan değişkenle liste içerisine alıp baskılayabilmek adına
 outlier_thresholds(df, df.columns)
 
 values = ["customer_value_total_ever_offline", "customer_value_total_ever_online",
           "customer_value_total_ever_offline", "customer_value_total_ever_online"]
+
 def check_outlier(dataframe, col_name):
     if dataframe[col_name].dtype != 'category':
         low_limit, up_limit = outlier_thresholds(dataframe, col_name)
@@ -85,15 +90,63 @@ def check_outlier(dataframe, col_name):
 
 for col in values:
     print(col, check_outlier(df, col))
-    # sağlamasında da görmüş oldum yukarıdaki liste eçerisinde yer alan değerler de aykırılık var
+    # sağlamasında da görmüş oldum yukarıdaki liste içerisinde yer alan değerler de aykırılık var
 
 def replace_with_threshold(dataframe, variable):
     low_limit, upl_limit = outlier_thresholds(dataframe, variable)
     # dataframe.loc[(dataframe[variable] < low_limit), variable] = low_limit
     dataframe.loc[(dataframe[variable] > upl_limit), variable] = upl_limit
 
+# yukarıda values içerisinde yer alan değerleri baskılama
 for col in values:
     replace_with_threshold(df, col)
+
+# kontrol
+for col in values:
+    print(col, check_outlier(df, col))  # False hepsi
+
+
+# Preparing rfm, monetary and tenure variables
+def prep_rfm_metrics(dataframe, csv=False):
+    # Verinin Hazırlanması
+    dataframe["total_number_purchase"] = dataframe["order_num_total_ever_offline"] + dataframe["order_num_total_ever_online"]
+    dataframe["total_number_price"] = dataframe["customer_value_total_ever_offline"] + dataframe["customer_value_total_ever_online"]
+
+    date = dataframe.columns[dataframe.columns.str.contains("date")]
+    dataframe[date] = dataframe[date].apply(pd.to_datetime)
+
+    # RFM Metriklerinin Hazırlanması
+    today_date = dt.datetime(2021, 6, 1)
+    rfm = df.groupby("master_id").agg(
+        {"last_order_date": lambda x: (today_date - x.max()).days,
+         "total_number_purchase": lambda x: x,
+         "total_number_price": lambda x: x})
+    rfm.columns = ["recency", "frequency", "monetary"]
+
+    return rfm
+
+rfm_df = prep_rfm_metrics(df)
+rfm_df
+
+df.describe().T
+
+# yukarıda yeni oluşturduğum değişkenler de aykırılık olabilir
+new_values = ["total_number_purchase", "total_number_price"]
+
+# kontrol
+for col in new_values:
+    print(col, check_outlier(df, col))  # True
+
+# burda da yine replace ile ufak bir kırpma işlemi yaptım
+for col in new_values:
+    replace_with_threshold(df, col)
+
+df.describe().T
+
+# oluşturduğum rfm_df ve df birleştirme işlemi
+main_df = pd.merge(df, rfm_df, on="master_id")
+
+main_df
 
 
 
