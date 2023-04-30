@@ -20,7 +20,6 @@
 # olarak yapan müşterilerin geçmiş alışveriş davranışlarından elde edilen bilgilerden oluşmaktadır)
 
 
-import joblib
 import warnings
 import pandas as pd
 import seaborn as sns
@@ -28,21 +27,12 @@ import matplotlib
 matplotlib.use("Qt5Agg")
 import datetime as dt
 import matplotlib.pyplot as plt
-from lightgbm import LGBMClassifier
-from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier, VotingClassifier, AdaBoostClassifier
-from sklearn.linear_model import LogisticRegression
-from sklearn.model_selection import cross_validate, GridSearchCV
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.preprocessing import StandardScaler
-from sklearn.svm import SVC
-from sklearn.tree import DecisionTreeClassifier
-from xgboost import XGBClassifier
 from sklearn.preprocessing import MinMaxScaler, LabelEncoder, StandardScaler, RobustScaler
 from sklearn.cluster import KMeans
 from yellowbrick.cluster import KElbowVisualizer
 from scipy.cluster.hierarchy import linkage
 from scipy.cluster.hierarchy import dendrogram
-
+from sklearn.cluster import AgglomerativeClustering
 
 
 pd.set_option('display.max_columns', None)
@@ -160,11 +150,11 @@ main_df
 # standartlaştırma işleminde oluşturduğum rfm_df üzerinden ilerlemeyi tercih ettim
 
 sc = MinMaxScaler((0, 1))
-sclaed_df = sc.fit_transform(rfm_df)
+scaled_df = sc.fit_transform(rfm_df)
 
-sclaed_df
+scaled_df
 
-kmeans = KMeans(n_clusters=4, random_state=17).fit(sclaed_df)
+kmeans = KMeans(n_clusters=4, random_state=17).fit(scaled_df)
 kmeans.get_params()
 
 kmeans.n_clusters  # küme sayısı
@@ -181,7 +171,7 @@ ssd = []
 K = range(1, 30)
 
 for k in K:
-    kmeans = KMeans(n_clusters=k).fit(sclaed_df)
+    kmeans = KMeans(n_clusters=k).fit(scaled_df)
     ssd.append(kmeans.inertia_)
 
 ssd
@@ -194,7 +184,7 @@ plt.show()
 # Verisetini kümelere ayırırken, ayırmamız gereken optimumu noktayı verir
 kmeans = KMeans()
 elbow = KElbowVisualizer(kmeans, k=(2, 20))
-elbow.fit(sclaed_df)
+elbow.fit(scaled_df)
 elbow.show()
 
 
@@ -202,7 +192,7 @@ elbow.show()
 
 # Final Cluster'ların Oluşturulması
 
-kmeans = KMeans(n_clusters=elbow.elbow_value_).fit(sclaed_df)
+kmeans = KMeans(n_clusters=elbow.elbow_value_).fit(scaled_df)
 
 kmeans.n_clusters
 kmeans.cluster_centers_
@@ -214,25 +204,76 @@ clusters_kmeans = kmeans.labels_
 # oluşturduğum rfm_df'in kopyası üzerinde kmeleme merkezlerini oluşturmayı düşündüm
 k_df = rfm_df.copy()
 
-k_df["cluster"] = clusters_kmeans
+k_df["kmeans_cluster_no"] = clusters_kmeans
 
 k_df
 
-k_df["cluster"] = k_df["cluster"] + 1
+# cluster = 0 görmek istemediğimden +1 ekledim
+k_df["kmeans_cluster_no"] = k_df["kmeans_cluster_no"] + 1
 
 k_df
 
-k_df[k_df["cluster"] == 1]
+k_df[k_df["kmeans_cluster_no"] == 1]
 
-k_df[k_df["cluster"] == 5]
+k_df[k_df["kmeans_cluster_no"] == 5]
 
 
 # Adım 4: Herbir segmenti istatistiksel olarak inceleyeniz.
 
-k_df.groupby("cluster").agg(["count", "mean", "median"])
+k_df.groupby("kmeans_cluster_no").agg(["count", "mean", "median"])
 
-k_df.to_csv("cluster.csv")
+k_df.to_csv("kmeans_cluster.csv")
 
 
+# Görev 3: Hierarchical Clustering ile Müşteri Segmentasyonu
 
+# Adım 1: Görev 2'de standırlaştırdığınız dataframe'i kullanarak optimum küme sayısını belirleyiniz.
+
+scaled_df
+
+hc_average = linkage(scaled_df, "average")  # öklid uzaklığına göre gözlem birimlerini kümelere ayırma
+hc_average
+
+# plt.figure(figsize=(10, 5))
+# plt.title("Hiyerarşik Kümeleme Dendogramı")
+# plt.xlabel("Gözlem Birimleri")
+# plt.ylabel("Uzaklıklar")
+# dendrogram(hc_average,
+#            leaf_font_size=10)
+# plt.show()
+
+# optimum küme sayısını belirleme
+# iki aday noktamıza göre çizgi çekiyoruz
+plt.figure(figsize=(7, 5))
+plt.title("Dendrograms")
+dend = dendrogram(hc_average)
+plt.axhline(y=0.5, color='r', linestyle='--')
+plt.axhline(y=0.6, color='b', linestyle='--')
+plt.show()
+
+
+# Adım 2: Modelinizi oluşturunuz ve müşterileriniz segmentleyiniz.
+
+cluster = AgglomerativeClustering(n_clusters=6, linkage="average")
+clusters = cluster.fit_predict(scaled_df)
+
+k_df["hi_cluster_no"] = clusters
+
+k_df["hi_cluster_no"] = k_df["hi_cluster_no"] + 1
+
+# k_df.drop(["cluster"], axis=1, inplace=True)
+
+
+# Adım 3: Her bir segmenti istatistiksel olarak inceleyeniz.
+
+k_df.groupby("hi_cluster_no").agg(["count", "mean", "median"])
+
+
+# benzer cluster'lara sahip gözlemleri görebilmek ve incelemek için fonksiyon yazdım
+def get_same_cluster(dataframe, cluster_min, cluster_max, hi_cluster_no, kmeans_cluster_no):
+    for i in range(cluster_min, cluster_max):
+        print("########## hi_cluster_no ve kmeans_cluster_no", i, "olan gözlemler ##########", "\n", \
+              dataframe[(dataframe[hi_cluster_no] == i) & (dataframe[kmeans_cluster_no] == i)])
+
+get_same_cluster(k_df, 1, 7, "hi_cluster_no", "kmeans_cluster_no")
 
