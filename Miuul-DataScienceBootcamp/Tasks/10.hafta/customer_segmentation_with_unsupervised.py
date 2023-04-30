@@ -296,9 +296,11 @@ def get_same_cluster(dataframe, cluster_min, cluster_max, hi_cluster_no, kmeans_
               dataframe[(dataframe[hi_cluster_no] == i) & (dataframe[kmeans_cluster_no] == i)])
 
 
-get_same_cluster(cluster_df, 1, 7, "hi_cluster_no", "kmeans_cluster_no")
+get_same_cluster(cluster_df, 1, 7, "kmeans_cluster_no", "hi_cluster_no")
 
 
+# burda da iki farklı cluster da aynı segmentlere sahip gözlemleri incelemek istedim,
+# fark olarak kullanıcının görmek istediği segmenet senaryosuna göre ilerledim
 def get_same_cluster_name(dataframe, kmeans_name, hi_name):
     cluster_names = {1: "Hibernating",
                      2: "At_Risk",
@@ -312,3 +314,4 @@ def get_same_cluster_name(dataframe, kmeans_name, hi_name):
                  dataframe[(dataframe[kmeans_name] == segment) & (dataframe[hi_name] == segment)])
 
 get_same_cluster_name(cluster_df, "kmeans_cluster_name", "hierarchical_cluster_name")
+
