@@ -229,7 +229,9 @@ k_df[k_df["cluster"] == 5]
 
 # Adım 4: Herbir segmenti istatistiksel olarak inceleyeniz.
 
+k_df.groupby("cluster").agg(["count", "mean", "median"])
 
+k_df.to_csv("cluster.csv")
 
 
 
