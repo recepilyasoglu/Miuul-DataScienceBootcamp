@@ -221,7 +221,7 @@ cluster_df[cluster_df["kmeans_cluster_no"] == 1]
 
 cluster_df[cluster_df["kmeans_cluster_no"] == 5]
 
-# ek olarak oluşturulan kümeleri sayının yanında isimlendirmek de istedim
+# ek olarak, oluşturulan kümeleri sayının yanında isimlendirmek de istedim
 # küme isimlerini belirleme
 cluster_names = {1: "Hibernating",
                  2: "At_Risk",
