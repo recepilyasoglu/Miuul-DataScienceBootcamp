@@ -24,6 +24,7 @@ import warnings
 import pandas as pd
 import seaborn as sns
 import matplotlib
+
 matplotlib.use("Qt5Agg")
 import datetime as dt
 import matplotlib.pyplot as plt
@@ -34,12 +35,10 @@ from scipy.cluster.hierarchy import linkage
 from scipy.cluster.hierarchy import dendrogram
 from sklearn.cluster import AgglomerativeClustering
 
-
 pd.set_option('display.max_columns', None)
 pd.set_option('display.width', 500)
 
 warnings.simplefilter(action='ignore', category=Warning)
-
 
 # Task 1: Preparing the Data
 
@@ -67,11 +66,13 @@ def outlier_thresholds(dataframe, variable):
     low_limit = round(quartile1 - 1.5 * interquantile_range)
     return low_limit, up_limit
 
+
 # sütunlar da kontrol ettim, gözüme çarpan değişkenle liste içerisine alıp baskılayabilmek adına
 outlier_thresholds(df, df.columns)
 
 values = ["customer_value_total_ever_offline", "customer_value_total_ever_online",
           "customer_value_total_ever_offline", "customer_value_total_ever_online"]
+
 
 def check_outlier(dataframe, col_name):
     if dataframe[col_name].dtype != 'category':
@@ -82,14 +83,17 @@ def check_outlier(dataframe, col_name):
         else:
             return False
 
+
 for col in values:
     print(col, check_outlier(df, col))
     # sağlamasında da görmüş oldum yukarıdaki liste içerisinde yer alan değerler de aykırılık var
+
 
 def replace_with_threshold(dataframe, variable):
     low_limit, upl_limit = outlier_thresholds(dataframe, variable)
     # dataframe.loc[(dataframe[variable] < low_limit), variable] = low_limit
     dataframe.loc[(dataframe[variable] > upl_limit), variable] = upl_limit
+
 
 # yukarıda values içerisinde yer alan değerleri baskılama
 for col in values:
@@ -103,8 +107,10 @@ for col in values:
 # Preparing rfm, monetary and tenure variables
 def prep_rfm_metrics(dataframe, csv=False):
     # Verinin Hazırlanması
-    dataframe["total_number_purchase"] = dataframe["order_num_total_ever_offline"] + dataframe["order_num_total_ever_online"]
-    dataframe["total_number_price"] = dataframe["customer_value_total_ever_offline"] + dataframe["customer_value_total_ever_online"]
+    dataframe["total_number_purchase"] = dataframe["order_num_total_ever_offline"] + dataframe[
+        "order_num_total_ever_online"]
+    dataframe["total_number_price"] = dataframe["customer_value_total_ever_offline"] + dataframe[
+        "customer_value_total_ever_online"]
 
     date = dataframe.columns[dataframe.columns.str.contains("date")]
     dataframe[date] = dataframe[date].apply(pd.to_datetime)
@@ -118,6 +124,7 @@ def prep_rfm_metrics(dataframe, csv=False):
     rfm.columns = ["recency", "frequency", "monetary"]
 
     return rfm
+
 
 rfm_df = prep_rfm_metrics(df)
 rfm_df
@@ -142,7 +149,6 @@ main_df = pd.merge(df, rfm_df, on="master_id")
 
 main_df
 
-
 # Görev 2: Customer Segmentation with K-Means (K-Means ile Müşteri Segmentasyonu)
 
 # Adım 1: Değişkenleri standartlaştırınız.
@@ -161,7 +167,6 @@ kmeans.n_clusters  # küme sayısı
 kmeans.cluster_centers_  # küme merkezleri
 kmeans.labels_  # küme etiketleri
 kmeans.inertia_  # SSD, SSE veya SSR değeri (kütüphane de SSD olarak ifade edilmiş)
-
 
 # Adım 2: Optimum küme sayısını belirleyiniz.
 
@@ -186,7 +191,6 @@ kmeans = KMeans()
 elbow = KElbowVisualizer(kmeans, k=(2, 20))
 elbow.fit(scaled_df)
 elbow.show()
-
 
 # Adım 3: Modelinizi oluşturunuz ve müşterilerinizi segmentleyiniz.
 
@@ -217,7 +221,6 @@ cluster_df[cluster_df["kmeans_cluster_no"] == 1]
 
 cluster_df[cluster_df["kmeans_cluster_no"] == 5]
 
-
 # ek olarak oluşturulan kümeleri sayının yanında isimlendirmek de istedim
 # küme isimlerini belirleme
 cluster_names = {1: "Hibernating",
@@ -229,16 +232,13 @@ cluster_names = {1: "Hibernating",
 
 cluster_df["kmeans_cluster_name"] = cluster_df["kmeans_cluster_no"].map(cluster_names)
 
-
 # Adım 4: Herbir segmenti istatistiksel olarak inceleyeniz.
 
 cluster_df.groupby("kmeans_cluster_no").agg(["count", "mean", "median"])
 
 cluster_df.groupby("kmeans_cluster_name").agg(["count", "mean", "median"])
 
-
 cluster_df.to_csv("kmeans_cluster.csv")
-
 
 # Görev 3: Hierarchical Clustering ile Müşteri Segmentasyonu
 
@@ -266,7 +266,6 @@ plt.axhline(y=0.5, color='r', linestyle='--')
 plt.axhline(y=0.6, color='b', linestyle='--')
 plt.show()
 
-
 # Adım 2: Modelinizi oluşturunuz ve müşterileriniz segmentleyiniz.
 
 cluster = AgglomerativeClustering(n_clusters=6, linkage="average")
@@ -286,14 +285,34 @@ cluster_df.groupby("hi_cluster_no").agg(["count", "mean", "median"])
 
 cluster_df.groupby("hierarchical_cluster_name").agg(["count", "mean", "median"])
 
-
 cluster_df
 
+
+# BONUS
 # benzer cluster'lara sahip gözlemleri görebilmek ve incelemek için fonksiyon yazdım
 def get_same_cluster(dataframe, cluster_min, cluster_max, hi_cluster_no, kmeans_cluster_no):
     for i in range(cluster_min, cluster_max):
         print("########## hi_cluster_no ve kmeans_cluster_no", i, "olan gözlemler ##########", "\n", \
               dataframe[(dataframe[hi_cluster_no] == i) & (dataframe[kmeans_cluster_no] == i)])
 
+
 get_same_cluster(cluster_df, 1, 7, "hi_cluster_no", "kmeans_cluster_no")
+
+
+def get_same_cluster_name(dataframe, cluster_min, cluster_max, kmeans_name, hi_name):
+    cluster_names = {1: "Hibernating",
+                     2: "At_Risk",
+                     3: "About_to_Sleep",
+                     4: "Can't_Loose",
+                     5: "Big_Spenders",
+                     6: "Loyal_Customers"}
+    print("Cluster Names:", cluster_names)
+    segment = str(input("Görmek istediğiniz müşteri segmentini belirtin..:"))
+    for i in range(cluster_min, cluster_max):
+        if clus
+            return dataframe[(dataframe[kmeans_name] == segment) & (dataframe[hi_name] == segment)]
+        else:
+            print("Maalesef girdiğiniz değer de Segment bulunmamaktadır !!")
+
+get_same_cluster_name(cluster_df, 1, 7, "kmeans_cluster_name", "hierarchical_cluster_name")
 
