@@ -38,8 +38,12 @@ from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier
 from xgboost import XGBClassifier
 from sklearn.preprocessing import MinMaxScaler, LabelEncoder, StandardScaler, RobustScaler
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import classification_report, roc_auc_score
+from sklearn.cluster import KMeans
+from yellowbrick.cluster import KElbowVisualizer
+from scipy.cluster.hierarchy import linkage
+from scipy.cluster.hierarchy import dendrogram
+
+
 
 pd.set_option('display.max_columns', None)
 pd.set_option('display.width', 500)
@@ -148,6 +152,82 @@ main_df = pd.merge(df, rfm_df, on="master_id")
 
 main_df
 
+
+# Görev 2: Customer Segmentation with K-Means (K-Means ile Müşteri Segmentasyonu)
+
+# Adım 1: Değişkenleri standartlaştırınız.
+
+# standartlaştırma işleminde oluşturduğum rfm_df üzerinden ilerlemeyi tercih ettim
+
+sc = MinMaxScaler((0, 1))
+sclaed_df = sc.fit_transform(rfm_df)
+
+sclaed_df
+
+kmeans = KMeans(n_clusters=4, random_state=17).fit(sclaed_df)
+kmeans.get_params()
+
+kmeans.n_clusters  # küme sayısı
+kmeans.cluster_centers_  # küme merkezleri
+kmeans.labels_  # küme etiketleri
+kmeans.inertia_  # SSD, SSE veya SSR değeri (kütüphane de SSD olarak ifade edilmiş)
+
+
+# Adım 2: Optimum küme sayısını belirleyiniz.
+
+kmeans = KMeans()
+ssd = []
+
+K = range(1, 30)
+
+for k in K:
+    kmeans = KMeans(n_clusters=k).fit(sclaed_df)
+    ssd.append(kmeans.inertia_)
+
+ssd
+
+plt.plot(K, ssd, "bx-")
+plt.xlabel("Farklı K Değerlerine Karşılık SSE/SSR/SSD")
+plt.title("Optimum Küme sayısı için Elbow Yöntemi")
+plt.show()
+
+# Verisetini kümelere ayırırken, ayırmamız gereken optimumu noktayı verir
+kmeans = KMeans()
+elbow = KElbowVisualizer(kmeans, k=(2, 20))
+elbow.fit(sclaed_df)
+elbow.show()
+
+
+# Adım 3: Modelinizi oluşturunuz ve müşterilerinizi segmentleyiniz.
+
+# Final Cluster'ların Oluşturulması
+
+kmeans = KMeans(n_clusters=elbow.elbow_value_).fit(sclaed_df)
+
+kmeans.n_clusters
+kmeans.cluster_centers_
+kmeans.labels_
+kmeans.inertia_
+
+clusters_kmeans = kmeans.labels_
+
+# oluşturduğum rfm_df'in kopyası üzerinde kmeleme merkezlerini oluşturmayı düşündüm
+k_df = rfm_df.copy()
+
+k_df["cluster"] = clusters_kmeans
+
+k_df
+
+k_df["cluster"] = k_df["cluster"] + 1
+
+k_df
+
+k_df[k_df["cluster"] == 1]
+
+k_df[k_df["cluster"] == 5]
+
+
+# Adım 4: Herbir segmenti istatistiksel olarak inceleyeniz.
 
 
 
