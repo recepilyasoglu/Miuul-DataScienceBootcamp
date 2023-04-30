@@ -202,27 +202,42 @@ kmeans.inertia_
 clusters_kmeans = kmeans.labels_
 
 # oluşturduğum rfm_df'in kopyası üzerinde kmeleme merkezlerini oluşturmayı düşündüm
-k_df = rfm_df.copy()
+cluster_df = rfm_df.copy()
 
-k_df["kmeans_cluster_no"] = clusters_kmeans
+cluster_df["kmeans_cluster_no"] = clusters_kmeans
 
-k_df
+cluster_df
 
 # cluster = 0 görmek istemediğimden +1 ekledim
-k_df["kmeans_cluster_no"] = k_df["kmeans_cluster_no"] + 1
+cluster_df["kmeans_cluster_no"] = cluster_df["kmeans_cluster_no"] + 1
 
-k_df
+cluster_df
 
-k_df[k_df["kmeans_cluster_no"] == 1]
+cluster_df[cluster_df["kmeans_cluster_no"] == 1]
 
-k_df[k_df["kmeans_cluster_no"] == 5]
+cluster_df[cluster_df["kmeans_cluster_no"] == 5]
+
+
+# ek olarak oluşturulan kümeleri sayının yanında isimlendirmek de istedim
+# küme isimlerini belirleme
+cluster_names = {1: "Hibernating",
+                 2: "At_Risk",
+                 3: "About_to_Sleep",
+                 4: "Can't_Loose",
+                 5: "Big_Spenders",
+                 6: "Loyal_Customers"}
+
+cluster_df["kmeans_cluster_name"] = cluster_df["kmeans_cluster_no"].map(cluster_names)
 
 
 # Adım 4: Herbir segmenti istatistiksel olarak inceleyeniz.
 
-k_df.groupby("kmeans_cluster_no").agg(["count", "mean", "median"])
+cluster_df.groupby("kmeans_cluster_no").agg(["count", "mean", "median"])
 
-k_df.to_csv("kmeans_cluster.csv")
+cluster_df.groupby("kmeans_cluster_name").agg(["count", "mean", "median"])
+
+
+cluster_df.to_csv("kmeans_cluster.csv")
 
 
 # Görev 3: Hierarchical Clustering ile Müşteri Segmentasyonu
@@ -257,17 +272,22 @@ plt.show()
 cluster = AgglomerativeClustering(n_clusters=6, linkage="average")
 clusters = cluster.fit_predict(scaled_df)
 
-k_df["hi_cluster_no"] = clusters
+cluster_df["hi_cluster_no"] = clusters
 
-k_df["hi_cluster_no"] = k_df["hi_cluster_no"] + 1
+cluster_df["hi_cluster_no"] = cluster_df["hi_cluster_no"] + 1
 
-# k_df.drop(["cluster"], axis=1, inplace=True)
+cluster_df["hierarchical_cluster_name"] = cluster_df["hi_cluster_no"].map(cluster_names)
 
+cluster_df
 
 # Adım 3: Her bir segmenti istatistiksel olarak inceleyeniz.
 
-k_df.groupby("hi_cluster_no").agg(["count", "mean", "median"])
+cluster_df.groupby("hi_cluster_no").agg(["count", "mean", "median"])
 
+cluster_df.groupby("hierarchical_cluster_name").agg(["count", "mean", "median"])
+
+
+cluster_df
 
 # benzer cluster'lara sahip gözlemleri görebilmek ve incelemek için fonksiyon yazdım
 def get_same_cluster(dataframe, cluster_min, cluster_max, hi_cluster_no, kmeans_cluster_no):
@@ -275,5 +295,5 @@ def get_same_cluster(dataframe, cluster_min, cluster_max, hi_cluster_no, kmeans_
         print("########## hi_cluster_no ve kmeans_cluster_no", i, "olan gözlemler ##########", "\n", \
               dataframe[(dataframe[hi_cluster_no] == i) & (dataframe[kmeans_cluster_no] == i)])
 
-get_same_cluster(k_df, 1, 7, "hi_cluster_no", "kmeans_cluster_no")
+get_same_cluster(cluster_df, 1, 7, "hi_cluster_no", "kmeans_cluster_no")
 
