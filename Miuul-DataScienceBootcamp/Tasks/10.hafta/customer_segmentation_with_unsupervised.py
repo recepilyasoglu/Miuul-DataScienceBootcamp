@@ -309,7 +309,7 @@ def get_same_cluster_name(dataframe, kmeans_name, hi_name):
                      5: "Big_Spenders",
                      6: "Loyal_Customers"}
     print("Cluster Names:", cluster_names)
-    segment = str(input("Görmek istediğiniz müşteri segmentini belirtin..:"))
+    segment = str(input("Görmek istediğiniz müşteri segmentini belirtiniz..:"))
     return print("########## K-Means Segment Name ve Hierarchical Segment Name", segment, "olan gözlemler ##########", "\n",
                  dataframe[(dataframe[kmeans_name] == segment) & (dataframe[hi_name] == segment)])
 
