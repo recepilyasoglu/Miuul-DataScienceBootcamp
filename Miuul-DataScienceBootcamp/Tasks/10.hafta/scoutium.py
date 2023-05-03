@@ -47,8 +47,8 @@ warnings.simplefilter(action='ignore', category=Warning)
 
 # Adım 1: scoutium_attributes.csv ve scoutium_potential_labels.csv dosyalarını okutunuz.
 
-attributes = pd.read_csv("Tasks/10.hafta/scoutium_attributes.csv", sep=";")
-labels = pd.read_csv("Tasks/10.hafta/scoutium_potential_labels.csv", sep=";")
+attributes = pd.read_csv("Miuul-DataScienceBootcamp/Tasks/10.hafta/scoutium_attributes.csv", sep=";")
+labels = pd.read_csv("Miuul-DataScienceBootcamp/Tasks/10.hafta/scoutium_potential_labels.csv", sep=";")
 
 attributes.head()
 labels.head()
@@ -121,6 +121,8 @@ num_cols = [col for col in pivot_scoutium.columns if pivot_scoutium[col].dtypes 
 
 num_cols = [col for col in num_cols if col != "potential_label"]
 
+num_cols = num_cols[2:]
+
 # Adım 8: Kaydettiğiniz bütün “num_cols” değişkenlerindeki veriyi ölçeklendirmek için StandardScaler uygulayınız.
 
 scaler = StandardScaler()
@@ -135,99 +137,31 @@ X = pivot_scoutium.drop(["potential_label"], axis=1)
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-random_user = X.sample(1)
+def base_models(X, y, scoring="roc_auc"):
+    print("Base Models....")
+    classifiers = [('LR', LogisticRegression()),
+                   ('KNN', KNeighborsClassifier()),
+                   ("SVC", SVC()),
+                   ("CART", DecisionTreeClassifier()),
+                   ("RF", RandomForestClassifier()),
+                   ('Adaboost', AdaBoostClassifier()),
+                   ('GBM', GradientBoostingClassifier()),
+                   ('XGBoost', XGBClassifier(use_label_encoder=False, eval_metric='logloss')),
+                   ('LightGBM', LGBMClassifier()),
+                   # ('CatBoost', CatBoostClassifier(verbose=False))
+                   ]
 
-# Random Forest
-rf_model = RandomForestClassifier(random_state=42)
+    for name, classifier in classifiers:
+        cv_results = cross_validate(classifier, X, y, cv=3, scoring=scoring)
+        print(f"{scoring}: {round(cv_results['test_score'].mean(), 4)} ({name}) ")
 
-rf_model.get_params()
-rf_model.fit(X_train, y_train)
+total_precision = base_models(X, y, scoring="precision")
+total_roc_auc = base_models(X, y, scoring="roc_auc")
+total_f1 = base_models(X, y, scoring="f1")
+total_recall = base_models(X, y, scoring="recall")
+total_accuracy = base_models(X, y, scoring="accuracy")
 
-y_pred = rf_model.predict(X_train)
-y_prob = rf_model.predict_proba(X_train)[:, 1]
-print(classification_report(y_train, y_pred))
-roc_auc_score(y_train, y_prob)
-
-# görmediği test verisi üzerinde tahminleme
-y_pred = rf_model.predict(X_test)  # yukarda train üzerinde kurduğumuz modele daha önce hiç görmediğimiz test setini verdik
-y_prob = rf_model.predict_proba(X_test)[:, 1]  # sadece 1’lerin olasılığını aldım
-print(classification_report(y_test, y_pred))
-roc_auc_score(y_test, y_prob)
-# 0.7902892561983471
-
-rf_model.predict(random_user)  # average
-
-# CV ile Başarı Değerlendirme
-cv_results = cross_validate(rf_model, X, y, cv=5, scoring=["accuracy", "f1", "roc_auc"])
-cv_results['test_accuracy'].mean()
-# 0.8561616161616161
-cv_results['test_f1'].mean()
-# 0.5740549983434233
-cv_results['test_roc_auc'].mean()
-# 0.9078576462297393
-
-# Decision Tree Classifier
-
-dt_model = DecisionTreeClassifier(random_state=42)
-dt_model.fit(X_train, y_train)
-
-y_pred = dt_model.predict(X_train)
-y_prob = dt_model.predict_proba(X_train)[:, 1]
-print(classification_report(y_train, y_pred))
-roc_auc_score(y_train, y_prob)
-
-y_pred = dt_model.predict(X_test)  # yukarda train üzerinde kurduğumuz modele daha önce hiç görmediğimiz test setini verdik
-y_prob = dt_model.predict_proba(X_test)[:, 1]
-print(classification_report(y_test, y_pred))
-roc_auc_score(y_test, y_prob)
-# 0.6818181818181819
-
-dt_model.predict(random_user)  # average
-
-# CV ile Başarı Değerlendirme
-cv_results = cross_validate(dt_model, X, y, cv=5, scoring=["accuracy", "f1", "roc_auc"])
-
-cv_results['test_accuracy'].mean()
-# 0.7453198653198653
-cv_results['test_f1'].mean()
-# 0.49287878787878797
-cv_results['test_roc_auc'].mean()
-# 0.6989781536293165
-
-
-# Logistic Regression
-log_model = LogisticRegression(random_state=42)
-
-log_model.fit(X_train, y_train)
-
-y_pred = log_model.predict(X_train)
-y_prob = log_model.predict_proba(X_train)[:, 1]
-print(classification_report(y_train, y_pred))
-# precision: 0.86
-# recall: 0.67
-roc_auc_score(y_train, y_prob)
-# 0.9425601039636128
-
-y_pred = log_model.predict(X_test)  # yukarda train üzerinde kurduğumuz modele daha önce hiç görmediğimiz test setini verdik
-y_prob = log_model.predict_proba(X_test)[:, 1]  # sadece 1’lerin olasılığını aldım
-print(classification_report(y_test, y_pred))
-# precision: 0.75
-# recall: 0.55
-roc_auc_score(y_test, y_prob)
-# 0.7727272727272727
-
-log_model.predict(random_user)  # average
-
-# CV ile Başarı Değerlendirme
-cv_results = cross_validate(log_model, X, y, cv=5, scoring=["accuracy", "f1", "roc_auc"])
-
-cv_results['test_accuracy'].mean()
-# 0.8524579124579125
-cv_results['test_f1'].mean()
-# 0.5938579067990833
-cv_results['test_roc_auc'].mean()
-# 0.8355179704016914
-
+results = pd.concat([total_precision, total_roc_auc, total_f1, total_recall, total_accuracy], axis=1)
 
 # Adım 10: Değişkenlerin önem düzeyini belirten feature_importance fonksiyonunu kullanarak özelliklerin sıralamasını çizdiriniz.
 def plot_importance(model, features, num=len(X_train), save=False):
