@@ -114,14 +114,10 @@ for col in binary_cols:
 pivot_scoutium[binary_cols].value_counts()
 
 # Adım 7: Sayısal değişken kolonlarını “num_cols” adıyla bir listeye atayınız.
+
 pivot_scoutium.dtypes
-pivot_scoutium["potential_label"] = pivot_scoutium["potential_label"].astype("int64")
 
-num_cols = [col for col in pivot_scoutium.columns if pivot_scoutium[col].dtypes in ["int64", "float64"]]
-
-num_cols = [col for col in num_cols if col != "potential_label"]
-
-num_cols = num_cols[2:]
+num_cols = [col for col in pivot_scoutium.columns if pivot_scoutium[col].dtypes in ["float64"]]
 
 # Adım 8: Kaydettiğiniz bütün “num_cols” değişkenlerindeki veriyi ölçeklendirmek için StandardScaler uygulayınız.
 
@@ -133,9 +129,10 @@ pivot_scoutium[num_cols] = scaler.fit_transform(pivot_scoutium[num_cols])
 # geliştiriniz. (Roc_auc, f1, precision, recall, accuracy metriklerini yazdırınız.)
 
 y = pivot_scoutium["potential_label"]
-X = pivot_scoutium.drop(["potential_label"], axis=1)
+X = pivot_scoutium.drop(["potential_label", "position_id", "player_id"], axis=1)
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
 
 def base_models(X, y, scoring="roc_auc"):
     print("Base Models....")
@@ -150,18 +147,31 @@ def base_models(X, y, scoring="roc_auc"):
                    ('LightGBM', LGBMClassifier()),
                    # ('CatBoost', CatBoostClassifier(verbose=False))
                    ]
-
+    results = {}
     for name, classifier in classifiers:
         cv_results = cross_validate(classifier, X, y, cv=3, scoring=scoring)
-        print(f"{scoring}: {round(cv_results['test_score'].mean(), 4)} ({name}) ")
+        # print(f"{scoring}: {round(cv_results['test_score'].mean(), 4)} ({name}) ")
+        results[name] = round(cv_results['test_score'].mean(), 4)
+        print(f"{scoring}: {results[name]} ({name}) ")
+    return results
 
-total_precision = base_models(X, y, scoring="precision")
+
+total_accuracy = base_models(X, y, scoring="accuracy")
 total_roc_auc = base_models(X, y, scoring="roc_auc")
 total_f1 = base_models(X, y, scoring="f1")
+total_precision = base_models(X, y, scoring="precision")
 total_recall = base_models(X, y, scoring="recall")
-total_accuracy = base_models(X, y, scoring="accuracy")
 
-results = pd.concat([total_precision, total_roc_auc, total_f1, total_recall, total_accuracy], axis=1)
+accuracy_series = pd.Series(total_accuracy, name="accuracy")
+roc_auc_series = pd.Series(total_roc_auc, name="roc_auc")
+f1_series = pd.Series(total_f1, name="f1")
+precision_series = pd.Series(total_precision, name="precision")
+recall_series = pd.Series(total_recall, name="recall")
+
+# Concat
+results = pd.concat([accuracy_series, roc_auc_series, f1_series, precision_series, recall_series], axis=1)
+
+results.sort_values("accuracy", ascending=False)
 
 # Adım 10: Değişkenlerin önem düzeyini belirten feature_importance fonksiyonunu kullanarak özelliklerin sıralamasını çizdiriniz.
 def plot_importance(model, features, num=len(X_train), save=False):
@@ -176,6 +186,12 @@ def plot_importance(model, features, num=len(X_train), save=False):
     if save:
         plt.savefig('importances.png')
 
+
+
+lgbm_model = LGBMClassifier().fit(X, y)
+rf_model = RandomForestClassifier().fit(X, y)
+gbm_model = GradientBoostingClassifier().fit(X, y)
+
+plot_importance(lgbm_model, X_train)
 plot_importance(rf_model, X_train)
-plot_importance(dt_model, X_train)
-# plot_importance(log_model, X_train)
+plot_importance(gbm_model, X_train)
