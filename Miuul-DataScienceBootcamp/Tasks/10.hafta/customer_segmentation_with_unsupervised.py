@@ -26,7 +26,7 @@ import seaborn as sns
 import matplotlib
 
 matplotlib.use("Qt5Agg")
-import datetime as dt
+import datetime
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import MinMaxScaler, LabelEncoder, StandardScaler, RobustScaler
 from sklearn.cluster import KMeans
@@ -44,7 +44,7 @@ warnings.simplefilter(action='ignore', category=Warning)
 
 # Adım 1: flo_data_20K.csv verisini okutunuz.
 
-data = pd.read_csv("Tasks/10.hafta/flo_data_20k.csv")
+data = pd.read_csv("Miuul-DataScienceBootcamp/Tasks/10.hafta/flo_data_20k.csv")
 
 df = data.copy()
 df.head()
@@ -57,51 +57,80 @@ df["order_channel"].value_counts()
 # Adım 2: Müşterileri segmentlerken kullanacağınız değişkenleri seçiniz.
 # Not: Tenure (Müşterinin yaşı), Recency (en son kaç gün önce alışveriş yaptığı) gibi yeni değişkenler oluşturabilirsiniz.
 
-# Aykırı değer kontrolü
-def outlier_thresholds(dataframe, variable):
-    quartile1 = dataframe[variable].quantile(0.01)
-    quartile3 = dataframe[variable].quantile(0.99)
-    interquantile_range = quartile3 - quartile1
-    up_limit = round(quartile3 + 1.5 * interquantile_range)
-    low_limit = round(quartile1 - 1.5 * interquantile_range)
-    return low_limit, up_limit
+def grab_col_names(dataframe, cat_th=10, car_th=20):
+    """
+
+    Veri setindeki kategorik, numerik ve kategorik fakat kardinal değişkenlerin isimlerini verir.
+    Not: Kategorik değişkenlerin içerisine numerik görünümlü kategorik değişkenler de dahildir.
+
+    Parameters
+    ------
+        dataframe: dataframe
+                Değişken isimleri alınmak istenilen dataframe
+        cat_th: int, optional
+                numerik fakat kategorik olan değişkenler için sınıf eşik değeri
+        car_th: int, optinal
+                kategorik fakat kardinal değişkenler için sınıf eşik değeri
+
+    Returns
+    ------
+        cat_cols: list
+                Kategorik değişken listesi
+        num_cols: list
+                Numerik değişken listesi
+        cat_but_car: list
+                Kategorik görünümlü kardinal değişken listesi
+
+    Examples
+    ------
+        import seaborn as sns
+        df = sns.load_dataset("iris")
+        print(grab_col_names(df))
 
 
-# sütunlar da kontrol ettim, gözüme çarpan değişkenle liste içerisine alıp baskılayabilmek adına
-outlier_thresholds(df, df.columns)
+    Notes
+    ------
+        cat_cols + num_cols + cat_but_car = toplam değişken sayısı
+        num_but_cat cat_cols'un içerisinde.
+        Return olan 3 liste toplamı toplam değişken sayısına eşittir: cat_cols + num_cols + cat_but_car = değişken sayısı
 
-values = ["customer_value_total_ever_offline", "customer_value_total_ever_online",
-          "customer_value_total_ever_offline", "customer_value_total_ever_online"]
+    """
 
+    # cat_cols, cat_but_car
+    cat_cols = [col for col in dataframe.columns if dataframe[col].dtypes == "O"]
+    num_but_cat = [col for col in dataframe.columns if dataframe[col].nunique() < cat_th and
+                   dataframe[col].dtypes != "O"]
+    cat_but_car = [col for col in dataframe.columns if dataframe[col].nunique() > car_th and
+                   dataframe[col].dtypes == "O"]
+    cat_cols = cat_cols + num_but_cat
+    cat_cols = [col for col in cat_cols if col not in cat_but_car]
 
-def check_outlier(dataframe, col_name):
-    if dataframe[col_name].dtype != 'category':
-        low_limit, up_limit = outlier_thresholds(dataframe, col_name)
-        col = pd.to_numeric(dataframe[col_name], errors='coerce')
-        if col[(col > up_limit) | (col < low_limit)].any(axis=None):
-            return True
-        else:
-            return False
+    # num_cols
+    num_cols = [col for col in dataframe.columns if dataframe[col].dtypes != "O"]
+    num_cols = [col for col in num_cols if col not in num_but_cat]
 
+    # print(f"Observations: {dataframe.shape[0]}")
+    # print(f"Variables: {dataframe.shape[1]}")
+    # print(f'cat_cols: {len(cat_cols)}')
+    # print(f'num_cols: {len(num_cols)}')
+    # print(f'cat_but_car: {len(cat_but_car)}')
+    # print(f'num_but_cat: {len(num_but_cat)}')
+    return cat_cols, num_cols, cat_but_car
 
-for col in values:
-    print(col, check_outlier(df, col))
-    # sağlamasında da görmüş oldum yukarıdaki liste içerisinde yer alan değerler de aykırılık var
+cat_cols, num_cols, cat_but_car = grab_col_names(df)
 
+# Tip düzenlemeleri
 
-def replace_with_threshold(dataframe, variable):
-    low_limit, upl_limit = outlier_thresholds(dataframe, variable)
-    # dataframe.loc[(dataframe[variable] < low_limit), variable] = low_limit
-    dataframe.loc[(dataframe[variable] > upl_limit), variable] = upl_limit
+df[cat_cols].dtypes
+df[num_cols].dtypes
+df[cat_but_car].dtypes
 
+# interested_in_categories_12 değişkeni kategorik olduğu cat_cols'a ekledim.
+cat_cols.append(cat_but_car[5])
+cat_but_car = cat_but_car[1:5]
 
-# yukarıda values içerisinde yer alan değerleri baskılama
-for col in values:
-    replace_with_threshold(df, col)
-
-# kontrol
-for col in values:
-    print(col, check_outlier(df, col))  # False hepsi
+# tarihleri date formatına çevirdim
+df[cat_but_car] = df[cat_but_car].apply(pd.to_datetime)
 
 
 # Preparing rfm, monetary and tenure variables
@@ -125,6 +154,7 @@ def prep_rfm_metrics(dataframe, csv=False):
 
     return rfm
 
+df[df["master_id"] == "00016786-2f5a-11ea-bb80-000d3a38a36f"]
 
 rfm_df = prep_rfm_metrics(df)
 rfm_df
@@ -196,7 +226,7 @@ elbow.show()
 
 # Final Cluster'ların Oluşturulması
 
-kmeans = KMeans(n_clusters=elbow.elbow_value_).fit(scaled_df)
+kmeans = KMeans(n_clusters=6).fit(scaled_df)
 
 kmeans.n_clusters
 kmeans.cluster_centers_
@@ -213,7 +243,7 @@ cluster_df["kmeans_cluster_no"] = clusters_kmeans
 cluster_df
 
 # cluster = 0 görmek istemediğimden +1 ekledim
-cluster_df["kmeans_cluster_no"] = cluster_df["kmeans_cluster_no"] + 1
+cluster_df["kmeans_cluster_no"] = cluster_df["kmeans_cluster_no"] - 1
 
 cluster_df
 
@@ -223,14 +253,16 @@ cluster_df[cluster_df["kmeans_cluster_no"] == 5]
 
 # ek olarak, oluşturulan kümeleri sayının yanında isimlendirmek de istedim
 # küme isimlerini belirleme
-cluster_names = {1: "Hibernating",
+cluster_names = {1: "About_to_Sleep",
                  2: "At_Risk",
-                 3: "About_to_Sleep",
-                 4: "Can't_Loose",
+                 3: "Hibernating",
+                 4: "Loyal_Customers",
                  5: "Big_Spenders",
-                 6: "Loyal_Customers"}
+                 6: "Can't_Loose"}
 
 cluster_df["kmeans_cluster_name"] = cluster_df["kmeans_cluster_no"].map(cluster_names)
+
+cluster_df.describe().T
 
 # Adım 4: Herbir segmenti istatistiksel olarak inceleyeniz.
 
@@ -281,6 +313,8 @@ cluster_df
 
 # Adım 3: Her bir segmenti istatistiksel olarak inceleyeniz.
 
+rfm_df["frequency"].hist(bins=100)
+
 cluster_df.groupby("hi_cluster_no").agg(["count", "mean", "median"])
 
 cluster_df.groupby("hierarchical_cluster_name").agg(["count", "mean", "median"])
@@ -295,6 +329,7 @@ def get_same_cluster(dataframe, cluster_min, cluster_max, hi_cluster_no, kmeans_
         print("########## hi_cluster_no ve kmeans_cluster_no", i, "olan gözlemler ##########", "\n", \
               dataframe[(dataframe[hi_cluster_no] == i) & (dataframe[kmeans_cluster_no] == i)])
 
+pd.crosstab(cluster_df["kmeans_cluster_no"], cluster_df["hi_cluster_no"])
 
 get_same_cluster(cluster_df, 1, 7, "kmeans_cluster_no", "hi_cluster_no")
 
