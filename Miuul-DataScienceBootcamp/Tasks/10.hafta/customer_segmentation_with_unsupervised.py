@@ -26,7 +26,7 @@ import seaborn as sns
 import matplotlib
 
 matplotlib.use("Qt5Agg")
-import datetime
+import datetime as dt
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import MinMaxScaler, LabelEncoder, StandardScaler, RobustScaler
 from sklearn.cluster import KMeans
@@ -154,29 +154,37 @@ def prep_rfm_metrics(dataframe, csv=False):
 
     return rfm
 
-df[df["master_id"] == "00016786-2f5a-11ea-bb80-000d3a38a36f"]
 
 rfm_df = prep_rfm_metrics(df)
 rfm_df
 
 df.describe().T
 
-# yukarıda yeni oluşturduğum değişkenler de aykırılık olabilir
-new_values = ["total_number_purchase", "total_number_price"]
-
-# kontrol
-for col in new_values:
-    print(col, check_outlier(df, col))  # True
-
-# burda da yine replace ile ufak bir kırpma işlemi yaptım
-for col in new_values:
-    replace_with_threshold(df, col)
-
-df.describe().T
-
 # oluşturduğum rfm_df ve df birleştirme işlemi
 main_df = pd.merge(df, rfm_df, on="master_id")
 
+main_df
+
+# eksik değerimiz yok onun için herhangi bir işlem yapmıyorum
+main_df.isnull().sum()
+
+
+# One Hot Encoding
+ohe_cols = [col for col in main_df.columns if 10 >= main_df[col].nunique() > 2]
+
+
+def one_hot_encoder(dataframe, categorical_cols, drop_first=True):
+    dataframe = pd.get_dummies(dataframe, columns=categorical_cols, drop_first=drop_first)
+    return dataframe
+
+
+main_df = one_hot_encoder(main_df, ohe_cols)
+main_df.head()
+
+# scaler esnasında id ve date değişkenlerinde tip hatası verme ihtimaline karşılık
+# ilili değişkenleri düşürüyorum
+main_df = main_df.drop(["master_id", "first_order_date", "last_order_date",
+                        "last_order_date_online", "last_order_date_offline", "interested_in_categories_12"], axis=1)
 main_df
 
 # Görev 2: Customer Segmentation with K-Means (K-Means ile Müşteri Segmentasyonu)
@@ -186,7 +194,7 @@ main_df
 # standartlaştırma işleminde oluşturduğum rfm_df üzerinden ilerlemeyi tercih ettim
 
 sc = MinMaxScaler((0, 1))
-scaled_df = sc.fit_transform(rfm_df)
+scaled_df = sc.fit_transform(main_df)
 
 scaled_df
 
@@ -197,6 +205,7 @@ kmeans.n_clusters  # küme sayısı
 kmeans.cluster_centers_  # küme merkezleri
 kmeans.labels_  # küme etiketleri
 kmeans.inertia_  # SSD, SSE veya SSR değeri (kütüphane de SSD olarak ifade edilmiş)
+
 
 # Adım 2: Optimum küme sayısını belirleyiniz.
 
