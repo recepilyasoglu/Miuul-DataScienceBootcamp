@@ -235,7 +235,7 @@ elbow.show()
 
 # Final Cluster'ların Oluşturulması
 
-kmeans = KMeans(n_clusters=6).fit(scaled_df)
+kmeans = KMeans(elbow.elbow_value_).fit(scaled_df)
 
 kmeans.n_clusters
 kmeans.cluster_centers_
@@ -245,14 +245,14 @@ kmeans.inertia_
 clusters_kmeans = kmeans.labels_
 
 # oluşturduğum rfm_df'in kopyası üzerinde kmeleme merkezlerini oluşturmayı düşündüm
-cluster_df = rfm_df.copy()
+cluster_df = main_df.copy()
 
 cluster_df["kmeans_cluster_no"] = clusters_kmeans
 
 cluster_df
 
 # cluster = 0 görmek istemediğimden +1 ekledim
-cluster_df["kmeans_cluster_no"] = cluster_df["kmeans_cluster_no"] - 1
+cluster_df["kmeans_cluster_no"] = cluster_df["kmeans_cluster_no"] + 1
 
 cluster_df
 
@@ -260,26 +260,12 @@ cluster_df[cluster_df["kmeans_cluster_no"] == 1]
 
 cluster_df[cluster_df["kmeans_cluster_no"] == 5]
 
-# ek olarak, oluşturulan kümeleri sayının yanında isimlendirmek de istedim
-# küme isimlerini belirleme
-cluster_names = {1: "About_to_Sleep",
-                 2: "At_Risk",
-                 3: "Hibernating",
-                 4: "Loyal_Customers",
-                 5: "Big_Spenders",
-                 6: "Can't_Loose"}
-
-cluster_df["kmeans_cluster_name"] = cluster_df["kmeans_cluster_no"].map(cluster_names)
-
 cluster_df.describe().T
 
 # Adım 4: Herbir segmenti istatistiksel olarak inceleyeniz.
 
 cluster_df.groupby("kmeans_cluster_no").agg(["count", "mean", "median"])
 
-cluster_df.groupby("kmeans_cluster_name").agg(["count", "mean", "median"])
-
-cluster_df.to_csv("kmeans_cluster.csv")
 
 # Görev 3: Hierarchical Clustering ile Müşteri Segmentasyonu
 
@@ -300,29 +286,25 @@ hc_average
 
 # optimum küme sayısını belirleme
 # iki aday noktamıza göre çizgi çekiyoruz
-plt.figure(figsize=(7, 5))
+plt.figure(figsize=(12, 10))
 plt.title("Dendrograms")
 dend = dendrogram(hc_average)
-plt.axhline(y=0.5, color='r', linestyle='--')
-plt.axhline(y=0.6, color='b', linestyle='--')
+plt.axhline(y=1.5, color='r', linestyle='--')
+plt.axhline(y=1.8, color='b', linestyle='--')
 plt.show()
 
 # Adım 2: Modelinizi oluşturunuz ve müşterileriniz segmentleyiniz.
 
-cluster = AgglomerativeClustering(n_clusters=6, linkage="average")
+cluster = AgglomerativeClustering(n_clusters=18, linkage="average")
 clusters = cluster.fit_predict(scaled_df)
 
 cluster_df["hi_cluster_no"] = clusters
 
 cluster_df["hi_cluster_no"] = cluster_df["hi_cluster_no"] + 1
 
-cluster_df["hierarchical_cluster_name"] = cluster_df["hi_cluster_no"].map(cluster_names)
-
 cluster_df
 
 # Adım 3: Her bir segmenti istatistiksel olarak inceleyeniz.
-
-rfm_df["frequency"].hist(bins=100)
 
 cluster_df.groupby("hi_cluster_no").agg(["count", "mean", "median"])
 
@@ -340,22 +322,22 @@ def get_same_cluster(dataframe, cluster_min, cluster_max, hi_cluster_no, kmeans_
 
 pd.crosstab(cluster_df["kmeans_cluster_no"], cluster_df["hi_cluster_no"])
 
-get_same_cluster(cluster_df, 1, 7, "kmeans_cluster_no", "hi_cluster_no")
+get_same_cluster(cluster_df, 1, 18, "kmeans_cluster_no", "hi_cluster_no")
 
 
 # burda da iki farklı cluster da aynı segmentlere sahip gözlemleri incelemek istedim,
 # fark olarak kullanıcının görmek istediği segmenet senaryosuna göre ilerledim
-def get_same_cluster_name(dataframe, kmeans_name, hi_name):
-    cluster_names = {1: "Hibernating",
-                     2: "At_Risk",
-                     3: "About_to_Sleep",
-                     4: "Can't_Loose",
-                     5: "Big_Spenders",
-                     6: "Loyal_Customers"}
-    print("Cluster Names:", cluster_names)
-    segment = str(input("Görmek istediğiniz müşteri segmentini belirtiniz..:"))
-    return print("########## K-Means Segment Name ve Hierarchical Segment Name", segment, "olan gözlemler ##########", "\n",
-                 dataframe[(dataframe[kmeans_name] == segment) & (dataframe[hi_name] == segment)])
-
-get_same_cluster_name(cluster_df, "kmeans_cluster_name", "hierarchical_cluster_name")
+# def get_same_cluster_name(dataframe, kmeans_name, hi_name):
+#     cluster_names = {1: "Hibernating",
+#                      2: "At_Risk",
+#                      3: "About_to_Sleep",
+#                      4: "Can't_Loose",
+#                      5: "Big_Spenders",
+#                      6: "Loyal_Customers"}
+#     print("Cluster Names:", cluster_names)
+#     segment = str(input("Görmek istediğiniz müşteri segmentini belirtiniz..:"))
+#     return print("########## K-Means Segment Name ve Hierarchical Segment Name", segment, "olan gözlemler ##########", "\n",
+#                  dataframe[(dataframe[kmeans_name] == segment) & (dataframe[hi_name] == segment)])
+#
+# get_same_cluster_name(cluster_df, "kmeans_cluster_name", "hierarchical_cluster_name")
 
