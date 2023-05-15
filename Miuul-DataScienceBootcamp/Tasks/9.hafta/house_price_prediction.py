@@ -30,18 +30,16 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 from matplotlib import pyplot as plt
-from sklearn.tree import DecisionTreeClassifier, export_graphviz, export_text, DecisionTreeRegressor
-from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
-from sklearn.metrics import classification_report, roc_auc_score
 from sklearn.preprocessing import MinMaxScaler, LabelEncoder, StandardScaler, RobustScaler
-from sklearn.linear_model import LogisticRegression
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier, VotingClassifier
-from sklearn.model_selection import train_test_split, GridSearchCV, cross_validate, RandomizedSearchCV, validation_curve
+from sklearn.model_selection import train_test_split, GridSearchCV, cross_val_score, cross_validate, RandomizedSearchCV, \
+    validation_curve
 from sklearn.metrics import mean_squared_error
-from xgboost import XGBClassifier, XGBRegressor
-from lightgbm import LGBMClassifier, LGBMRegressor
-from catboost import CatBoostClassifier, CatBoostRegressor
+from lightgbm import LGBMRegressor
+from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
+from sklearn.linear_model import LinearRegression, Ridge, Lasso, ElasticNet
+from sklearn.neighbors import KNeighborsRegressor
+from sklearn.tree import DecisionTreeRegressor
+from xgboost import XGBRegressor
 from skompiler import skompile
 import graphviz
 
@@ -151,6 +149,7 @@ def get_stats(dataframe, col):
                  "############### Betimsel İstatistik ############### \n", dataframe[col].describe().T
                  )
 
+
 get_stats(df, cat_cols)
 get_stats(df, num_cols)
 
@@ -180,6 +179,7 @@ df[cat_cols].dtypes
 # num_cols.append(list(cat_cols[42:52]))
 # len(num_cols)
 len(cat_cols)
+
 
 # del num_cols[-10]
 # cat_cols.append(num_cols[2])
@@ -400,30 +400,31 @@ df['TotalBathrooms'] = df['BsmtFullBath'] + df['BsmtHalfBath'] + df['FullBath'] 
 # garaj kapasitesi
 df['GarageCapacity'] = df['GarageCars'] + df['GarageArea']
 
-
 # Adım 4: Encoding işlemlerini gerçekleştiriniz.
 
 # Label Encoding
 binary_cols = [col for col in df.columns if (df[col].dtype not in [int, float]) and (df[col].nunique() == 2)]
+
 
 def label_encoder(dataframe, binary_col):
     labelencoder = LabelEncoder()
     dataframe[binary_col] = labelencoder.fit_transform(dataframe[binary_col])
     return dataframe
 
+
 for col in binary_cols:
     label_encoder(df, col)
 
-
 # One Hot Encoding
 ohe_cols = [col for col in df.columns if 25 >= df[col].nunique() > 2]
+
 
 def one_hot_encoder(dataframe, categorical_cols, drop_first=True):
     dataframe = pd.get_dummies(dataframe, columns=categorical_cols, drop_first=drop_first)
     return dataframe
 
-df = one_hot_encoder(df, ohe_cols)
 
+df = one_hot_encoder(df, ohe_cols)
 
 # Standartlaştırma
 
@@ -444,186 +445,130 @@ df[num_cols] = rs.fit_transform(df[num_cols])
 
 # Adım 1: Train ve Test verisini ayırınız. (SalePrice değişkeni boş olan değerler test verisidir.)
 
-df.reset_index(inplace=True, drop=True)
-variables = [col for col in df.columns if col not in "SalePrice"]
+#  Train ve Test verisini ayırınız. (SalePrice değişkeni boş olan değerler test verisidir.)
+train_df = df[df['SalePrice'].notnull()]
+test_df = df[df['SalePrice'].isnull()]
 
-X_train = df.loc[:1459, variables]
-X_test = df.loc[1460:, variables]
-y_train = df.loc[:1459, "SalePrice"]
-y_test = df.loc[1460:, "SalePrice"]
+y = train_df['SalePrice']  # np.log1p(df['SalePrice'])
+X = train_df.drop(["Id", "SalePrice"], axis=1)
 
-X_train, X_val, y_train, y_val = train_test_split(X_train, y_train,
-                                                  test_size=0.25,
-                                                  random_state=1)
+# Train verisi ile model kurup, model başarısını değerlendiriniz.
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, random_state=17)
 
-# Adım 2: Train verisi ile model kurup, model başarısını değerlendiriniz.
-
-# Random Forest
-rf_model = RandomForestRegressor(random_state=17).fit(X_train, y_train)
-
-y_pred = rf_model.predict(X_val)
-np.sqrt(mean_squared_error(y_val, y_pred))
-# 29513.102537211216
-
-# GBM
-gbm_model = GradientBoostingClassifier().fit(X_train, y_train)
-
-y_pred = gbm_model.predict(X_val)
-np.sqrt(mean_squared_error(y_val, y_pred))
-# 28462.53252809921
-
-# LightGBM
-lgbm_model = LGBMRegressor().fit(X_train, y_train)
-
-y_pred = lgbm_model.predict(X_val)
-np.sqrt(mean_squared_error(y_val, y_pred))
-# 28462.53252809921
-
-# XGBoost
-xgb_model = XGBRegressor().fit(X_train, y_train)
-
-y_pred = xgb_model.predict(X_val)
-np.sqrt(mean_squared_error(y_val, y_pred))
-# 31739.217551795515
-
-# CatBoost
-catb_model = CatBoostRegressor().fit(X_train, y_train)
-
-y_pred = catb_model.predict(X_val)
-np.sqrt(mean_squared_error(y_val, y_pred))
-# 24205.191153001928
-
-# Decision Tree
-cart_model = DecisionTreeRegressor().fit(X_train, y_train)
-
-y_pred = cart_model.predict(X_val)
-np.sqrt(mean_squared_error(y_val, y_pred))
-# 40119.669753759
+models = [('LR', LinearRegression()),
+          # ("Ridge", Ridge()),
+          # ("Lasso", Lasso()),
+          # ("ElasticNet", ElasticNet()),
+          ('KNN', KNeighborsRegressor()),
+          ('CART', DecisionTreeRegressor()),
+          ('RF', RandomForestRegressor()),
+          # ('SVR', SVR()),
+          ('GBM', GradientBoostingRegressor()),
+          ("XGBoost", XGBRegressor(objective='reg:squarederror')),
+          ("LightGBM", LGBMRegressor())]
+# ("CatBoost", CatBoostRegressor(verbose=False))]
 
 
-# Adım 3: Hiperparemetre optimizasyonu gerçekleştiriniz.
+for name, regressor in models:
+    rmse = np.mean(np.sqrt(-cross_val_score(regressor, X, y, cv=5, scoring="neg_mean_squared_error")))
+    print(f"RMSE: {round(rmse, 4)} ({name}) ")
 
-# RandomForest
-rf_params = {'max_depth': list(range(1, 7)),
-             'max_features': [3, 5, 7],
-             'n_estimators': [100, 200, 500, 1000]}
+df['SalePrice'].mean()
+df['SalePrice'].std()
 
-rf_best_grid = GridSearchCV(rf_model, rf_params, cv=5, n_jobs=-1, verbose=True).fit(X_train, y_train)
+##################
+# BONUS : Log dönüşümü yaparak model kurunuz ve rmse sonuçlarını gözlemleyiniz.
+# Not: Log'un tersini (inverse) almayı unutmayınız.
+##################
 
-rf_best_grid.best_params_
+# Log dönüşümünün gerçekleştirilmesi
 
-rf_final = rf_model.set_params(**rf_best_grid.best_params_).fit(X_train, y_train)
+train_df = df[df['SalePrice'].notnull()]
+test_df = df[df['SalePrice'].isnull()]
 
-y_pred = rf_final.predict(X_val)
-np.sqrt(mean_squared_error(y_val, y_pred))
-# 40017.47684707109
+y = np.log1p(train_df['SalePrice'])
+X = train_df.drop(["Id", "SalePrice"], axis=1)
 
+# Verinin eğitim ve tet verisi olarak bölünmesi
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, random_state=17)
 
-# XGBoost
-xgb_params = {'colsample_bytree': [0.5, 0.6, 0.7, 0.8, 0.9, 1],
-              'n_estimators': [100, 200, 500],
-              'max_depth': [3, 4, 5, 6, 7],
-              'learning_rate': [0.3, 0.5]}
+# lgbm_tuned = LGBMRegressor(**lgbm_gs_best.best_params_).fit(X_train, y_train)
 
-xgb_best_grid = GridSearchCV(xgb_model, xgb_params, cv=5, n_jobs=-1, verbose=True).fit(X_train, y_train)
+lgbm = LGBMRegressor().fit(X_train, y_train)
+y_pred = lgbm.predict(X_test)
 
-xgb_best_grid.best_params_
+y_pred
 
-xgb_final = xgb_model.set_params(**xgb_best_grid.best_params_).fit(X_train, y_train)
+# Yapılan LOG dönüşümünün tersinin (inverse'nin) alınması
+new_y = np.expm1(y_pred)
+new_y
 
-y_pred = xgb_final.predict(X_val)
-np.sqrt(mean_squared_error(y_val, y_pred))
-# 29908.65106567284
+new_y_test = np.expm1(y_test)
+new_y_test
 
+np.sqrt(mean_squared_error(new_y_test, new_y))
 
-# LightGBM
-lgbm_params = {'colsample_bytree': [0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1],
-               'learning_rate': [0.1, 0.2, 0.3, 0.4, 0.5],
-               'n_estimators': [100, 200, 500, 100],
-               'max_depth': list(range(1, 7))}
-
-lgbm_best_grid = GridSearchCV(lgbm_model, lgbm_params, cv=5, n_jobs=-1, verbose=True).fit(X_train, y_train)
-
-lgbm_best_grid.best_params_
-
-lgbm_final = lgbm_model.set_params(**lgbm_best_grid.best_params_).fit(X_train, y_train)
-
-y_pred = lgbm_final.predict(X_val)
-np.sqrt(mean_squared_error(y_val, y_pred))
-# 27961.611470086133
+# RMSE : 22118.413146021652
 
 
-# CatBoost
-catb_params = {'iterations': [200, 500, 1000],
-               'learning_rate': [0.1, 0.3, 0.5, 0.7, 0.9, 1],
-               'depth': list(range(1, 8))}
+########################################################
+# Hiperparametre optimizasyonlarının gerçekleştirilmesi
+########################################################
 
-catb_best_grid = GridSearchCV(catb_model, catb_params, cv=5, n_jobs=-1, verbose=True).fit(X_train, y_train)
+lgbm_model = LGBMRegressor(random_state=46)
 
-catb_best_grid.best_params_
+rmse = np.mean(np.sqrt(-cross_val_score(lgbm_model, X, y, cv=5, scoring="neg_mean_squared_error")))
+print(rmse)
 
-catb_model = CatBoostRegressor()
+lgbm_params = {"learning_rate": [0.01, 0.1],
+               "n_estimators": [500, 1500],
+               "colsample_bytree": [0.5, 0.7, 1]
+               }
 
-catb_final = catb_model.set_params(**catb_best_grid.best_params_).fit(X_train, y_train)
+lgbm_gs_best = GridSearchCV(lgbm_model,
+                            lgbm_params,
+                            cv=3,
+                            n_jobs=-1,
+                            verbose=True).fit(X, y)
 
-y_pred = catb_final.predict(X_val)
-np.sqrt(mean_squared_error(y_val, y_pred))
+final_model = lgbm_model.set_params(**lgbm_gs_best.best_params_).fit(X, y)
+
+rmse = np.mean(np.sqrt(-cross_val_score(final_model, X, y, cv=5, scoring="neg_mean_squared_error")))
+print(rmse)
 
 
-# 24478.61100087933
+################################################################
+# Değişkenlerin önem düzeyini belirten feature_importance fonksiyonunu kullanarak özelliklerin sıralamasını çizdiriniz.
+################################################################
 
-# Adım 4: Değişken önem düzeyini inceleyeniz.
-# Bonus: Test verisinde boş olan salePrice değişkenlerini tahminleyiniz ve Kaggle sayfasına submit etmeye uygun halde bir
-# dataframe oluşturup sonucunuzu yükleyiniz.
-
-def plot_importance(model, features, num=len(X_train), save=False):
-    feature_imp = pd.DataFrame({'Value': model.feature_importances_, 'Feature': features.columns})
+# feature importance
+def plot_importance(model, features, num=len(X), save=False):
+    feature_imp = pd.DataFrame({"Value": model.feature_importances_, "Feature": features.columns})
     plt.figure(figsize=(10, 10))
     sns.set(font_scale=1)
-    sns.barplot(x="Value", y="Feature", data=feature_imp.sort_values(by="Value",
-                                                                     ascending=False)[0:num])
-    plt.title('Features')
+    sns.barplot(x="Value", y="Feature", data=feature_imp.sort_values(by="Value", ascending=False)[0:num])
+    plt.title("Features")
     plt.tight_layout()
-    plt.show()
+    plt.show(block=True)
     if save:
-        plt.savefig('importances.png')
+        plt.savefig("importances.png")
 
 
-plot_importance(rf_final, X_train)
-plot_importance(xgb_final, X_train)
-plot_importance(lgbm_final, X_train)
-plot_importance(catb_final, X_train)
+model = LGBMRegressor()
+model.fit(X, y)
 
+plot_importance(model, X, 20)
 
-# Prediction
+##########################################################################################
+# test dataframe'indeki boş olan salePrice değişkenlerini tahminleyiniz ve
+# Kaggle sayfasına submit etmeye uygun halde bir dataframe oluşturunuz. (Id, SalePrice)
+##########################################################################################
 
-# RandomForest
-rf_pred = rf_final.predict(X_train)
-rf_pred_score = np.sqrt(mean_squared_error(y_train, rf_pred))
-# 33116.99886321384
+model = LGBMRegressor()
+model.fit(X, y)
+predictions = model.predict(test_df.drop(["Id", "SalePrice"], axis=1))
 
-# XGBoost
-xgb_pred = xgb_final.predict(X_train)
-xgb_pred_score = np.sqrt(mean_squared_error(y_train, xgb_pred))
-# 4770.08918830866
-
-# LightGBM
-lgbm_pred = lgbm_final.predict(X_train)
-lgbm_pred_score = np.sqrt(mean_squared_error(y_train, lgbm_pred))
-# 15604.81879637132
-
-# CatBoost
-catb_pred = catb_final.predict(X_train)
-catb_pred_score = np.sqrt(mean_squared_error(y_train, catb_pred))
-# 6122.062142230834
-
-# tahmin edilen değerlerin kolay kıyaslanabilmesi açısından bir DataFrame oluşturdum
-all_pred_score = pd.DataFrame(
-    {"Model": ["Random Forest", "XGBoost", "LightGBM", "CatBoost"],
-     "RMSE": [rf_pred_score, xgb_pred_score, lgbm_pred_score, catb_pred_score]},
-    index=range(1, 5))
-
-all_pred_score = all_pred_score.sort_values("RMSE", ascending=True).reset_index()
-# del all_pred_score["index"]
-all_pred_score
+dictionary = {"Id": test_df.index, "SalePrice": predictions}
+dfSubmission = pd.DataFrame(dictionary)
+dfSubmission.to_csv("housePricePredictions.csv", index=False)
 
