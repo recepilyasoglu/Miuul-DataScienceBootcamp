@@ -151,7 +151,6 @@ def get_stats(dataframe, col):
                  "############### Betimsel İstatistik ############### \n", dataframe[col].describe().T
                  )
 
-
 get_stats(df, cat_cols)
 get_stats(df, num_cols)
 
@@ -182,9 +181,7 @@ df[cat_cols].dtypes
 # len(num_cols)
 len(cat_cols)
 
-
 # del num_cols[-10]
-
 # cat_cols.append(num_cols[2])
 
 
@@ -250,15 +247,6 @@ def check_outlier(dataframe, col_name):
 
 for col in num_cols:
     print(col, check_outlier(df, col))
-
-
-# sns.set_style("whitegrid")
-# sns.boxplot(data=df[num_cols], orient="h", palette="Set2")
-
-# fig, ax = plt.subplots(figsize=(10,5))
-# ax.boxplot(train['SalePrice'])
-# ax.set_title('Boxplot of SalePrice')
-# plt.show()
 
 
 # Adım 7: Eksik gözlem var mı inceleyiniz.
@@ -353,10 +341,6 @@ fill_na_values_with_mode(df, cat_cols)
 missing_values_table(df)
 
 
-# df[cat_cols].dtypes
-# df[cat_cols] = df[cat_cols].astype("object")
-
-
 # Adım 2: Rare Encoder uygulayınız.
 
 def rare_analyser(dataframe, target, cat_cols):
@@ -416,43 +400,38 @@ df['TotalBathrooms'] = df['BsmtFullBath'] + df['BsmtHalfBath'] + df['FullBath'] 
 # garaj kapasitesi
 df['GarageCapacity'] = df['GarageCars'] + df['GarageArea']
 
+
 # Adım 4: Encoding işlemlerini gerçekleştiriniz.
 
 # Label Encoding
 binary_cols = [col for col in df.columns if (df[col].dtype not in [int, float]) and (df[col].nunique() == 2)]
-
 
 def label_encoder(dataframe, binary_col):
     labelencoder = LabelEncoder()
     dataframe[binary_col] = labelencoder.fit_transform(dataframe[binary_col])
     return dataframe
 
-
 for col in binary_cols:
     label_encoder(df, col)
 
+
 # One Hot Encoding
 ohe_cols = [col for col in df.columns if 25 >= df[col].nunique() > 2]
-
 
 def one_hot_encoder(dataframe, categorical_cols, drop_first=True):
     dataframe = pd.get_dummies(dataframe, columns=categorical_cols, drop_first=drop_first)
     return dataframe
 
-
 df = one_hot_encoder(df, ohe_cols)
 
-# scaler = StandardScaler()
-# df[num_cols] = scaler.fit_transform(df[num_cols])
 
 # Standartlaştırma
-
-# df[num_cols] = scaler.fit_transform(df[num_cols])
 
 cat_cols, num_cols, cat_but_car = grab_col_names(df)
 
 num_cols = [col for col in num_cols if col not in "SalePrice"]
 num_cols = [col for col in num_cols if col not in "Id"]
+
 num_cols.append(cat_cols[0])
 df[num_cols].dtypes
 
