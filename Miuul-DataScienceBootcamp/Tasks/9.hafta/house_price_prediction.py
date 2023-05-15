@@ -72,7 +72,6 @@ df.isnull().sum()
 
 # Adım 2: Numerik ve kategorik değişkenleri yakalayınız.
 
-
 def grab_col_names(dataframe, cat_th=10, car_th=20):
     """
 
