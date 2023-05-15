@@ -72,38 +72,6 @@ df.isnull().sum()
 
 # Adım 2: Numerik ve kategorik değişkenleri yakalayınız.
 
-# def get_col_types(dataframe, cat_th=10, car_th=10):
-#     var_types = dataframe.dtypes
-#
-#     # Kategorik, numerik ve numerik fakat kategorik değişkenleri ayır
-#     categorical_cols = list(var_types[var_types == 'object'].index)
-#     numeric_cols = list(var_types[var_types == 'float64'].index) + list(var_types[var_types == 'int64'].index)
-#
-#     num_but_cat = []
-#     cat_but_car = []
-#
-#     for col in categorical_cols:
-#         unique_vals = len(str(df[col].nunique()))
-#         if unique_vals > car_th:  # Burda eşsiz değer sayısı 10'dan fazla ise kardinal olarak kabul ettim
-#             cat_but_car.append(col)
-#
-#     for col in numeric_cols:
-#         unique_vals = len(str(df[col].nunique()))
-#         if unique_vals <= cat_th:  # Burda da eşsiz değer sayısı 10 veya daha az ise numerik görünümlü kategorik olarak kabul ettim
-#             categorical_cols.append(col)
-#             num_but_cat.append(col)
-#
-#     # Sonuçlar
-#     print(f"Observations: {df.shape[0]}")
-#     print(f"Variables: {df.shape[1]}")
-#     print(f'cat_cols: {len(categorical_cols)}')
-#     print(f'num_cols: {len(numeric_cols)}')
-#     print(f'cat_but_car: {len(cat_but_car)}')
-#     print(f'num_but_cat: {len(num_but_cat)}')
-#     return categorical_cols, numeric_cols, cat_but_car, num_but_cat
-#
-# cat_cols, num_cols, cat_but_car, num_but_cols = get_col_types(df)
-
 
 def grab_col_names(dataframe, cat_th=10, car_th=20):
     """
