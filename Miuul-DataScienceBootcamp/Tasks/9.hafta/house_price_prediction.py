@@ -48,6 +48,7 @@ pd.set_option('display.width', 500)
 
 warnings.simplefilter(action='ignore', category=Warning)
 
+
 ## Görev 1: Keşifçi Veri Analizi
 
 # Adım 1: Train ve Test veri setlerini okutup birleştiriniz. Birleştirdiğiniz veri üzerinden ilerleyiniz.
@@ -153,6 +154,7 @@ def get_stats(dataframe, col):
 get_stats(df, cat_cols)
 get_stats(df, num_cols)
 
+
 # Adım 3: Gerekli düzenlemeleri yapınız. (Tip hatası olan değişkenler gibi)
 
 df[cat_but_car]
@@ -214,6 +216,7 @@ def num_summary(dataframe, numerical_col, plot=False):
 
 for col in num_cols:
     num_summary(df, col, True)
+
 
 # Adım 5: Kategorik değişkenler ile hedef değişken incelemesini yapınız.
 
@@ -400,11 +403,11 @@ df['TotalBathrooms'] = df['BsmtFullBath'] + df['BsmtHalfBath'] + df['FullBath'] 
 # garaj kapasitesi
 df['GarageCapacity'] = df['GarageCars'] + df['GarageArea']
 
+
 # Adım 4: Encoding işlemlerini gerçekleştiriniz.
 
 # Label Encoding
 binary_cols = [col for col in df.columns if (df[col].dtype not in [int, float]) and (df[col].nunique() == 2)]
-
 
 def label_encoder(dataframe, binary_col):
     labelencoder = LabelEncoder()
@@ -415,9 +418,9 @@ def label_encoder(dataframe, binary_col):
 for col in binary_cols:
     label_encoder(df, col)
 
+
 # One Hot Encoding
 ohe_cols = [col for col in df.columns if 25 >= df[col].nunique() > 2]
-
 
 def one_hot_encoder(dataframe, categorical_cols, drop_first=True):
     dataframe = pd.get_dummies(dataframe, columns=categorical_cols, drop_first=drop_first)
@@ -425,6 +428,7 @@ def one_hot_encoder(dataframe, categorical_cols, drop_first=True):
 
 
 df = one_hot_encoder(df, ohe_cols)
+
 
 # Standartlaştırma
 
@@ -441,16 +445,17 @@ df[cat_cols].dtypes
 rs = RobustScaler()
 df[num_cols] = rs.fit_transform(df[num_cols])
 
+
 # Görev 3: Model Kurma
 
 # Adım 1: Train ve Test verisini ayırınız. (SalePrice değişkeni boş olan değerler test verisidir.)
 
-#  Train ve Test verisini ayırınız. (SalePrice değişkeni boş olan değerler test verisidir.)
 train_df = df[df['SalePrice'].notnull()]
 test_df = df[df['SalePrice'].isnull()]
 
 y = train_df['SalePrice']  # np.log1p(df['SalePrice'])
 X = train_df.drop(["Id", "SalePrice"], axis=1)
+
 
 # Train verisi ile model kurup, model başarısını değerlendiriniz.
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, random_state=17)
@@ -476,10 +481,11 @@ for name, regressor in models:
 df['SalePrice'].mean()
 df['SalePrice'].std()
 
-##################
+
+################################################################################
 # BONUS : Log dönüşümü yaparak model kurunuz ve rmse sonuçlarını gözlemleyiniz.
 # Not: Log'un tersini (inverse) almayı unutmayınız.
-##################
+#################################################################################
 
 # Log dönüşümünün gerçekleştirilmesi
 
@@ -489,7 +495,7 @@ test_df = df[df['SalePrice'].isnull()]
 y = np.log1p(train_df['SalePrice'])
 X = train_df.drop(["Id", "SalePrice"], axis=1)
 
-# Verinin eğitim ve tet verisi olarak bölünmesi
+# Verinin eğitim ve test verisi olarak bölünmesi
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, random_state=17)
 
 # lgbm_tuned = LGBMRegressor(**lgbm_gs_best.best_params_).fit(X_train, y_train)
@@ -537,9 +543,9 @@ rmse = np.mean(np.sqrt(-cross_val_score(final_model, X, y, cv=5, scoring="neg_me
 print(rmse)
 
 
-################################################################
+########################################################################################################################
 # Değişkenlerin önem düzeyini belirten feature_importance fonksiyonunu kullanarak özelliklerin sıralamasını çizdiriniz.
-################################################################
+########################################################################################################################
 
 # feature importance
 def plot_importance(model, features, num=len(X), save=False):
@@ -558,6 +564,7 @@ model = LGBMRegressor()
 model.fit(X, y)
 
 plot_importance(model, X, 20)
+
 
 ##########################################################################################
 # test dataframe'indeki boş olan salePrice değişkenlerini tahminleyiniz ve
