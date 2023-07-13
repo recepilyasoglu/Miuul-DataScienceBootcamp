@@ -47,14 +47,18 @@ y.plot(figsize=(15, 6))
 plt.show()
 
 
+####################
+# Holdout
+####################
+
+# k-fold yapmamamızın sebebi zaman serisi olduğu için çok karışır trend'ler, mesvsimsellik'ler vs
+
+train = y[:"1997-12-01"]
+len(train)  # 478 ay
 
 
-
-
-
-
-
-
-
+# 1998'in ilk ayından 2001'in sonuna kadar test seti
+test = y["1998-01-01":]
+len(test)  # 48 ay
 
 
