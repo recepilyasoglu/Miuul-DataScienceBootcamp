@@ -106,17 +106,43 @@ def ts_decompose(y, model="additive", stationary=False):
 ts_decompose(y, stationary=True)
 
 
+##################################################
+# Single Exponential Smoothing
+##################################################
+
+# SES = Level
+
+# alpha değerine 0.5 verdik
+ses_model = SimpleExpSmoothing(train).fit(smoothing_level=0.5)
+
+# 48 adımlık tahmin yapıcaz, yukarıda test setinin boyutu 48'di (ay sayısı)i her birisi için tahmin de bulunuyoruz
+y_pred = ses_model.forecast(48)
+
+mean_absolute_error(test, y_pred)  # veri de mevsimlelik ve trend olduğu için değerler çok iyi değil
 
 
+# sabit bir tahmin de bulunmuş oldukça kötü
+train.plot(title="Single Exponential Smoothing")
+test.plot()
+y_pred.plot()
+plt.show()
+
+# yakından inceleyebilmek için
+train["1985":].plot(title="Single Exponential Smoothing")
+test.plot()
+y_pred.plot()
+plt.show()
 
 
+def plot_co2(train, test, y_pred, title):
+    mae = mean_absolute_error(test, y_pred)
+    train["1985":].plot(legend=True, label="TRAIN", title=f"{title}, MAE: {round(mae,2)}")
+    test.plot(legend=True, label="TEST", figsize=(6, 4))
+    y_pred.plot(legend=True, label="PREDICTION")
+    plt.show()
 
+plot_co2(train, test, y_pred, "Single Exponential Smoothing")
 
-
-
-
-
-
-
+ses_model.params
 
 
