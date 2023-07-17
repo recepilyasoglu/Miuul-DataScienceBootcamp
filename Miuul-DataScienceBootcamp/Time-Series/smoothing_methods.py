@@ -171,8 +171,16 @@ betas = np.arange(0.01, 1, 0.10)
 best_alpha, best_beta, best_mae = des_optimizer(train, alphas, betas)
 
 
+############################
+# Final DES Model
+############################
 
+final_des_model = ExponentialSmoothing(train, trend="add").fit(smoothing_level=best_alpha,
+                                                               smoothing_slope=best_beta)
 
+y_pred = final_des_model.forecast(48)
+
+plot_co2(train, test, y_pred, "Double Exponential Smoothing")
 
 
 
