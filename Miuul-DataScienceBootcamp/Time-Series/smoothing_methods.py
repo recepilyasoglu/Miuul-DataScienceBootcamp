@@ -185,6 +185,23 @@ y_pred = ses_model.forecast(48)
 plot_co2(train, test, y_pred, "Single Exponential Smoothing")
 
 
+##################################################
+# Double Exponential Smoothing (DES)
+##################################################
+
+# DES: Level (SES) + Trend
+
+# y(t) = Level + Trend + Seasonality + Noise
+# y(t) = Level * Trend * Seasonality * Noise
+
+ts_decompose(y)
+
+des_model = ExponentialSmoothing(train, trend="add").fit(smoothing_level=0.5,
+                                                         smoothing_trend=0.5)
+
+y_pred = des_model.forecast(48)
+
+plot_co2(train, test, y_pred, "Double Exponential Smoothing")
 
 
 
