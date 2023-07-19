@@ -238,9 +238,25 @@ y_pred = final_des_model.forecast(48)
 
 plot_co2(train, test, y_pred, "Double Exponential Smoothing")
 
+# en iyi mae geldi ama hala daha dalgalanmaları yakalayamıyoruz
 
 
+##################################################
+# Triple Exponential Smoothing (Holt-Winters)
+##################################################
 
+# TES = SES + DES + Mevsimsellik
+
+
+tes_model = ExponentialSmoothing(train,
+                                 trend="add",
+                                 seasonal="add",
+                                 seasonal_periods=12).fit(smoothing_level=0.5,
+                                                          smoothing_slope=0.5,
+                                                          smoothing_seasonal=0.5)
+
+y_pred = tes_model.forecast(48)
+plot_co2(train, test, y_pred, "Triple Exponential Smoothing")
 
 
 
