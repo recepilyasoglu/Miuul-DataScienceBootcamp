@@ -150,38 +150,39 @@ ses_model.params
 # Hyperparameter Optimization
 ##############################
 
+def ses_optimizer(train, alphas, step=48):
 
-def des_optimizer(train, alphas, betas, step=48):
-    best_alpha, best_beta, best_mae = None, None, float("inf")
+    best_alpha, best_mae = None, float("inf")
+
     for alpha in alphas:
-        for beta in betas:
-            des_model = ExponentialSmoothing(train, trend="add").fit(smoothing_level=alpha, smoothing_slope=beta)
-            y_pred = des_model.forecast(step)
-            mae = mean_absolute_error(test, y_pred)
-            if mae < best_mae:
-                best_alpha, best_beta, best_mae = alpha, beta, mae
-            print("alpha:", round(alpha, 2), "beta:", round(beta, 2), "mae:", round(mae, 4))
-    print("best_alpha:", round(best_alpha, 2), "best_beta:", round(best_beta, 2), "best_mae:", round(best_mae, 4))
-    return best_alpha, best_beta, best_mae
+        ses_model = SimpleExpSmoothing(train).fit(smoothing_level=alpha)
+        y_pred = ses_model.forecast(step)
+        mae = mean_absolute_error(test, y_pred)
 
-# alpha'nın alabileceği muhtemel değerler için bir aralık oluşturuyoruz
-alphas = np.arange(0.01, 1, 0.10)
-betas = np.arange(0.01, 1, 0.10)
+        if mae < best_mae:
+            best_alpha, best_mae = alpha, mae
 
-best_alpha, best_beta, best_mae = des_optimizer(train, alphas, betas)
+        print("alpha:", round(alpha, 2), "mae:", round(mae, 4))
+    print("best_alpha:", round(best_alpha, 2), "best_mae:", round(best_mae, 4))
+    return best_alpha, best_mae
+
+alphas = np.arange(0.8, 1, 0.01)
+
+# yt_sapka = a * yt-1 + (1-a)* (yt_-1)_sapka
+
+ses_optimizer(train, alphas)
+
+best_alpha, best_mae = ses_optimizer(train, alphas)
 
 
 ############################
-# Final DES Model
+# Final SES Model
 ############################
 
-final_des_model = ExponentialSmoothing(train, trend="add").fit(smoothing_level=best_alpha,
-                                                               smoothing_slope=best_beta)
+ses_model = SimpleExpSmoothing(train).fit(smoothing_level=best_alpha)
+y_pred = ses_model.forecast(48)
 
-y_pred = final_des_model.forecast(48)
-
-plot_co2(train, test, y_pred, "Double Exponential Smoothing")
-
+plot_co2(train, test, y_pred, "Single Exponential Smoothing")
 
 
 
