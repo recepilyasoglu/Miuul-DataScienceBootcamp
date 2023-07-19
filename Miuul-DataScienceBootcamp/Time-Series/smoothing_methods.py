@@ -9,7 +9,7 @@ import matplotlib
 matplotlib.use("Qt5Agg")
 import seaborn as sns
 import matplotlib.pyplot as plt
-
+import itertools
 import statsmodels.api as sm
 import statsmodels.tsa.api as smt
 from sklearn.metrics import mean_absolute_error
@@ -258,6 +258,32 @@ tes_model = ExponentialSmoothing(train,
 y_pred = tes_model.forecast(48)
 plot_co2(train, test, y_pred, "Triple Exponential Smoothing")
 
+
+#####################################
+# Hyperparameter Optimization (TES) #
+#####################################
+
+alphas = betas = gammas = np.arange(0.20, 1, 0.10)  # 3 array'e değer atadık
+
+abg = list(itertools.product(alphas, betas, gammas))  # tuple formunda, yukarıdaki olası 3 parametrenin birliktelikler gelmiş oluyor
+
+def tes_optimizer(train, abg, step=48):
+    best_alpha, best_beta, best_gamma, best_mae = None, None, None, float("inf")
+    for comb in abg:
+        tes_model = ExponentialSmoothing(train, trend="add", seasonal="add", seasonal_periods=12).\
+            fit(smoothing_level=comb[0], smoothing_slope=comb[1], smoothing_seasonal=comb[2])
+        y_pred = tes_model.forecast(step)
+        mae = mean_absolute_error(test, y_pred)
+        if mae < best_mae:
+            best_alpha, best_beta, best_gamma, best_mae = comb[0], comb[1], comb[2], mae
+        print([round(comb[0], 2), round(comb[1], 2), round(comb[2], 2), round(mae, 2)])
+
+    print("best_alpha:", round(best_alpha, 2), "best_beta:", round(best_beta, 2), "best_gamma:", round(best_gamma, 2),
+          "best_mae:", round(best_mae, 4))
+
+    return best_alpha, best_beta, best_gamma, best_mae
+
+best_alpha, best_beta, best_gamma, best_mae = tes_optimizer(train, abg)
 
 
 
