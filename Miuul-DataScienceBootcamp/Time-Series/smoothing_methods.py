@@ -286,6 +286,18 @@ def tes_optimizer(train, abg, step=48):
 best_alpha, best_beta, best_gamma, best_mae = tes_optimizer(train, abg)
 
 
+############################
+# Final TES Model
+############################
+
+final_tes_model = ExponentialSmoothing(train, trend="add", seasonal="add", seasonal_periods=12).\
+            fit(smoothing_level=best_alpha, smoothing_trend=best_beta, smoothing_seasonal=best_gamma)
+
+y_pred = final_tes_model.forecast(48)
+
+plot_co2(train, test, y_pred, "Triple Exponential Smoothing")
+
+
 
 
 
