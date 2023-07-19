@@ -298,17 +298,3 @@ y_pred = final_tes_model.forecast(48)
 plot_co2(train, test, y_pred, "Triple Exponential Smoothing")
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
