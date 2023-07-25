@@ -100,15 +100,15 @@ df["title"].iloc[movie_indices]
 
 def content_based_recommender(title, cosine_sim, dataframe):
     # index'leri oluşturma
-    indices = pd.Series(dataframe.index, index=dataframe["title"])
+    indices = pd.Series(dataframe.index, index=dataframe[title])
     indices = indices[~indices.index.duplicated(keep="last")]
     # title'ın index'ini yakalama
-    movie_index = indices["Sherlock Holmes"]
+    movie_index = indices[title]
     # title'a göre benzerlik skorlarını hesaplama
     similarity_scores = pd.DataFrame(cosine_sim[movie_index], columns=["score"])
     # kendisi haric ilk 10 filmi getirme
     movie_indices = similarity_scores.sort_values("score", ascending=False)[1:11].index
-    return dataframe["title"].iloc[movie_indices]
+    return dataframe[title].iloc[movie_indices]
 
 content_based_recommender("Sherlock Holmes", cosine_sim, df)
 
