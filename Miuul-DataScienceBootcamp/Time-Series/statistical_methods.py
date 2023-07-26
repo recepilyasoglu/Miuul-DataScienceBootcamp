@@ -39,18 +39,19 @@ test = y['1998-01-01':]
 ##############################################################
 
 # order= da p, d, q değerlerini giriyoruz
-arima_model = ARIMA(train, order=(1, 1, 1))
+arima_model = ARIMA(train, order=(1, 1, 1)).fit()
 
-arima_model_fit = arima_model.fit()
 
 # istatistiki durumu
-arima_model_fit.summary()
+arima_model.summary()
 
-y_pred = arima_model_fit.forecast(48)[0]  # 48 birim sonrasına git
+y_pred = arima_model.forecast(steps=48)  # 48 birim sonrasına git
 y_pred = pd.Series(y_pred, index=test.index)
 
+
+mae = mean_absolute_error(test, y_pred)
+
 def plot_co2(train, test, y_pred, title):
-    mae = mean_absolute_error(test, y_pred)
     train["1985":].plot(legend=True, label="TRAIN", title=f"{title}, MAE: {round(mae,2)}")
     test.plot(legend=True, label="TEST", figsize=(6, 4))
     y_pred.plot(legend=True, label="PREDICTION")
@@ -63,9 +64,9 @@ plot_co2(train, test, y_pred, "ARIMA")
 # Hyperparameter Optimization (Model Derecelerini Belirleme) #
 ##############################################################
 
-############################
-# AIC & BIC İstatistiklerine Göre Model Derecesini Belirleme
-############################
+##############################################################
+# AIC & BIC İstatistiklerine Göre Model Derecesini Belirleme #
+##############################################################
 
 p = d = q = range(0, 4)
 
@@ -88,9 +89,19 @@ def arima_optimizer_aic(train, orders):
     print('Best ARIMA%s AIC=%.2f' % (best_params, best_aic))
     return best_params
 
-
 best_params_aic = arima_optimizer_aic(train, pdq)
 
+
+############################
+# Final Model
+############################
+
+arima_model = ARIMA(train, order=best_params_aic).fit()
+y_pred = arima_model.forecast(steps=48)
+
+y_pred = pd.Series(y_pred, index=test.index)
+
+plot_co2(train, test, y_pred, "ARIMA")
 
 
 
