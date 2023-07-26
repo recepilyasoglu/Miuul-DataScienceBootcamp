@@ -5,6 +5,8 @@
 import itertools
 import warnings
 import matplotlib.pyplot as plt
+import matplotlib
+matplotlib.use("Qt5Agg")
 import numpy as np
 import pandas as pd
 import statsmodels.api as sm
@@ -37,12 +39,14 @@ test = y['1998-01-01':]
 ##############################################################
 
 # order= da p, d, q değerlerini giriyoruz
-arima_model = ARIMA(train, order=(1, 1, 1)).fit()
+arima_model = ARIMA(train, order=(1, 1, 1))
+
+arima_model_fit = arima_model.fit()
 
 # istatistiki durumu
-arima_model.summary()
+arima_model_fit.summary()
 
-y_pred = arima_model.forecast(48)[0]  # 48 birim sonrasına git
+y_pred = arima_model_fit.forecast(48)[0]  # 48 birim sonrasına git
 y_pred = pd.Series(y_pred, index=test.index)
 
 def plot_co2(train, test, y_pred, title):
@@ -55,6 +59,37 @@ def plot_co2(train, test, y_pred, title):
 plot_co2(train, test, y_pred, "ARIMA")
 
 
+##############################################################
+# Hyperparameter Optimization (Model Derecelerini Belirleme) #
+##############################################################
+
+############################
+# AIC & BIC İstatistiklerine Göre Model Derecesini Belirleme
+############################
+
+p = d = q = range(0, 4)
+
+# olası kombinasyonları çıkarttık, bunlar da gezmemiz gerekiyor ve en iyisini seçmemiz gerkiyor
+pdq = list(itertools.product(p, d, q))
+
+
+def arima_optimizer_aic(train, orders):
+    best_aic, best_params = float("inf"), None
+    for order in orders:
+        try:
+            arima_model_result = ARIMA(train, order=order).fit()
+            aic = arima_model_result.aic
+            if aic < best_aic:
+                best_aic, best_params = aic, order
+            print('ARIMA%s AIC=%.2f' % (order, aic))
+        except Exception as e:
+            print('Error for ARIMA%s: %s' % (order, e))
+            continue
+    print('Best ARIMA%s AIC=%.2f' % (best_params, best_aic))
+    return best_params
+
+
+best_params_aic = arima_optimizer_aic(train, pdq)
 
 
 
