@@ -49,9 +49,8 @@ y_pred = arima_model.forecast(steps=48)  # 48 birim sonrasına git
 y_pred = pd.Series(y_pred, index=test.index)
 
 
-mae = mean_absolute_error(test, y_pred)
-
 def plot_co2(train, test, y_pred, title):
+    mae = mean_absolute_error(test, y_pred)
     train["1985":].plot(legend=True, label="TRAIN", title=f"{title}, MAE: {round(mae,2)}")
     test.plot(legend=True, label="TEST", figsize=(6, 4))
     y_pred.plot(legend=True, label="PREDICTION")
@@ -121,9 +120,47 @@ y_pred = pd.Series(y_pred, index=test.index)
 plot_co2(train, test, y_pred, "SARIMA")
 
 
+################################################################
+# # Hyperparameter Optimization (Model Derecelerini Belirleme) #
+################################################################
+
+p = d = q = range(0, 2)
+pdq = list(itertools.product(p, d, q))
+seasonal_pdq = [(x[0], x[1], x[2], 12) for x in list(itertools.product(p, d, q))]
 
 
+def sarima_optimizer_aic(train, pdq, seasonal_pdq):
+    best_aic, best_order, best_seasonal_order = float("inf"), None, None
+    for param in pdq:
+        for param_seasonal in seasonal_pdq:
+            try:
+                sarimax_model = SARIMAX(train, order=param, seasonal_order=param_seasonal)
+                results = sarimax_model.fit(disp=0)
+                aic = results.aic
+                if aic < best_aic:
+                    best_aic, best_order, best_seasonal_order = aic, param, param_seasonal
+                print('SARIMA{}x{}12 - AIC:{}'.format(param, param_seasonal, aic))
+            except:
+                continue
+    print('SARIMA{}x{}12 - AIC:{}'.format(best_order, best_seasonal_order, best_aic))
+    return best_order, best_seasonal_order
 
+best_order, best_seasonal_order = sarima_optimizer_aic(train, pdq, seasonal_pdq)
+
+
+############################
+# Final Model
+############################
+
+model = SARIMAX(train, order=best_order, seasonal_order=best_seasonal_order)
+sarima_final_model = model.fit(disp=0)
+
+y_pred_test = sarima_final_model.get_forecast(steps=48)
+
+y_pred = y_pred_test.predicted_mean
+y_pred = pd.Series(y_pred, index=test.index)
+
+plot_co2(train, test, y_pred, "SARIMA")
 
 
 
