@@ -104,5 +104,27 @@ y_pred = pd.Series(y_pred, index=test.index)
 plot_co2(train, test, y_pred, "ARIMA")
 
 
+########################################################################
+# SARIMA(p, d, q): (Seasonal Autoregressive Integrated Moving-Average) #
+########################################################################
+
+model = SARIMAX(train, order=(1, 0, 1), seasonal_order=(0, 0, 0, 12))
+
+sarima_model = model.fit()
+
+y_pred_test = sarima_model.get_forecast(steps=48)
+
+y_pred = y_pred_test.predicted_mean
+
+y_pred = pd.Series(y_pred, index=test.index)
+
+plot_co2(train, test, y_pred, "SARIMA")
+
+
+
+
+
+
+
 
 
