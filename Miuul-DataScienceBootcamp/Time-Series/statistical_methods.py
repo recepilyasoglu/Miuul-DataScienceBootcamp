@@ -162,6 +162,60 @@ y_pred = pd.Series(y_pred, index=test.index)
 
 plot_co2(train, test, y_pred, "SARIMA")
 
+##################################################
+# BONUS: MAE'ye Göre SARIMA Optimizasyonu
+##################################################
+
+p = d = q = range(0, 2)
+pdq = list(itertools.product(p, d, q))
+seasonal_pdq = [(x[0], x[1], x[2], 12) for x in list(itertools.product(p, d, q))]
 
 
+def sarima_optimizer_mae(train, pdq, seasonal_pdq):
+    best_mae, best_order, best_seasonal_order = float("inf"), None, None
+    for param in pdq:
+        for param_seasonal in seasonal_pdq:
+            try:
+                model = SARIMAX(train, order=param, seasonal_order=param_seasonal)
+                sarima_model = model.fit(disp=0)
+                y_pred_test = sarima_model.get_forecast(steps=48)
+                y_pred = y_pred_test.predicted_mean
+                mae = mean_absolute_error(test, y_pred)
+                if mae < best_mae:
+                    best_mae, best_order, best_seasonal_order = mae, param, param_seasonal
+                print('SARIMA{}x{}12 - MAE:{}'.format(param, param_seasonal, mae))
+            except:
+                continue
+    print('SARIMA{}x{}12 - MAE:{}'.format(best_order, best_seasonal_order, best_mae))
+    return best_order, best_seasonal_order
+
+best_order, best_seasonal_order = sarima_optimizer_mae(train, pdq, seasonal_pdq)
+
+model = SARIMAX(train, order=best_order, seasonal_order=best_seasonal_order)
+sarima_final_model = model.fit(disp=0)
+
+y_pred_test = sarima_final_model.get_forecast(steps=48)
+y_pred = y_pred_test.predicted_mean
+y_pred = pd.Series(y_pred, index=test.index)
+
+plot_co2(train, test, y_pred, "SARIMA")
+
+
+############################
+# Final Model
+############################
+
+# y diyerek tüm veriye göre final modeli kuruyoruz
+model = SARIMAX(y, order=best_order, seasonal_order=best_seasonal_order)
+sarima_final_model = model.fit(disp=0)
+
+# 2001 son gününe kadar verimiz var ve biz 2002'nin ilk ayının tahmnini yapıyoruz
+feature_predict = sarima_final_model.get_forecast(steps=6)  # kaç aylık tahmin istediğimiz
+feature_predict = feature_predict.predicted_mean
+
+# train-test ayrımını model validasyonu için yapmıştık, doğru yol da olduğumuzu görebilelim diye
+# işimiz bittiğinde bütün veriye fit edebiliriz ve etmeliyiz
+# bu tahmin sonuçları gelirken trnd ve mevsimsellik göz önünde bulundurularak getirilir
+
+# işe yarayıp yaramadığını anlamamız için pusuya yatıp beklememiz gerekir :)
 
