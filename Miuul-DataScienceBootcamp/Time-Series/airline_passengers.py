@@ -7,9 +7,11 @@ import warnings
 import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
+import matplotlib
+matplotlib.use("Qt5Agg")
 import statsmodels.api as sm
 import statsmodels.tsa.api as smt
-from statsmodels.tsa.arima_model import ARIMA
+from statsmodels.tsa.arima.model import ARIMA
 from statsmodels.tsa.seasonal import seasonal_decompose
 from statsmodels.tsa.holtwinters import SimpleExpSmoothing
 from statsmodels.tsa.holtwinters import ExponentialSmoothing
@@ -22,27 +24,158 @@ warnings.filterwarnings('ignore')
 # Verinin Görselleştirilmesi
 #################################
 
+df = pd.read_csv("Time-Series/datasets/airline-passengers.csv", index_col="month", parse_dates=True)
+# index_col="month" diyerek month değişkenini sütuna aldık
+
+df.shape
+df.head()
+
+df[["total_passengers"]].plot(title="Passengers Data")
+plt.show()
+
+df.index.freq = "MS"  # aylık olduğunu bildiriyoruz
+
+train = df[:120]
+test = df[120:]
 
 
+#################################
+# Single Exponential Smoothing
+#################################
+
+def ses_optimizer(train, alphas, step=48):
+    best_alpha, best_mae = None, float("inf")
+    for alpha in alphas:
+        ses_model = SimpleExpSmoothing(train).fit(smoothing_level=alpha)
+        y_pred = ses_model.forecast(step)
+        mae = mean_absolute_error(test, y_pred)
+        if mae < best_mae:
+            best_alpha, best_mae = alpha, mae
+        print("alpha:", round(alpha, 2), "mae:", round(mae, 4))
+    print("best_alpha:", round(best_alpha, 2), "best_mae:", round(best_mae, 4))
+    return best_alpha, best_mae
+
+alphas = np.arange(0.01, 1, 0.10)
+best_alpha, best_mae = ses_optimizer(train, alphas, step=24)  # 24 adım olarak ayarladık
+# best_alpha: 0.11 best_mae: 82.528
 
 
+ses_model = SimpleExpSmoothing(train).fit(smoothing_level=best_alpha)
+y_pred = ses_model.forecast(24)
+
+def plot_prediction(y_pred, label):
+    train["total_passengers"].plot(legend=True, label="TRAIN")
+    test["total_passengers"].plot(legend=True, label="TEST")
+    y_pred.plot(legend=True, label="PREDICTION")
+    plt.title("Train, Test and Predicted Test Using "+label)
+    plt.show()
+
+plot_prediction(y_pred, "Single Exponential Smoothing")
+# trend ve mevsimsellik yok devam
+
+#################################
+# Double Exponential Smoothing
+#################################
+
+def des_optimizer(train, alphas, betas, step=48):
+    best_alpha, best_beta, best_mae = None, None, float("inf")
+    for alpha in alphas:
+        for beta in betas:
+            des_model = ExponentialSmoothing(train, trend="add").fit(smoothing_level=alpha, smoothing_slope=beta)
+            y_pred = des_model.forecast(step)
+            mae = mean_absolute_error(test, y_pred)
+            if mae < best_mae:
+                best_alpha, best_beta, best_mae = alpha, beta, mae
+            print("alpha:", round(alpha, 2), "beta:", round(beta, 2), "mae:", round(mae, 4))
+    print("best_alpha:", round(best_alpha, 2), "best_beta:", round(best_beta, 2), "best_mae:", round(best_mae, 4))
+    return best_alpha, best_beta, best_mae
+
+alphas = np.arange(0.01, 1, 0.10)
+betas = np.arange(0.01, 1, 0.10)
+
+best_alpha, best_beta, best_mae = des_optimizer(train, alphas, betas, step=24)
+# best_alpha: 0.01 best_beta: 0.11 best_mae: 54.1036
 
 
+des_model = ExponentialSmoothing(train, trend="add").fit(smoothing_level=best_alpha,
+                                                         smoothing_slope=best_beta)
+y_pred = des_model.forecast(24)
+
+plot_prediction(y_pred, "Double Exponential Smoothing")
+# trend yakaladı, mevsimsellik yok devam
 
 
+#################################
+# Triple Exponential Smoothing (Holt-Winters)
+#################################
+
+def tes_optimizer(train, abg, step=48):
+    best_alpha, best_beta, best_gamma, best_mae = None, None, None, float("inf")
+    for comb in abg:
+        tes_model = ExponentialSmoothing(train, trend="add", seasonal="add", seasonal_periods=12).\
+            fit(smoothing_level=comb[0], smoothing_slope=comb[1], smoothing_seasonal=comb[2])
+        y_pred = tes_model.forecast(step)
+        mae = mean_absolute_error(test, y_pred)
+        if mae < best_mae:
+            best_alpha, best_beta, best_gamma, best_mae = comb[0], comb[1], comb[2], mae
+        print([round(comb[0], 2), round(comb[1], 2), round(comb[2], 2), round(mae, 2)])
+
+    print("best_alpha:", round(best_alpha, 2), "best_beta:", round(best_beta, 2), "best_gamma:", round(best_gamma, 2),
+          "best_mae:", round(best_mae, 4))
+
+    return best_alpha, best_beta, best_gamma, best_mae
+
+alphas = betas = gammas = np.arange(0.10, 1, 0.20)
+abg = list(itertools.product(alphas, betas, gammas))
+
+best_alpha, best_beta, best_gamma, best_mae = tes_optimizer(train, abg, step=24)
+
+# best_alpha: 0.3 best_beta: 0.3 best_gamma: 0.5 best_mae: 11.9947
 
 
+tes_model = ExponentialSmoothing(train, trend="mul", seasonal="mul", seasonal_periods=12).\
+            fit(smoothing_level=best_alpha, smoothing_slope=best_beta, smoothing_seasonal=best_gamma)
+
+y_pred = tes_model.forecast(24)
+
+plot_prediction(y_pred, "Triple Exponential Smoothing ADD")
+# hem trend hem mevsimselliği yakaladı ama tahminler kötü daha iyi olabilir yani
 
 
+##################################################
+# ARIMA(p, d, q): (Autoregressive Integrated Moving Average)
+##################################################
+
+p = d = q = range(0, 4)
+pdq = list(itertools.product(p, d, q))
+
+def arima_optimizer_aic(train, orders):
+    best_aic, best_params = float("inf"), None
+    for order in orders:
+        try:
+            arima_model_result = ARIMA(train, order=order).fit()
+            aic = arima_model_result.aic
+            if aic < best_aic:
+                best_aic, best_params = aic, order
+            print('ARIMA%s AIC=%.2f' % (order, aic))
+        except Exception as e:
+            print('Error for ARIMA%s: %s' % (order, e))
+            continue
+    print('Best ARIMA%s AIC=%.2f' % (best_params, best_aic))
+    return best_params
+
+best_params_aic = arima_optimizer_aic(train, pdq)
+
+arima_model = ARIMA(train, order=best_params_aic).fit()
+y_pred = arima_model.forecast(steps=24)
+
+y_pred = pd.Series(y_pred, index=test.index)
+
+mean_absolute_error(test, y_pred)
+# 64.01220423149266
 
 
-
-
-
-
-
-
-
+plot_prediction(pd.Series(y_pred, index=test.index), "ARIMA")
 
 
 
