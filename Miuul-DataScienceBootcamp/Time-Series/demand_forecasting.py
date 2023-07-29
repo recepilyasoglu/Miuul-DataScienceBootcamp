@@ -155,24 +155,37 @@ check_df(df)  # ağaca dayalı bir yöntem kullanacağımız için eksili değer
 # bundan dolayı oluşturduğumuz feature'ları 3 ay'ın katları ya da 3 ay'a yakın olacak şekilde oluşturduk.
 
 
+########################
+# Rolling Mean Features
+########################
+
+# kendisi dair geçmiş kaç değerin ortalamasının alınacağı
+
+pd.DataFrame({"sales": df["sales"].values[0:10],
+              "roll2": df["sales"].rolling(window=2).mean().values[0:10],  # kendisi dair geçmiş 2 değerin ortalamasını al
+              "roll3": df["sales"].rolling(window=3).mean().values[0:10],
+              "roll5": df["sales"].rolling(window=5).mean().values[0:10]})
 
 
+# mesela yarın için tahmin etmek istediğimizde yarın yok ki kendisi dahil gecikmelerin ortalamasını alalım
+# bunun için gecikmeli önceki değerlerin ortalamasını alıyoruz yani shift kullanarak yapıyoruz
+# mutlaka 1 tane shift alınması gerkiyor
+pd.DataFrame({"sales": df["sales"].values[0:10],
+              "roll2": df["sales"].shift(1).rolling(window=2).mean().values[0:10],
+              "roll3": df["sales"].shift(1).rolling(window=3).mean().values[0:10],
+              "roll5": df["sales"].shift(1).rolling(window=5).mean().values[0:10]})
 
 
+def roll_mean_features(dataframe, windows):
+    for window in windows:
+        dataframe['sales_roll_mean_' + str(window)] = dataframe.groupby(["store", "item"])['sales']. \
+                                                          transform(
+            lambda x: x.shift(1).rolling(window=window, min_periods=10, win_type="triang").mean()) + random_noise(
+            dataframe)
+    return dataframe
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+df = roll_mean_features(df, [365, 546])
+# 1 yıl önceki bilgiyi ve 1,5 yıl önceki bilgiyi, veriye yansıtmayı deniyoruz, bu değiştirilebilir tabiki
 
 
