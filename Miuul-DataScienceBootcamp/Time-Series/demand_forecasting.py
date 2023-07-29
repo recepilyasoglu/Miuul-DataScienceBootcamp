@@ -221,4 +221,27 @@ df = ewm_features(df, alphas, lags)
 check_df(df)
 
 
+########################
+# One-Hot Encoding
+########################
+
+# üretilen değişkenleri 0 ve 1 True/False olarak güncelliyoruz
+df = pd.get_dummies(df, columns=['store', 'item', 'day_of_week', 'month'])
+
+
+check_df(df)
+
+
+####################################
+# Converting sales to log(1+sales)
+####################################
+
+# bağımlı değişkenimiz sayısal olduğu için ve Gradient Descent temelli bir model (LightGBM) kullanacağımız için
+# iterasyon süresinin daha kısa sürmesi için standartlaştırıyoruz
+
+# logaritma alma işlemi, 1 olmasının sebeni 0'ın log'u alınamaz,
+# bunun gibi bazı hataların önüne geçmek için kullanılır
+df['sales'] = np.log1p(df["sales"].values)
+
+check_df(df)
 
