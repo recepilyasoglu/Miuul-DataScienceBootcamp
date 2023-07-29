@@ -189,3 +189,36 @@ df = roll_mean_features(df, [365, 546])
 # 1 yıl önceki bilgiyi ve 1,5 yıl önceki bilgiyi, veriye yansıtmayı deniyoruz, bu değiştirilebilir tabiki
 
 
+########################################
+# Exponentially Weighted Mean Features
+########################################
+
+# alpha 99 olduğunda en yakına ağırlık verecek vs..
+# neredeyse hareketli/aritmetik ortalamaya yakın değeri yakalaması
+
+
+# kaç öncesine gidiceğimizi belirtmemiz geerkiyor yani gecikmeler için shift kullanılmalı
+# ve bu gecikmelere ne kadar ağırlık vereceğiz
+pd.DataFrame({"sales": df["sales"].values[0:10],
+              "roll2": df["sales"].shift(1).rolling(window=2).mean().values[0:10],
+              "ewm099": df["sales"].shift(1).ewm(alpha=0.99).mean().values[0:10],
+              "ewm095": df["sales"].shift(1).ewm(alpha=0.95).mean().values[0:10],
+              "ewm07": df["sales"].shift(1).ewm(alpha=0.7).mean().values[0:10],
+              "ewm02": df["sales"].shift(1).ewm(alpha=0.1).mean().values[0:10]})
+
+def ewm_features(dataframe, alphas, lags):
+    for alpha in alphas:
+        for lag in lags:
+            dataframe['sales_ewm_alpha_' + str(alpha).replace(".", "") + "_lag_" + str(lag)] = \
+                dataframe.groupby(["store", "item"])['sales'].transform(lambda x: x.shift(lag).ewm(alpha=alpha).mean())
+    return dataframe
+
+
+alphas = [0.95, 0.9, 0.8, 0.7, 0.5]
+lags = [91, 98, 105, 112, 180, 270, 365, 546, 728]
+
+df = ewm_features(df, alphas, lags)
+check_df(df)
+
+
+
