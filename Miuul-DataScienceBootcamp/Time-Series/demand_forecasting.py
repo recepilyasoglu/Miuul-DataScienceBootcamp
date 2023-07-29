@@ -100,9 +100,59 @@ df.head()
 df.groupby(["store", "item", "month"]).agg({"sales": ["sum", "mean", "median", "std"]})
 
 
+########################
+# Random Noise
+########################
+
+# üreteceğimiz lag(gecikme) feature'ları bağımlı değişen(sales) üzerinden üretilecek,
+# bunlar üretilirken aşırı öğrenmenin önüne geçmek için rastgele gürültü ekliyoruz
+
+def random_noise(dataframe):
+    return np.random.normal(scale=1.6, size=(len(dataframe),))
 
 
+########################
+# Lag/Shifted Features
+########################
 
+# geçmiş dönem satış sayılarına göre feature'lar üretmek
+# geçmiş gerçek değerler yani yt ve yt-1, yt-2...
+
+#verinin sıralanmış olması gerekmekte, onun için ilk olarak bunu ayarlıyoruz
+df.sort_values(by=['store', 'item', 'date'], axis=0, inplace=True)
+
+pd.DataFrame({"sales": df["sales"].values[0:10],
+              "lag1": df["sales"].shift(1).values[0:10],  # birinci gecikme, shift ile alınıyor gecikme
+              "lag2": df["sales"].shift(2).values[0:10],
+              "lag3": df["sales"].shift(3).values[0:10],
+              "lag4": df["sales"].shift(4).values[0:10]})
+# sales'e göre bir önceki gecikmeleri alıp lag1, lag2.. ye yerleştiriyoruz
+# yapmamızın sebebi mesela 11'in ortaya çıkmasındaki en önemli faktörün bir önceki değer olan 13 olduğunu düşünüyoruz ve yanına yazıyoruz
+# mesela lag1 de NaN çünkü sales değişkeni 13 ile başlıyor ve önceki değeri yok
+# alt satırında 11 var ondan önce 13 vardı, birinci satır lag1 altına 13 yazdık, böyle böyle devam ediyoruz
+
+
+df.groupby(["store", "item"])['sales'].head()
+
+df.groupby(["store", "item"])['sales'].transform(lambda x: x.shift(1))
+
+
+# istenilen: girilen farklı gecikme değerlerinde gezilsin ve
+# bu işlem esnasında üretilecek olan yeni değişkenler otomatik olarak isimlendirilsin ve
+# üzerine rastgele gürültü eklenerek aşırı öğrenmenin önüne geçilsin
+
+def lag_features(dataframe, lags):
+    for lag in lags:
+        dataframe['sales_lag_' + str(lag)] = dataframe.groupby(["store", "item"])['sales'].transform(
+            lambda x: x.shift(lag)) + random_noise(dataframe)
+    return dataframe
+
+df = lag_features(df, [91, 98, 105, 112, 119, 126, 182, 364, 546, 728])
+
+check_df(df)  # ağaca dayalı bir yöntem kullanacağımız için eksili değerleri çok takmıyoruz
+# ilgilendiğimiz tahmin problemi 3 aylık, onun için
+# 3 ay gerideki feature'lara odaklanırsak ancak 3 ay sonrasının değerlerini doğru tahmin edebiliriz
+# bundan dolayı oluşturduğumuz feature'ları 3 ay'ın katları ya da 3 ay'a yakın olacak şekilde oluşturduk.
 
 
 
