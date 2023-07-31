@@ -260,13 +260,18 @@ check_df(df)
 # MAPE: mean absolute percentage error
 # SMAPE: Symmetric mean absolute percentage error (adjusted MAPE)
 
-def smape(preds, target):
-    n = len(preds)
+
+def smape(preds, target, epsilon=1e-10):
     masked_arr = ~((preds == 0) & (target == 0))
     preds, target = preds[masked_arr], target[masked_arr]
     num = np.abs(preds - target)
     denom = np.abs(preds) + np.abs(target)
-    smape_val = (200 * np.sum(num / denom)) / n
+
+    # Filter small values to avoid division by zero
+    small_val_mask = denom < epsilon
+    denom[small_val_mask] = epsilon
+
+    smape_val = 200 * np.mean(num / denom)
     return smape_val
 
 
@@ -307,6 +312,66 @@ X_val = val[cols]
 
 Y_train.shape, X_train.shape, Y_val.shape, X_val.shape
 
+if Y_train.isnull().any() or Y_val.isnull().any():
+    # Handle missing values here, for example:
+    Y_train = Y_train.fillna(0)
+    Y_val = Y_val.fillna(0)
+
+
+###################################
+# LightGBM ile Zaman Serisi Modeli
+###################################
+
+# !pip install lightgbm
+# conda install lightgbm
+
+
+# LightGBM parameters
+lgb_params = {'num_leaves': 10,
+              'learning_rate': 0.02,
+              'feature_fraction': 0.8,
+              'max_depth': 5,
+              'verbosity': 0,
+              'num_boost_round': 9000,
+              'early_stopping_rounds': 200,
+              'nthread': -1}
+
+# karşımıza gelebilecek isim alternatifleri
+# metric mae: l1, absolute loss, mean_absolute_error, regression_l1
+# mse: l2, square loss, mean_squared_error, mse, regression_l2, regression
+# rmse, root square loss, root_mean_squared_error, l2_root
+# mape, MAPE loss, mean_absolute_percentage_error
+
+# num_leaves: bir ağaçtaki maksimum yaprak sayısı
+# learning_rate: shrinkage_rate, eta
+# feature_fraction: rf'nin random subspace özelliği. her iterasyonda rastgele göz önünde bulundurulacak değişken sayısı.
+# max_depth: maksimum derinlik
+# num_boost_round: n_estimators, number of boosting iterations. En az 10000-15000 civarı yapmak lazım.
+
+# early_stopping_rounds: validasyon setindeki metrik belirli bir early_stopping_rounds'da ilerlemiyorsa yani
+# hata düşmüyorsa modellemeyi durdur.
+# hem train süresini kısaltır hem de overfit'e engel olur.
+# nthread: num_thread, nthread, nthreads, n_jobs - işlemcileri tam performans ile kullanmak
+
+
+# LightGBM geliştiricilerinin tercih ettikleri mothodlar, daha hızlı
+
+lgbtrain = lgb.Dataset(data=X_train, label=Y_train, feature_name=cols)
+
+lgbval = lgb.Dataset(data=X_val, label=Y_val, reference=lgbtrain, feature_name=cols)
+
+model = lgb.train(params=lgb_params,
+                  train_set=lgbtrain,
+                  valid_sets=[lgbtrain, lgbval],
+                  num_boost_round=lgb_params['num_boost_round'],
+                  early_stopping_rounds=lgb_params['early_stopping_rounds'],
+                  feval=lgbm_smape,
+                  verbose_eval=100)
+
+# validasyon setindeki 2017'nin ilk 3 ayındaki verilerini soruyoruz
+y_pred_val = model.predict(X_val, num_iteration=model.best_iteration)
+
+smape(np.expm1(y_pred_val), np.expm1(Y_val))
 
 
 
