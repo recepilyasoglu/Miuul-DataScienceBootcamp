@@ -454,6 +454,6 @@ submission_df['id'] = submission_df.id.astype(int)
 submission_df.to_csv("submission_demand.csv", index=False)
 
 sub_ex = pd.read_csv("Time-Series/datasets/demand_forecasting/submission_demand.csv")
+
 sub_ex.head()
 sub_ex.shape
-
