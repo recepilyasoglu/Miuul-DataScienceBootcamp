@@ -403,7 +403,57 @@ feat_imp = plot_lgb_importances(model, num=200)
 
 importance_zero = feat_imp[feat_imp["gain"] == 0]["feature"].values
 
+# importance skoru 0 olmayanları seçme, ilerleyen süreçte final modelinde hızlandırması için
 imp_feats = [col for col in cols if col not in importance_zero]
 len(imp_feats)
 
+
+########################
+# Final Model
+########################
+
+train = df.loc[~df.sales.isna()]
+Y_train = train['sales']
+X_train = train[cols]
+
+
+test = df.loc[df.sales.isna()]
+X_test = test[cols]
+
+lgb_params = {'num_leaves': 10,
+              'learning_rate': 0.02,
+              'feature_fraction': 0.8,
+              'max_depth': 5,
+              'verbose': 0,
+              'nthread': -1,
+              "num_boost_round": model.best_iteration}
+
+lgbtrain_all = lgb.Dataset(data=X_train, label=Y_train, feature_name=cols)
+
+final_model = lgb.train(lgb_params, lgbtrain_all, num_boost_round=model.best_iteration)
+
+
+test_preds = final_model.predict(X_test, num_iteration=model.best_iteration)
+
+
+########################
+# Submission File
+########################
+
+test.head()
+
+# yalnızca id ve sales değişkenini seçiyoruz henüz NaN
+submission_df = test.loc[:, ["id", "sales"]]
+
+# kendi tahmin ettiğimiz değerler logaritması alınmış değerlerdi
+# tersini alarak tahmin ettiğimiz değerleri yerleştiriyoruz
+submission_df['sales'] = np.expm1(test_preds)
+
+submission_df['id'] = submission_df.id.astype(int)
+
+submission_df.to_csv("submission_demand.csv", index=False)
+
+sub_ex = pd.read_csv("Time-Series/datasets/demand_forecasting/submission_demand.csv")
+sub_ex.head()
+sub_ex.shape
 
