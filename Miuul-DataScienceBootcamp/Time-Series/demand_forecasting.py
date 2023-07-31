@@ -276,3 +276,37 @@ def lgbm_smape(preds, train_data):
     return 'SMAPE', smape_val, False
 
 
+##############################
+# Time-Based Validation Sets
+##############################
+
+train
+test
+
+# !!!!! NOT !!!!!
+# Burada Kaggle'ın senaryosu 2018'in ilk 3 ayını tahmin etmemiz üzerineydi, train setimiz de 2017 sonuna kadardı
+# biz 2017'yi silip 2016'nın sonuna kadar olanları train seti olarak seçiyoruz, validasyon için de 2017'nin ilk 3 ayını seçiyoruz
+# çünkü kaggle'ın istediği senaryoya en yakın seçenek olarak düşünüyoruz
+# validasyon ile test edicez, valide edicez, ayarlamalar yapıcaz ve
+# sonra da kaggle'ın istediği test seti üzerinde tahmin işlemlerini yapacağız
+
+
+# 2017'nin başına kadar (2016'nın sonuna kadar) train seti.
+train = df.loc[(df["date"] < "2017-01-01"), :]
+
+# 2017'nin ilk 3'ayı validasyon seti.
+val = df.loc[(df["date"] >= "2017-01-01") & (df["date"] < "2017-04-01"), :]  # yıl bizim için ilgili özellikleri taşımıyor diye düşünüyoruz(örn: corona)
+
+cols = [col for col in train.columns if col not in ['date', 'id', "sales", "year"]]
+
+Y_train = train['sales']
+X_train = train[cols]
+
+Y_val = val['sales']
+X_val = val[cols]
+
+Y_train.shape, X_train.shape, Y_val.shape, X_val.shape
+
+
+
+
