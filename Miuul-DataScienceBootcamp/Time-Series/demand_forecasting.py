@@ -245,3 +245,34 @@ df['sales'] = np.log1p(df["sales"].values)
 
 check_df(df)
 
+
+#####################################################
+# Model
+#####################################################
+
+########################
+# Custom Cost Function
+########################
+
+# MAE, MSE, RMSE, SSE
+
+# MAE: mean absolute error
+# MAPE: mean absolute percentage error
+# SMAPE: Symmetric mean absolute percentage error (adjusted MAPE)
+
+def smape(preds, target):
+    n = len(preds)
+    masked_arr = ~((preds == 0) & (target == 0))
+    preds, target = preds[masked_arr], target[masked_arr]
+    num = np.abs(preds - target)
+    denom = np.abs(preds) + np.abs(target)
+    smape_val = (200 * np.sum(num / denom)) / n
+    return smape_val
+
+
+def lgbm_smape(preds, train_data):
+    labels = train_data.get_label()  # LigtGBM veri yapısının içerisinde olan bağımlı değişkeni ifade ediyor
+    smape_val = smape(np.expm1(preds), np.expm1(labels))
+    return 'SMAPE', smape_val, False
+
+
