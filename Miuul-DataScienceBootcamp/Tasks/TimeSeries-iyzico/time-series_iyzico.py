@@ -118,5 +118,49 @@ check_df(df)
 
 df.head()
 
+# • Rolling Mean Features
+def roll_mean_features(dataframe, windows):
+    for window in windows:
+        dataframe['sales_roll_mean_' + str(window)] = dataframe.groupby("merchant_id")["Total_Transaction"]. \
+                                                          transform(
+            lambda x: x.shift(1).rolling(window=window, min_periods=10, win_type="triang").mean()) + random_noise(
+            dataframe)
+    return dataframe
+
+
+df = roll_mean_features(df, [365, 546])
+check_df(df)
+
+
+# • Exponentially Weighted Mean Features
+def ewm_features(dataframe, alphas, lags):
+    for alpha in alphas:
+        for lag in lags:
+            dataframe['sales_ewm_alpha_' + str(alpha).replace(".", "") + "_lag_" + str(lag)] = \
+                dataframe.groupby("merchant_id")["Total_Transaction"].transform(lambda x: x.shift(lag).ewm(alpha=alpha).mean())
+    return dataframe
+
+
+alphas = [0.95, 0.9, 0.8, 0.7, 0.5]
+lags = [91, 98, 105, 112, 180, 270, 365, 546, 728]
+
+df = ewm_features(df, alphas, lags)
+check_df(df)
+
+
+# • Special days, exchange rate, etc.
+
+########################
+# Black Friday - Summer Solstice
+########################
+
+df["is_black_friday"] = 0
+df.loc[df["transaction_date"].isin(["2018-11-22","2018-11-23","2019-11-29","2019-11-30"]) ,"is_black_friday"]=1
+
+df["is_summer_solstice"] = 0
+df.loc[df["transaction_date"].isin(["2018-06-19","2018-06-20","2018-06-21","2018-06-22",
+                                    "2019-06-19","2019-06-20","2019-06-21","2019-06-22",]) ,"is_summer_solstice"]=1
+
+
 
 
