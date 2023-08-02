@@ -100,5 +100,23 @@ df = create_date_features(df, "transaction_date")
 df.head()
 
 
+# • Lag/Shifted Features
+def random_noise(dataframe):
+    return np.random.normal(scale=1.6, size=(len(dataframe),))
+
+df.groupby(["Total_Transaction"]).agg({'Total_Paid': ["mean", "sum"]})
+
+def lag_features(dataframe, lags):
+    for lag in lags:
+        dataframe['sales_lag_' + str(lag)] = dataframe.groupby("merchant_id")["Total_Transaction"].transform(
+            lambda x: x.shift(lag)) + random_noise(dataframe)
+    return dataframe
+
+df = lag_features(df, [91, 98, 105, 112, 119, 126, 182, 364, 546, 728])
+
+check_df(df)
+
+df.head()
+
 
 
