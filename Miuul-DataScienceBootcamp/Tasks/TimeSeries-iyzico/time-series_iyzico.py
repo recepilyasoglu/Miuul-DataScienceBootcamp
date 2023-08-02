@@ -214,5 +214,52 @@ Y_train.shape, X_train.shape, Y_val.shape, X_val.shape
 Y_train.isnull().any(), Y_val.isnull().any()
 
 
+# Step 4: Create the LightGBM Model and observe the error value with SMAPE
 
+lgb_params = {'metric': 'mae',
+              'num_leaves': 10,
+              'learning_rate': 0.02,
+              'feature_fraction': 0.8,
+              'max_depth': 5,
+              'verbosity': 0,
+              'num_boost_round': 10000,
+              'early_stopping_rounds': 200,
+              'nthread': -1}
+
+lgbtrain = lgb.Dataset(data=X_train, label=Y_train, feature_name=cols)
+
+lgbval = lgb.Dataset(data=X_val, label=Y_val, reference=lgbtrain, feature_name=cols)
+
+model = lgb.train(params=lgb_params,
+                  train_set=lgbtrain,
+                  valid_sets=[lgbtrain, lgbval],
+                  num_boost_round=lgb_params['num_boost_round'],
+                  early_stopping_rounds=lgb_params['early_stopping_rounds'],
+                  feval=lgbm_smape,
+                  verbose_eval=100)
+
+y_pred_val = model.predict(X_val, num_iteration=model.best_iteration)
+
+smape(np.expm1(y_pred_val), np.expm1(Y_val))
+
+# Plot Importance
+def plot_lgb_importances(model, plot=False, num=10):
+    gain = model.feature_importance('gain')
+    feat_imp = pd.DataFrame({'feature': model.feature_name(),
+                             'split': model.feature_importance('split'),
+                             'gain': 100 * gain / gain.sum()}).sort_values('gain', ascending=False)
+    if plot:
+        plt.figure(figsize=(10, 10))
+        sns.set(font_scale=1)
+        sns.barplot(x="gain", y="feature", data=feat_imp[0:25])
+        plt.title('feature')
+        plt.tight_layout()
+        plt.show()
+    else:
+        print(feat_imp.head(num))
+    return feat_imp
+
+plot_lgb_importances(model, num=200)
+
+plot_lgb_importances(model, num=30, plot=True)
 
