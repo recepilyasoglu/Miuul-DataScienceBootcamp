@@ -162,5 +162,57 @@ df.loc[df["transaction_date"].isin(["2018-06-19","2018-06-20","2018-06-21","2018
                                     "2019-06-19","2019-06-20","2019-06-21","2019-06-22",]) ,"is_summer_solstice"]=1
 
 
+# Task 3: Preparation and Modeling for Modeling
+
+# Step 1: Do one-hot encoding.
+
+df = pd.get_dummies(df, columns=["merchant_id", 'day_of_week', 'month'])
+
+df['Total_Transaction'] = np.log1p(df["Total_Transaction"].values)
+
+check_df(df)
+
+
+# Step 2: Define the Custom Cost Functions.
+def smape(preds, target, epsilon=1e-10):
+    masked_arr = ~((preds == 0) & (target == 0))
+    preds, target = preds[masked_arr], target[masked_arr]
+    num = np.abs(preds - target)
+    denom = np.abs(preds) + np.abs(target)
+
+    # Filter small values to avoid division by zero
+    small_val_mask = denom < epsilon
+    denom[small_val_mask] = epsilon
+
+    smape_val = 200 * np.mean(num / denom)
+    return smape_val
+
+
+def lgbm_smape(preds, train_data):
+    labels = train_data.get_label()  # LigtGBM veri yapısının içerisinde olan bağımlı değişkeni ifade ediyor
+    smape_val = smape(np.expm1(preds), np.expm1(labels))
+    return 'SMAPE', smape_val, False
+
+
+# Step 3: Separate the dataset into train and validation.
+# 2020'nin 10.ayına kadar train seti.
+train = df.loc[(df["transaction_date"] < "2020-10-01"), :]
+
+# 2020'nin son 3 ayı validasyon seti.
+val = df.loc[(df["transaction_date"] >= "2020-10-01"), :]
+
+cols = [col for col in train.columns if col not in ['transaction_date', 'merchant_id', "Total_Transaction", "Total_Paid", "year"]]
+
+Y_train = train['Total_Transaction']
+X_train = train[cols]
+
+Y_val = val['Total_Transaction']
+X_val = val[cols]
+
+Y_train.shape, X_train.shape, Y_val.shape, X_val.shape
+
+Y_train.isnull().any(), Y_val.isnull().any()
+
+
 
 
