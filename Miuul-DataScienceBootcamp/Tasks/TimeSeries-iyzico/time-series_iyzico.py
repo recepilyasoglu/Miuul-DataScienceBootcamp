@@ -80,4 +80,25 @@ for id in df.merchant_id.unique():
     plt.show()
 
 
+# Task 2: Apply Feature Engineering techniques. Derive new features.
+
+# • Date Features
+
+def create_date_features(dataframe, date_col):
+    dataframe['month'] = dataframe[date_col].dt.month
+    dataframe['day_of_month'] = dataframe[date_col].dt.day
+    dataframe['day_of_year'] = dataframe[date_col].dt.dayofyear
+    dataframe['week_of_year'] = dataframe[date_col].dt.weekofyear
+    dataframe['day_of_week'] = dataframe[date_col].dt.dayofweek
+    dataframe['year'] = dataframe[date_col].dt.year
+    dataframe["is_wknd"] = dataframe[date_col].dt.weekday // 4
+    dataframe['is_month_start'] = dataframe[date_col].dt.is_month_start.astype(int)
+    dataframe['is_month_end'] = dataframe[date_col].dt.is_month_end.astype(int)
+    return dataframe
+
+df = create_date_features(df, "transaction_date")
+df.head()
+
+
+
 
